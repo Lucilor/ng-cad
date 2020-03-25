@@ -1,5 +1,5 @@
 import {Component, OnInit} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
+import {Router} from "@angular/router";
 
 @Component({
 	selector: "app-index",
@@ -9,21 +9,5 @@ import {ActivatedRoute, Router} from "@angular/router";
 export class IndexComponent implements OnInit {
 	constructor(private router: Router) {}
 
-	ngOnInit(): void {
-		// this.route.params.subscribe(params => {
-		// 	console.log(params);
-		// });
-		const params: any = {};
-		location.search
-			.slice(1)
-			.split("&")
-			.forEach(s => {
-				const ss = s.split("=");
-				if (ss[0]) {
-					params[ss[0]] = ss[1];
-				}
-			});
-		console.log(params);
-		this.router.navigate([params.to], {queryParams: {...params}});
-	}
+	ngOnInit(): void {}
 }

@@ -17,14 +17,18 @@
 				"build": {
 					"builder": "@angular-devkit/build-angular:browser",
 					"options": {
-						"outputPath": "D:/wwwroot/www.n.com/n/cad_viewer",
+						"outputPath": "D:/wwwroot/www.n.com/n/ng-cad",
 						"index": "src/index.html",
 						"main": "src/main.ts",
 						"polyfills": "src/polyfills.ts",
 						"tsConfig": "tsconfig.app.json",
 						"aot": true,
 						"assets": ["src/favicon.ico", "src/assets"],
-						"styles": ["./node_modules/@angular/material/prebuilt-themes/indigo-pink.css", "src/styles.scss"],
+						"styles": [
+							"./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+							"src/styles.scss",
+							"src/mat-theme.scss"
+						],
 						"scripts": []
 					},
 					"configurations": {
@@ -99,7 +103,7 @@
 						},
 						"local": {
 							"browserTarget": "ng-cad:build:local"
-						  }
+						}
 					}
 				},
 				"extract-i18n": {

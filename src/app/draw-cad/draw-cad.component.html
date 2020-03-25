@@ -1,3 +1,16 @@
-<div>
-	<div #cadContainer></div>
+<div #cadContainer></div>
+<div class="menu left">
+	<button mat-raised-button color="primary" (click)="selectLines()">确定</button>
+	<button mat-raised-button color="primary" (click)="resetData()">还原数据</button>
+	<button mat-raised-button color="primary" (click)="cad.setScale(cad.getScale() + 0.1)">放大</button>
+	<button mat-raised-button color="primary" (click)="cad.setScale(cad.getScale() - 0.1)">缩小</button>
+</div>
+<div class="menu right">
+	<div class="cad-fragment-container" *ngFor="let frag of frags; let i = index">
+		<img [src]="frag.img" alt="" />
+		<div class="btn-group">
+			<button mat-raised-button color="primary" (click)="editFragment(frag.data)">查看</button>
+			<button mat-raised-button color="primary" (click)="removeFragment(frag.data, i)">删除</button>
+		</div>
+	</div>
 </div>

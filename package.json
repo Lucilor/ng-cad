@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng build --watch --base-href=/n/cad_viewer/",
+    "start": "ng build --watch --base-href=/n/ng-cad/",
     "start2": "ng serve -c=local --proxy-config proxy.config.json",
-    "build": "ng build --prod --aot",
+    "build": "ng build --prod --aot --base-href=/n/ng-cad/",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -22,11 +22,12 @@
     "@angular/platform-browser": "^9.0.7",
     "@angular/platform-browser-dynamic": "^9.0.7",
     "@angular/router": "^9.0.7",
-    "@lucilor/cad-viewer": "^1.0.4",
-    "@lucilor/utils": "^1.0.15",
+    "@lucilor/cad-viewer": "^1.0.7",
+    "@lucilor/utils": "^1.0.17",
     "@ngrx/store": "^9.0.0",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
+    "uuid": "^7.0.2",
     "zone.js": "^0.10.3"
   },
   "devDependencies": {
@@ -34,9 +35,10 @@
     "@angular/cli": "^9.0.7",
     "@angular/compiler-cli": "^9.0.7",
     "@angular/language-service": "^9.0.7",
-    "@types/jasmine": "~3.5.0",
+    "@types/jasmine": "^3.5.10",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
+    "@types/uuid": "^7.0.2",
     "codelyzer": "^5.1.2",
     "jasmine-core": "~3.5.0",
     "jasmine-spec-reporter": "~4.2.1",
