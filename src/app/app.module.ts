@@ -17,7 +17,10 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 import {MatInputModule} from "@angular/material/input";
 import {MatExpansionModule} from "@angular/material/expansion";
+import {MatIconModule} from "@angular/material/icon";
+import {MatSelectModule} from "@angular/material/select";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";
+import {FormsModule} from "@angular/forms";
 
 @NgModule({
 	declarations: [
@@ -45,7 +48,10 @@ import {EditCadComponent} from "./edit-cad/edit-cad.component";
 		MatButtonModule,
 		MatProgressSpinnerModule,
 		MatInputModule,
-		MatExpansionModule
+		MatExpansionModule,
+		MatIconModule,
+		MatSelectModule,
+		FormsModule
 	],
 	providers: [AlertComponent],
 	bootstrap: [AppComponent]

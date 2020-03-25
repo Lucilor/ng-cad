@@ -73,8 +73,10 @@ export class CadDataService {
 	async getCadData(encode: string, data: string) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadData"});
 		try {
-			const response = await this.http.get<Response>(`${apiBasePath}peijian/cad/getCad/${encode}?data=${data}`).toPromise();
-			if (response.code === 0 && response.data.data) {
+			encode = encodeURIComponent(encode);
+			data = encodeURIComponent(data);
+			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
+			if (response.code === 0 && response.data) {
 				const {分类, 名字, 条件, 选项} = response.data;
 				const json = response.data.json as CadData;
 				if (!json.entities) {
@@ -105,7 +107,9 @@ export class CadDataService {
 		const formData = new FormData();
 		formData.append("data", RSAEncrypt({vid: data.id}));
 		try {
-			const response = await this.http.post<Response>(`${apiBasePath}peijian/cad/update_cad_file/${encode}`, formData).toPromise();
+			encode = encodeURIComponent(encode);
+			// data = encodeURIComponent(data);
+			const response = await this.http.post<Response>(`${apiBasePath}/peijian/cad/update_cad_file/${encode}`, formData).toPromise();
 			if (response.code === 0) {
 				this.rawData = data;
 				return true;
@@ -128,7 +132,9 @@ export class CadDataService {
 		}
 		formData.append("cadData", JSON.stringify(cadData));
 		try {
-			const response = await this.http.post<Response>(`${apiBasePath}peijian/cad/setCAD/${encode}`, formData).toPromise();
+			encode = encodeURIComponent(encode);
+			data = encodeURIComponent(data);
+			const response = await this.http.post<Response>(`${apiBasePath}/peijian/cad/setCAD/${encode}`, formData).toPromise();
 			if (response.code === 0) {
 				const {json, 分类, 名字, 条件, 选项} = response.data;
 				if (!json) {

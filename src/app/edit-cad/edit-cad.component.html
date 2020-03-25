@@ -21,28 +21,175 @@
 			<button mat-raised-button color="primary" (click)="removeFragment(frag.data, i)">删除</button>
 		</div>
 	</div> -->
-	<mat-accordion>
-		<mat-expansion-panel>
+	<mat-accordion multi>
+		<mat-expansion-panel expanded>
 			<mat-expansion-panel-header>
 				<mat-panel-title>CAD信息</mat-panel-title>
 			</mat-expansion-panel-header>
-
-			<form>
+			<div class="cad-info name">
+				<label>名字</label>
 				<mat-form-field>
-					<!-- <mat-label>aaa</mat-label> -->
-					111
-					<input matInput type="number" />
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="cad.data.name" placeholder="请输入名字" />
 				</mat-form-field>
-			</form>
+			</div>
+			<div class="cad-info type">
+				<label>分类</label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="cad.data.type" placeholder="请输入分类" />
+				</mat-form-field>
+			</div>
+			<div class="cad-info options" *ngFor="let o of cad.data.options; let i = index">
+				<label>{{ i === 0 ? "选项" : "" }}</label>
+				<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="o.name" placeholder="选项" />
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="o.value" placeholder="选项" />
+					<mat-icon matSuffix color="primary" (click)="addOption(i)">add_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeOption(i)">remove_circle</mat-icon>
+				</mat-form-field>
+			</div>
+			<div class="cad-info conditions" *ngFor="let c of cad.data.conditions; let i = index">
+				<label>{{ i === 0 ? "条件" : "" }}</label>
+				<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="cad.data.conditions[i]" placeholder="选项" />
+					<mat-icon matSuffix color="primary" (click)="addCondition(i)">add_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeCondition(i)">remove_circle</mat-icon>
+				</mat-form-field>
+			</div>
+			<div class="cad-info baselines" *ngFor="let b of cad.data.baseLines; let i = index">
+				<button
+					mat-raised-button
+					[color]="status.mode.type === 'baseLine' && status.mode.index === i ? 'accent' : 'primary'"
+					(click)="selectBaseline(i)"
+				>
+					基准
+				</button>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="b.name" placeholder="请输入名字" />
+					<mat-icon matSuffix color="primary" (click)="addBaseline(i)">add_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeBaseline(i)" *ngIf="i > 0">remove_circle</mat-icon>
+					<mat-hint [align]="'start'">x:{{ b.valueX.toFixed(2) }}, y:{{ b.valueY.toFixed(2) }}</mat-hint>
+				</mat-form-field>
+			</div>
+			<div class="cad-info joint-points" *ngFor="let j of cad.data.jointPoints; let i = index">
+				<button
+					mat-raised-button
+					[color]="status.mode.type === 'jointPoint' && status.mode.index === i ? 'accent' : 'primary'"
+					(click)="selectJointPoint(i)"
+				>
+					连接点
+				</button>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="j.name" placeholder="请输入名字" />
+					<mat-icon matSuffix color="primary" (click)="addJointPoint(i)">add_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeJointPoint(i)" *ngIf="i > 0">remove_circle</mat-icon>
+					<mat-hint [align]="'start'">x:{{ j.valueX.toFixed(2) }}, y:{{ j.valueY.toFixed(2) }}</mat-hint>
+				</mat-form-field>
+			</div>
 		</mat-expansion-panel>
-		<mat-expansion-panel (opened)="panelOpenState = true" (closed)="panelOpenState = false">
+		<mat-expansion-panel expanded>
 			<mat-expansion-panel-header>
-				<mat-panel-title>
-					Self aware panel
-				</mat-panel-title>
-				<mat-panel-description> Currently I am {{ panelOpenState ? "open" : "closed" }} </mat-panel-description>
+				<mat-panel-title>线段信息</mat-panel-title>
 			</mat-expansion-panel-header>
-			<p>I'm visible because I am open</p>
+			<div class="line-info length">
+				<label>长度</label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input
+						matInput
+						type="number"
+						(change)="setEntityLength($event)"
+						[ngModel]="getEntityLength()"
+						placeholder="请输入长度"
+					/>
+				</mat-form-field>
+			</div>
+			<div class="line-info color">
+				<label>颜色</label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<mat-select
+						[ngModel]="getCssColor()"
+						[style]="{color: getCssColor(getCssColor()), backgroundColor: getCssColor()}"
+						(selectionChange)="setEntityColor($event)"
+					>
+						<mat-option
+							*ngFor="let color of selectableColors"
+							[value]="color"
+							[style]="{color: getCssColor(color), backgroundColor: color}"
+						>
+							{{ color }}
+						</mat-option>
+					</mat-select>
+				</mat-form-field>
+			</div>
+			<div class="line-info mingzi">
+				<label>名字</label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input
+						matInput
+						type="text"
+						(change)="setEntityText($event, 'mingzi')"
+						[ngModel]="status.entity?.mingzi"
+						placeholder="请输入名字"
+					/>
+				</mat-form-field>
+			</div>
+			<div class="line-info qujian">
+				<label>区间</label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input
+						matInput
+						type="text"
+						(change)="setEntityText($event, 'qujian')"
+						[ngModel]="status.entity?.qujian"
+						placeholder="请输入区间"
+					/>
+				</mat-form-field>
+			</div>
+			<div class="line-info gongshi">
+				<label>公式</label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input
+						matInput
+						type="text"
+						(change)="setEntityText($event, 'qujigongshian')"
+						[ngModel]="status.entity?.gongshi"
+						placeholder="请输入公式"
+					/>
+				</mat-form-field>
+			</div>
+		</mat-expansion-panel>
+		<mat-expansion-panel expanded>
+			<mat-expansion-panel-header>
+				<mat-panel-title>提交 </mat-panel-title>
+			</mat-expansion-panel-header>
+			<button mat-raised-button color="primary" (click)="submit()">确定修改</button>
 		</mat-expansion-panel>
 	</mat-accordion>
+</div>
+
+<div class="line-controller">
+	<div class="point start-point" [style.left.px]="status.line.start.x" [style.top.px]="status.line.start.y"></div>
+	<div class="point end-point" [style.left.px]="status.line.end.x" [style.top.px]="status.line.end.y"></div>
+	<div class="joint-points" *ngIf="status.mode.type === 'jointPoint'">
+		<div
+			*ngFor="let p of pointsMap"
+			[class]="{point: true, 'joint-point': true, selected: p.selected}"
+			[style.left.px]="p.tPoint.x"
+			[style.top.px]="p.tPoint.y"
+			(click)="onJointPointClick($event)"
+		></div>
+	</div>
 </div>

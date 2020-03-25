@@ -61,7 +61,7 @@ export class DrawCadComponent implements AfterViewInit {
 
 	editFragment(fragment: CadData) {
 		this.dataService.currentFragment = fragment;
-		window.open("edit-cad");
+		window.open("edit-cad?encode=" + this.route.snapshot.queryParams.encode);
 	}
 
 	resetData() {
