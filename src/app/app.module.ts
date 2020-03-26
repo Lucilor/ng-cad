@@ -23,7 +23,7 @@ import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
-import { AssembleCadComponent } from './assemble-cad/assemble-cad.component';
+import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 
 @NgModule({
 	declarations: [

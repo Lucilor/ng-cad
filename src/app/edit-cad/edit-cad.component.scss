@@ -1,14 +1,4 @@
-@mixin font {
-	line-height: 1.5rem;
-	font-size: 1rem;
-}
-.menu.left {
-	input {
-		width: 100px;
-		background: white;
-		@include font();
-	}
-}
+@import "../../styles.scss";
 
 .menu.right {
 	width: 336px;
@@ -132,30 +122,5 @@
 
 	input {
 		position: absolute;
-	}
-}
-
-.cad-image {
-	margin-bottom: 15px;
-	box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.3);
-	text-align: center;
-
-	.title {
-		@include font();
-	}
-
-	img {
-		cursor: pointer;
-		width: 100%;
-
-		&:hover {
-			transform: scale(1.01);
-		}
-	}
-
-	&.active {
-		.title {
-			background-color: red;
-		}
 	}
 }

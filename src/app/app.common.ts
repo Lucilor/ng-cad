@@ -5,7 +5,8 @@ export const apiBasePath = host + "/n/zy/index";
 
 export const paths = {
 	"draw-cad": "draw-cad",
-	"edit-cad": "edit-cad"
+	"edit-cad": "edit-cad",
+	"assemble-cad": "assemble-cad"
 };
 
 export interface Response {

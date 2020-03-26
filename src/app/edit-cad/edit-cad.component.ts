@@ -40,29 +40,23 @@ export class EditCadComponent implements AfterViewInit {
 		private dialog: MatDialog,
 		private cd: ChangeDetectorRef
 	) {
-		this.cad = new CadViewer({entities: [], layers: [], name: ""});
 		this.status = {entity: null, mode: {type: "normal", index: -1}, line: new Line(new Point()), dimension: null};
 		this.partners = [];
 	}
 
 	async ngAfterViewInit() {
 		document.title = "编辑CAD";
-		let currentFragment: CadData;
+		let data: CadData;
 		const params = this.route.snapshot.queryParams;
 		if (params.data) {
-			currentFragment = await this.dataService.getCadData(params.encode, params.data);
+			data = await this.dataService.getCadData(params.encode, params.data);
 		} else {
-			currentFragment = this.dataService.currentFragment;
+			data = this.dataService.currentFragment;
 		}
-		if (!currentFragment) {
+		if (!data) {
 			this.dialog.open(AlertComponent, {data: {content: "没有cad数据。"}});
 			return null;
 		}
-		this.refresh(currentFragment);
-		window["view"] = this;
-	}
-
-	refresh(data: CadData) {
 		const cad = new CadViewer(data, innerWidth, innerHeight, {
 			padding: [40, 380, 40, 150],
 			showLineLength: 8,
@@ -73,10 +67,6 @@ export class EditCadComponent implements AfterViewInit {
 			.enableWheeling()
 			.enableKeyboard();
 		this.cad = cad;
-		cad.data.entities.forEach(e => (e.selectable = true));
-		this.selectLineEnd();
-		this.cadContainer.nativeElement.append(cad.view);
-		document.title = "编辑CAD - " + cad.data.name;
 		cad.on(Events.entityclick, (event: PIXI.interaction.InteractionEvent, entity: CadEntity) => {
 			const {status} = this;
 			this.setPoints();
@@ -117,6 +107,19 @@ export class EditCadComponent implements AfterViewInit {
 		cad.on(Events.wheel, () => {
 			this.setPoints();
 		});
+		this.cd.detectChanges();
+		this.cadContainer.nativeElement.append(cad.view);
+		this.refresh();
+	}
+
+	refresh(data?: CadData) {
+		const cad = this.cad;
+		if (data) {
+			cad.reset(data);
+		}
+		cad.data.entities.forEach(e => (e.selectable = true));
+		this.selectLineEnd();
+		document.title = "编辑CAD - " + cad.data.name;
 		if (cad.data.options.length < 1) {
 			cad.data.options.push({name: "", value: ""});
 		}
@@ -129,7 +132,6 @@ export class EditCadComponent implements AfterViewInit {
 		if (cad.data.jointPoints.length < 1) {
 			cad.data.jointPoints.push({name: ""});
 		}
-		this.cd.detectChanges();
 		this.generatePointsMap();
 		if (this.route.snapshot.queryParams.join) {
 			document.title += "(关联)";
@@ -223,11 +225,10 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	async submit() {
-		const data = this.cad.exportData();
+		const data = this.cad.exportData("object");
 		const params = this.route.snapshot.queryParams;
-		const resData = await this.dataService.postCadData(data, params.encode);
-		this.cad.reset(resData).render(true);
-		this.generatePointsMap();
+		const resData = await this.dataService.postCadData(data, params.encode, params.data);
+		this.refresh(resData);
 	}
 
 	selectLineBegin(type: Mode["type"], index: number) {
