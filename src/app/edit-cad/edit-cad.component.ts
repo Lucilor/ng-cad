@@ -1,11 +1,12 @@
 import {Component, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {CadDataService} from "../cad-data.service";
-import {CadData, CadViewer, Events, CadEntity, CadTypes, CadLine, CadArc} from "@lucilor/cad-viewer";
+import {CadData, CadViewer, Events, CadEntity, CadTypes, CadLine, CadArc, Dimension} from "@lucilor/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../alert/alert.component";
-import {Line, Point, Angle, Arc, getColorLightness} from "@lucilor/utils";
+import {Line, Point, Angle, Arc, getColorLightness, RSAEncrypt} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
+import {DimFormComponent} from "./dim-form.component";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension1" | "dimension2" | "jointPoint";
@@ -27,8 +28,10 @@ interface LinesAtPoint {
 export class EditCadComponent implements AfterViewInit {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	cad: CadViewer;
-	status: {entity: CadLine; mode: Mode; line: Line};
+	status: {entity: CadLine; mode: Mode; line: Line; dimension: Dimension};
 	pointsMap: LinesAtPoint[];
+	rotateAngle = 0;
+	partners: {id: string; name: string; img: string}[];
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
 	constructor(
@@ -38,7 +41,8 @@ export class EditCadComponent implements AfterViewInit {
 		private cd: ChangeDetectorRef
 	) {
 		this.cad = new CadViewer({entities: [], layers: [], name: ""});
-		this.status = {entity: null, mode: {type: "normal", index: -1}, line: new Line(new Point())};
+		this.status = {entity: null, mode: {type: "normal", index: -1}, line: new Line(new Point()), dimension: null};
+		this.partners = [];
 	}
 
 	async ngAfterViewInit() {
@@ -54,8 +58,12 @@ export class EditCadComponent implements AfterViewInit {
 			this.dialog.open(AlertComponent, {data: {content: "没有cad数据。"}});
 			return null;
 		}
-		currentFragment.entities.forEach(e => (e.selectable = true));
-		const cad = new CadViewer(currentFragment, innerWidth, innerHeight, {
+		this.refresh(currentFragment);
+		window["view"] = this;
+	}
+
+	refresh(data: CadData) {
+		const cad = new CadViewer(data, innerWidth, innerHeight, {
 			padding: [40, 380, 40, 150],
 			showLineLength: 8,
 			selectMode: "single",
@@ -65,9 +73,10 @@ export class EditCadComponent implements AfterViewInit {
 			.enableWheeling()
 			.enableKeyboard();
 		this.cad = cad;
+		cad.data.entities.forEach(e => (e.selectable = true));
 		this.selectLineEnd();
 		this.cadContainer.nativeElement.append(cad.view);
-		document.title += " - " + cad.data.name;
+		document.title = "编辑CAD - " + cad.data.name;
 		cad.on(Events.entityclick, (event: PIXI.interaction.InteractionEvent, entity: CadEntity) => {
 			const {status} = this;
 			this.setPoints();
@@ -78,13 +87,6 @@ export class EditCadComponent implements AfterViewInit {
 				const lineEntity = entity as CadLine;
 				this.status.entity = lineEntity;
 				const line = new Line(new Point(lineEntity.start), new Point(lineEntity.end));
-				// if (lineController.enabled && this.status.mode.type === "normal") {
-				// 	lineController.setLine(entity as CadLine);
-				// 	lineController.show();
-				// 	const length = num2Str(line.length);
-				// 	const {mingzi, qujian, gongshi} = entity as CadLine;
-				// 	layui.form.val("line-info", {length, mingzi, qujian, gongshi});
-				// }
 				if (status.mode.type === "baseLine") {
 					const index = status.mode.index;
 					if (line.slope === 0) {
@@ -95,13 +97,7 @@ export class EditCadComponent implements AfterViewInit {
 					}
 					cad.calculateBaseLines(index);
 					const baseLine = cad.data.baseLines[index];
-					// const {valueX: x, valueY: y} = baseLine;
-					// const div = $(".base-line").eq(index);
-					// div.find(".base-x-value").text(typeof x === "number" ? x.toFixed(2) : "");
-					// div.find(".base-y-value").text(typeof y === "number" ? y.toFixed(2) : "");
-					// this._verifyInput(div, ["base-x-value", "base-y-value"]);
 					cad.data.entities.forEach(e => (e.selected = [baseLine.idX, baseLine.idY].includes(e.id)));
-					cad.render();
 				}
 				if (status.mode.type.includes("dimension")) {
 					const dimension = cad.data.dimensions[status.mode.index];
@@ -112,6 +108,7 @@ export class EditCadComponent implements AfterViewInit {
 						dimension.entity2.id = entity.id;
 					}
 				}
+				cad.render();
 			}
 		});
 		cad.on(Events.drag, () => {
@@ -120,15 +117,33 @@ export class EditCadComponent implements AfterViewInit {
 		cad.on(Events.wheel, () => {
 			this.setPoints();
 		});
-		cad.render(true)
-			.drawDimensions()
-			.render(true);
+		if (cad.data.options.length < 1) {
+			cad.data.options.push({name: "", value: ""});
+		}
+		if (cad.data.conditions.length < 1) {
+			cad.data.conditions.push("");
+		}
 		if (cad.data.baseLines.length < 1) {
 			cad.data.baseLines.push({name: "", idX: "", idY: ""});
 		}
+		if (cad.data.jointPoints.length < 1) {
+			cad.data.jointPoints.push({name: ""});
+		}
 		this.cd.detectChanges();
 		this.generatePointsMap();
-		window["view"] = this;
+		if (this.route.snapshot.queryParams.join) {
+			document.title += "(关联)";
+			cad.exportData().partners.forEach(partner => {
+				const pViewer = new CadViewer(partner, 300, 150, {padding: 10}).render(true);
+				pViewer.data.jointPoints.forEach(p => pViewer.drawPoint(new Point(p.valueX, p.valueY), {color: 0xffffff}));
+				const img = pViewer.exportImage();
+				this.partners.push({id: partner.id, name: partner.name, img: img.src});
+			});
+			cad.joinPartners();
+		}
+		cad.render(true)
+			.drawDimensions()
+			.render(true);
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
@@ -141,7 +156,7 @@ export class EditCadComponent implements AfterViewInit {
 		} else if (clockwise === false) {
 			this.cad.rotate(Math.PI / 2);
 		} else {
-			this.cad.rotate(Math.PI / 2);
+			this.cad.rotate(new Angle(this.rotateAngle, "deg").rad);
 		}
 		this.cad.render(true);
 	}
@@ -167,10 +182,9 @@ export class EditCadComponent implements AfterViewInit {
 		if (status.mode.type === "baseLine" && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
-			status.mode.index = i;
 			const {idX, idY} = cad.data.baseLines[i];
 			cad.data.entities.forEach(e => (e.selected = [idX, idY].includes(e.id)));
-			this.selectLineBegin("baseLine");
+			this.selectLineBegin("baseLine", i);
 		}
 	}
 
@@ -183,55 +197,21 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	selectJointPoint(i: number) {
-		const {cad, status, pointsMap} = this;
+		const {status} = this;
 		if (status.mode.type === "jointPoint" && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
 			status.mode.type = "jointPoint";
 			status.mode.index = i;
-			const jointPoint = cad.data.jointPoints[i];
-			console.log(pointsMap);
-			// this.pointsMap.forEach(v => {
-			// 	const point = $(`<div class="point joint-point"></div>`);
-			// 	div.append(point);
-			// 	const {x, y} = v.point;
-			// 	point.on("click", () => {
-			// 		const jointPointDiv = document.querySelectorAll(".joint-point").item(i);
-			// 		const input = jointPointDiv.querySelector("input");
-			// 		if (point.hasClass("selected")) {
-			// 			point.removeClass("selected");
-			// 			jointPointDiv.querySelector(".joint-x-value").textContent = "";
-			// 			jointPointDiv.querySelector(".joint-y-value").textContent = "";
-			// 			cad.data.jointPoints[i].valueX = 0;
-			// 			cad.data.jointPoints[i].valueY = 0;
-			// 			input.required = false;
-			// 			input.removeAttribute("lay-verify");
-			// 		} else {
-			// 			this.dom.find(".joint-point").each(function() {
-			// 				$(this).removeClass("selected");
-			// 			});
-			// 			point.addClass("selected");
-			// 			jointPointDiv.querySelector(".joint-x-value").textContent = x.toFixed(2);
-			// 			jointPointDiv.querySelector(".joint-y-value").textContent = y.toFixed(2);
-			// 			cad.data.jointPoints[i].valueX = x;
-			// 			cad.data.jointPoints[i].valueY = y;
-			// 			input.required = true;
-			// 			input.setAttribute("lay-verify", "required");
-			// 		}
-			// 	});
-			// 	if (x === jointPoint.valueX && y === jointPoint.valueY) {
-			// 		point.addClass("selected");
-			// 	}
-			// 	this._setPoint(point, v.point);
-			// });
-			// this.status.jointPoint = true;
-			// this.status.jointPointIndex = i;
 		}
 	}
 
-	onJointPointClick(event: Event) {
-		const target = event.target as HTMLDivElement;
-		// if(target.classList.contains("sele"))
+	onJointPointClick(i: number) {
+		const {pointsMap, status, cad} = this;
+		pointsMap.forEach((v, j) => (v.selected = i === j));
+		const jointPoint = cad.data.jointPoints[status.mode.index];
+		jointPoint.valueX = pointsMap[i].point.x;
+		jointPoint.valueY = pointsMap[i].point.y;
 	}
 
 	addJointPoint(i: number) {
@@ -242,13 +222,16 @@ export class EditCadComponent implements AfterViewInit {
 		this.cad.data.jointPoints.splice(i, 1);
 	}
 
-	submit() {
-		console.log(this.cad.exportData());
+	async submit() {
+		const data = this.cad.exportData();
+		const params = this.route.snapshot.queryParams;
+		const resData = await this.dataService.postCadData(data, params.encode);
+		this.cad.reset(resData).render(true);
+		this.generatePointsMap();
 	}
 
-	selectLineBegin(type: Mode["type"]) {
+	selectLineBegin(type: Mode["type"], index: number) {
 		const cad = this.cad;
-		// this.lineController.hide();
 		cad.data.entities.forEach(e => {
 			if (e.container) {
 				if (e.type === CadTypes.Line) {
@@ -268,6 +251,7 @@ export class EditCadComponent implements AfterViewInit {
 			}
 		});
 		this.status.mode.type = type;
+		this.status.mode.index = index;
 		cad.config.selectedColor = 0x0000ff;
 		cad.config.hoverColor = 0x00ffff;
 		cad.render();
@@ -461,5 +445,47 @@ export class EditCadComponent implements AfterViewInit {
 			return;
 		}
 		entity[field] = (event.target as HTMLInputElement).value;
+	}
+
+	editPartner(id: string) {
+		const params = this.route.snapshot.queryParams;
+		window.open(`edit-cad?encode=${params.encode}&data=${RSAEncrypt({id})}`);
+	}
+
+	addDimension(i: number) {
+		this.cad.data.dimensions.splice(i + 1, 0, {
+			axis: "x",
+			entity1: {id: "", location: "start"},
+			entity2: {id: "", location: "end"},
+			distance: 16,
+			fontSize: 16,
+			dimstyle: ""
+		});
+	}
+
+	removeDimension(i: number) {
+		this.cad.data.dimensions.splice(i, 1);
+	}
+
+	selectDimLine(i: number, line: number) {
+		const {status, cad} = this;
+		if (status.mode.type === "dimension" + line && status.mode.index === i) {
+			this.selectLineEnd();
+		} else {
+			const {entity1, entity2} = cad.data.dimensions[i];
+			if (line === 1) {
+				cad.data.entities.forEach(e => (e.selected = e.id === entity1.id));
+				this.selectLineBegin("dimension1", i);
+			}
+			if (line === 2) {
+				cad.data.entities.forEach(e => (e.selected = e.id === entity2.id));
+				this.selectLineBegin("dimension2", i);
+			}
+		}
+	}
+
+	editDimension(i: number) {
+		this.status.dimension = this.cad.data.dimensions[i];
+		this.dialog.open(DimFormComponent, {data: this.cad.data.dimensions[i]});
 	}
 }

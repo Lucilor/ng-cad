@@ -1,30 +1,28 @@
-.rotate-form {
-	padding: 0;
-	margin: 0;
-
-	input {
-		background: white;
-		line-height: 2rem;
-		font-size: 1.5rem;
-	}
-}
-
 @mixin font {
 	line-height: 1.5rem;
 	font-size: 1rem;
 }
+.menu.left {
+	input {
+		width: 100px;
+		background: white;
+		@include font();
+	}
+}
+
 .menu.right {
 	width: 336px;
 	padding: 10px;
 
 	.cad-info,
-	.line-info {
+	.line-info,
+	.dimension-info {
 		mat-form-field {
 			width: calc(100% - 42px);
 			margin-left: 10px;
 
 			input {
-				@include font()
+				@include font();
 			}
 
 			mat-icon {
@@ -38,7 +36,7 @@
 			}
 
 			mat-select {
-				@include font()
+				@include font();
 			}
 		}
 
@@ -53,7 +51,8 @@
 			}
 		}
 
-		&.baselines {
+		&.baselines,
+		&.dimension-info {
 			mat-form-field {
 				width: calc(100% - 74px);
 				margin-bottom: 10px;
@@ -64,6 +63,20 @@
 			mat-form-field {
 				width: calc(100% - 84px);
 				margin-bottom: 10px;
+			}
+		}
+
+		&.dimension-info {
+			mat-hint {
+				button {
+					min-width: unset;
+					width: 40px;
+					height: 24px;
+					font-size: 0.8rem;
+					line-height: 24px;
+					margin: 0 5px;
+					padding: 0;
+				}
 			}
 		}
 	}
@@ -119,5 +132,30 @@
 
 	input {
 		position: absolute;
+	}
+}
+
+.cad-image {
+	margin-bottom: 15px;
+	box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.3);
+	text-align: center;
+
+	.title {
+		@include font();
+	}
+
+	img {
+		cursor: pointer;
+		width: 100%;
+
+		&:hover {
+			transform: scale(1.01);
+		}
+	}
+
+	&.active {
+		.title {
+			background-color: red;
+		}
 	}
 }

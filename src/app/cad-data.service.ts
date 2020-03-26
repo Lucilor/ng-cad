@@ -9,6 +9,7 @@ import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "./alert/alert.component";
 import {SessionStorage, Point, Line, RSAEncrypt} from "@lucilor/utils";
 import * as UUID from "uuid";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 const session = new SessionStorage("cad-data");
 @Injectable({
@@ -17,7 +18,7 @@ const session = new SessionStorage("cad-data");
 export class CadDataService {
 	private _rawData: CadRawData;
 	private _mainData: CadData;
-	constructor(private store: Store<State>, private http: HttpClient, private dialog: MatDialog) {
+	constructor(private store: Store<State>, private http: HttpClient, private dialog: MatDialog, private snackBar: MatSnackBar) {
 		if (!this._rawData) {
 			this._rawData = {entities: [], layers: [], lineText: [], globalText: []};
 		}
@@ -146,7 +147,7 @@ export class CadDataService {
 				json.conditions = 条件;
 				const currentFragment = json as CadData;
 				this.currentFragment = currentFragment;
-				this.alert(response.msg);
+				this.snackBar.open(response.msg);
 				return currentFragment;
 			} else {
 				throw new Error(response.msg);

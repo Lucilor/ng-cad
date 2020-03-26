@@ -5,12 +5,7 @@
 	<button mat-raised-button color="primary" (click)="flip(false, true)">中心对称</button>
 	<button mat-raised-button color="primary" (click)="rotate(true)">顺时针旋转</button>
 	<button mat-raised-button color="primary" (click)="rotate(false)">逆时针旋转</button>
-	<form class="rotate-form">
-		<mat-form-field class="example-full-width">
-			<input matInput type="number" />
-		</mat-form-field>
-	</form>
-
+	<input matInput type="number" [(ngModel)]="rotateAngle" />
 	<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
 </div>
 <div class="menu right">
@@ -50,7 +45,7 @@
 					<mat-label></mat-label>
 					<input matInput type="text" [(ngModel)]="o.value" placeholder="选项" />
 					<mat-icon matSuffix color="primary" (click)="addOption(i)">add_circle</mat-icon>
-					<mat-icon matSuffix color="primary" (click)="removeOption(i)">remove_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeOption(i)" *ngIf="i > 0">remove_circle</mat-icon>
 				</mat-form-field>
 			</div>
 			<div class="cad-info conditions" *ngFor="let c of cad.data.conditions; let i = index">
@@ -59,7 +54,7 @@
 					<mat-label></mat-label>
 					<input matInput type="text" [(ngModel)]="cad.data.conditions[i]" placeholder="选项" />
 					<mat-icon matSuffix color="primary" (click)="addCondition(i)">add_circle</mat-icon>
-					<mat-icon matSuffix color="primary" (click)="removeCondition(i)">remove_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeCondition(i)" *ngIf="i > 0">remove_circle</mat-icon>
 				</mat-form-field>
 			</div>
 			<div class="cad-info baselines" *ngFor="let b of cad.data.baseLines; let i = index">
@@ -75,7 +70,7 @@
 					<input matInput type="text" [(ngModel)]="b.name" placeholder="请输入名字" />
 					<mat-icon matSuffix color="primary" (click)="addBaseline(i)">add_circle</mat-icon>
 					<mat-icon matSuffix color="primary" (click)="removeBaseline(i)" *ngIf="i > 0">remove_circle</mat-icon>
-					<mat-hint [align]="'start'">x:{{ b.valueX.toFixed(2) }}, y:{{ b.valueY.toFixed(2) }}</mat-hint>
+					<mat-hint [align]="'start'">x:{{ b.valueX?.toFixed(2) }}, y:{{ b.valueY?.toFixed(2) }}</mat-hint>
 				</mat-form-field>
 			</div>
 			<div class="cad-info joint-points" *ngFor="let j of cad.data.jointPoints; let i = index">
@@ -91,8 +86,9 @@
 					<input matInput type="text" [(ngModel)]="j.name" placeholder="请输入名字" />
 					<mat-icon matSuffix color="primary" (click)="addJointPoint(i)">add_circle</mat-icon>
 					<mat-icon matSuffix color="primary" (click)="removeJointPoint(i)" *ngIf="i > 0">remove_circle</mat-icon>
-					<mat-hint [align]="'start'">x:{{ j.valueX.toFixed(2) }}, y:{{ j.valueY.toFixed(2) }}</mat-hint>
+					<mat-hint [align]="'start'">x:{{ j.valueX?.toFixed(2) }}, y:{{ j.valueY?.toFixed(2) }}</mat-hint>
 				</mat-form-field>
+				<button mat-raised-button color="primary" (click)="submit()">确定修改</button>
 			</div>
 		</mat-expansion-panel>
 		<mat-expansion-panel expanded>
@@ -109,6 +105,7 @@
 						(change)="setEntityLength($event)"
 						[ngModel]="getEntityLength()"
 						placeholder="请输入长度"
+						[disabled]="!status.entity?.id"
 					/>
 				</mat-form-field>
 			</div>
@@ -120,6 +117,7 @@
 						[ngModel]="getCssColor()"
 						[style]="{color: getCssColor(getCssColor()), backgroundColor: getCssColor()}"
 						(selectionChange)="setEntityColor($event)"
+						[disabled]="!status.entity?.id"
 					>
 						<mat-option
 							*ngFor="let color of selectableColors"
@@ -141,6 +139,7 @@
 						(change)="setEntityText($event, 'mingzi')"
 						[ngModel]="status.entity?.mingzi"
 						placeholder="请输入名字"
+						[disabled]="!status.entity?.id"
 					/>
 				</mat-form-field>
 			</div>
@@ -154,6 +153,7 @@
 						(change)="setEntityText($event, 'qujian')"
 						[ngModel]="status.entity?.qujian"
 						placeholder="请输入区间"
+						[disabled]="!status.entity?.id"
 					/>
 				</mat-form-field>
 			</div>
@@ -167,29 +167,66 @@
 						(change)="setEntityText($event, 'qujigongshian')"
 						[ngModel]="status.entity?.gongshi"
 						placeholder="请输入公式"
+						[disabled]="!status.entity?.id"
 					/>
 				</mat-form-field>
+			</div>
+			<button mat-raised-button color="primary" (click)="submit()">确定修改</button>
+		</mat-expansion-panel>
+		<mat-expansion-panel expanded *ngIf="partners.length">
+			<mat-expansion-panel-header>
+				<mat-panel-title>关联CAD</mat-panel-title>
+			</mat-expansion-panel-header>
+			<div class="cad-image" *ngFor="let p of partners">
+				<span class="title">{{ p.name }}</span>
+				<img [src]="p.img" (click)="editPartner(p.id)" />
 			</div>
 		</mat-expansion-panel>
 		<mat-expansion-panel expanded>
 			<mat-expansion-panel-header>
-				<mat-panel-title>提交 </mat-panel-title>
+				<mat-panel-title>标注信息</mat-panel-title>
 			</mat-expansion-panel-header>
-			<button mat-raised-button color="primary" (click)="submit()">确定修改</button>
+			<div class="dimension-info" *ngFor="let d of cad.data.dimensions; let i = index">
+				<button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input disabled matInput type="text" [ngModel]="d.mingzi || d.qujian || ''" placeholder="标注内容" />
+					<mat-icon matSuffix color="primary" (click)="addDimension(i)">add_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeDimension(i)" *ngIf="i > 0">remove_circle</mat-icon>
+					<mat-hint [align]="'start'">
+						<button
+							mat-raised-button
+							[color]="status.mode.type === 'dimension1' && status.mode.index === i ? 'accent' : 'primary'"
+							(click)="selectDimLine(i, 1)"
+						>
+							线1
+						</button>
+						<button
+							mat-raised-button
+							[color]="status.mode.type === 'dimension2' && status.mode.index === i ? 'accent' : 'primary'"
+							(click)="selectDimLine(i, 2)"
+						>
+							线2
+						</button>
+					</mat-hint>
+				</mat-form-field>
+			</div>
 		</mat-expansion-panel>
 	</mat-accordion>
 </div>
 
 <div class="line-controller">
-	<div class="point start-point" [style.left.px]="status.line.start.x" [style.top.px]="status.line.start.y"></div>
-	<div class="point end-point" [style.left.px]="status.line.end.x" [style.top.px]="status.line.end.y"></div>
+	<ng-container *ngIf="status.mode.type === 'normal'">
+		<div class="point start-point" [style.left.px]="status.line.start.x" [style.top.px]="status.line.start.y"></div>
+		<div class="point end-point" [style.left.px]="status.line.end.x" [style.top.px]="status.line.end.y"></div>
+	</ng-container>
 	<div class="joint-points" *ngIf="status.mode.type === 'jointPoint'">
 		<div
-			*ngFor="let p of pointsMap"
+			*ngFor="let p of pointsMap; let i = index"
 			[class]="{point: true, 'joint-point': true, selected: p.selected}"
 			[style.left.px]="p.tPoint.x"
 			[style.top.px]="p.tPoint.y"
-			(click)="onJointPointClick($event)"
+			(click)="onJointPointClick(i)"
 		></div>
 	</div>
 </div>

@@ -20,7 +20,10 @@ import {MatExpansionModule} from "@angular/material/expansion";
 import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";
-import {FormsModule} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {DimFormComponent} from "./edit-cad/dim-form.component";
+import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
+import { AssembleCadComponent } from './assemble-cad/assemble-cad.component';
 
 @NgModule({
 	declarations: [
@@ -30,7 +33,9 @@ import {FormsModule} from "@angular/forms";
 		PageNotFoundComponent,
 		IndexComponent,
 		AlertComponent,
-		EditCadComponent
+		EditCadComponent,
+		DimFormComponent,
+		AssembleCadComponent
 	],
 	imports: [
 		BrowserModule,
@@ -51,9 +56,12 @@ import {FormsModule} from "@angular/forms";
 		MatExpansionModule,
 		MatIconModule,
 		MatSelectModule,
-		FormsModule
+		MatSnackBarModule,
+		FormsModule,
+		ReactiveFormsModule
 	],
-	providers: [AlertComponent],
+	entryComponents: [AlertComponent, DimFormComponent],
+	providers: [{provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {duration: 3000, verticalPosition: "top"}}],
 	bootstrap: [AppComponent]
 })
 export class AppModule {}
