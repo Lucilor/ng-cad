@@ -42,6 +42,8 @@ export class EditCadComponent implements AfterViewInit {
 	) {
 		this.status = {entity: null, mode: {type: "normal", index: -1}, line: new Line(new Point()), dimension: null};
 		this.partners = [];
+		// tslint:disable-next-line
+		window["view"] = this;
 	}
 
 	async ngAfterViewInit() {
@@ -49,7 +51,7 @@ export class EditCadComponent implements AfterViewInit {
 		let data: CadData;
 		const params = this.route.snapshot.queryParams;
 		if (params.data) {
-			data = await this.dataService.getCadData(params.encode, params.data);
+			data = (await this.dataService.getCadData(params.encode, params.data))[0];
 		} else {
 			data = this.dataService.currentFragment;
 		}
@@ -69,13 +71,10 @@ export class EditCadComponent implements AfterViewInit {
 		this.cad = cad;
 		cad.on(Events.entityclick, (event: PIXI.interaction.InteractionEvent, entity: CadEntity) => {
 			const {status} = this;
+			this.status.entity = entity as CadLine;
 			this.setPoints();
-			if (entity.type === CadTypes.Arc) {
-				this.setPoints();
-			}
 			if (entity.type === CadTypes.Line) {
 				const lineEntity = entity as CadLine;
-				this.status.entity = lineEntity;
 				const line = new Line(new Point(lineEntity.start), new Point(lineEntity.end));
 				if (status.mode.type === "baseLine") {
 					const index = status.mode.index;
@@ -132,12 +131,28 @@ export class EditCadComponent implements AfterViewInit {
 		if (cad.data.jointPoints.length < 1) {
 			cad.data.jointPoints.push({name: ""});
 		}
-		this.generatePointsMap();
+		if (cad.data.dimensions.length < 1) {
+			cad.data.dimensions.push({
+				axis: "x",
+				entity1: {id: "", location: "start"},
+				entity2: {id: "", location: "end"},
+				distance: 0,
+				dimstyle: "",
+				fontSize: 16
+			});
+		}
+		this.status = {entity: null, mode: {type: "normal", index: -1}, line: new Line(new Point()), dimension: null};
+		this.partners = [];
 		if (this.route.snapshot.queryParams.join) {
 			document.title += "(关联)";
+			const names = cad.data.jointPoints.map(v => v.name);
 			cad.exportData().partners.forEach(partner => {
 				const pViewer = new CadViewer(partner, 300, 150, {padding: 10}).render(true);
-				pViewer.data.jointPoints.forEach(p => pViewer.drawPoint(new Point(p.valueX, p.valueY), {color: 0xffffff}));
+				pViewer.data.jointPoints.forEach(p => {
+					if (names.includes(p.name)) {
+						pViewer.drawPoint(new Point(p.valueX, p.valueY), {color: 0xffffff});
+					}
+				});
 				const img = pViewer.exportImage();
 				this.partners.push({id: partner.id, name: partner.name, img: img.src});
 			});
@@ -205,6 +220,7 @@ export class EditCadComponent implements AfterViewInit {
 		} else {
 			status.mode.type = "jointPoint";
 			status.mode.index = i;
+			this.generatePointsMap();
 		}
 	}
 
@@ -466,6 +482,7 @@ export class EditCadComponent implements AfterViewInit {
 
 	removeDimension(i: number) {
 		this.cad.data.dimensions.splice(i, 1);
+		this.cad.render();
 	}
 
 	selectDimLine(i: number, line: number) {
@@ -487,6 +504,6 @@ export class EditCadComponent implements AfterViewInit {
 
 	editDimension(i: number) {
 		this.status.dimension = this.cad.data.dimensions[i];
-		this.dialog.open(DimFormComponent, {data: this.cad.data.dimensions[i]});
+		this.dialog.open(DimFormComponent, {data: {cad: this.cad, index: i}});
 	}
 }

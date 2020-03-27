@@ -13,7 +13,7 @@ const routes: Routes = [
 	{path: paths["draw-cad"], component: DrawCadComponent},
 	{path: paths["edit-cad"], component: EditCadComponent},
 	{path: paths["assemble-cad"], component: AssembleCadComponent},
-	{path: "**", component: PageNotFoundComponent, resolve: {path: PathResolveService}}
+	{path: "**", component: PageNotFoundComponent, resolve: {redirect: PathResolveService}}
 ];
 
 @NgModule({

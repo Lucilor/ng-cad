@@ -16,6 +16,8 @@ export class DrawCadComponent implements AfterViewInit {
 	frags: {data: CadData; img: string}[];
 	constructor(private dataService: CadDataService, private route: ActivatedRoute, private dialog: MatDialog) {
 		this.frags = [];
+		// tslint:disable-next-line
+		window["view"] = this;
 	}
 
 	async ngAfterViewInit() {

@@ -10,13 +10,6 @@
 		<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
 	</div>
 	<div class="menu right">
-		<!-- <div class="cad-fragment-container" *ngFor="let frag of frags; let i = index">
-		<img [src]="frag.img" alt="" />
-		<div class="btn-group">
-			<button mat-raised-button color="primary" (click)="editFragment(frag.data)">查看</button>
-			<button mat-raised-button color="primary" (click)="removeFragment(frag.data, i)">删除</button>
-		</div>
-	</div> -->
 		<mat-accordion multi>
 			<mat-expansion-panel expanded>
 				<mat-expansion-panel-header>
@@ -53,7 +46,7 @@
 					<label>{{ i === 0 ? "条件" : "" }}</label>
 					<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
 						<mat-label></mat-label>
-						<input matInput type="text" [(ngModel)]="cad.data.conditions[i]" placeholder="选项" />
+						<input matInput type="text" [(ngModel)]="cad.data.conditions[i]" placeholder="条件" />
 						<mat-icon matSuffix color="primary" (click)="addCondition(i)">add_circle</mat-icon>
 						<mat-icon matSuffix color="primary" (click)="removeCondition(i)" *ngIf="i > 0">remove_circle</mat-icon>
 					</mat-form-field>
@@ -89,8 +82,8 @@
 						<mat-icon matSuffix color="primary" (click)="removeJointPoint(i)" *ngIf="i > 0">remove_circle</mat-icon>
 						<mat-hint [align]="'start'">x:{{ j.valueX?.toFixed(2) }}, y:{{ j.valueY?.toFixed(2) }}</mat-hint>
 					</mat-form-field>
-					<button mat-raised-button color="primary" (click)="submit()">确定修改</button>
 				</div>
+				<button mat-raised-button color="accent" (click)="submit()">确定修改</button>
 			</mat-expansion-panel>
 			<mat-expansion-panel expanded>
 				<mat-expansion-panel-header>
@@ -166,13 +159,13 @@
 							matInput
 							type="text"
 							(change)="setEntityText($event, 'qujigongshian')"
-							[ngModel]="status.entity?.gongshi"
+							[ngModel]="status.entity?.gongshi || ''"
 							placeholder="请输入公式"
 							[disabled]="!status.entity?.id"
 						/>
 					</mat-form-field>
 				</div>
-				<button mat-raised-button color="primary" (click)="submit()">确定修改</button>
+				<button mat-raised-button color="accent" (click)="submit()">确定修改</button>
 			</mat-expansion-panel>
 			<mat-expansion-panel expanded *ngIf="partners.length">
 				<mat-expansion-panel-header>
@@ -191,7 +184,7 @@
 					<button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
 					<mat-form-field>
 						<mat-label></mat-label>
-						<input disabled matInput type="text" [ngModel]="d.mingzi || d.qujian || ''" placeholder="标注内容" />
+						<input disabled matInput type="text" [ngModel]="d.qujian || d.mingzi || ''" placeholder="标注内容" />
 						<mat-icon matSuffix color="primary" (click)="addDimension(i)">add_circle</mat-icon>
 						<mat-icon matSuffix color="primary" (click)="removeDimension(i)" *ngIf="i > 0">remove_circle</mat-icon>
 						<mat-hint [align]="'start'">
@@ -217,14 +210,15 @@
 	</div>
 
 	<div class="line-controller">
-		<ng-container *ngIf="status.mode.type === 'normal'">
+		<ng-container *ngIf="status.mode.type === 'normal' && status.entity">
 			<div class="point start-point" [style.left.px]="status.line.start.x" [style.top.px]="status.line.start.y"></div>
 			<div class="point end-point" [style.left.px]="status.line.end.x" [style.top.px]="status.line.end.y"></div>
 		</ng-container>
 		<div class="joint-points" *ngIf="status.mode.type === 'jointPoint'">
 			<div
 				*ngFor="let p of pointsMap; let i = index"
-				[class]="{point: true, 'joint-point': true, selected: p.selected}"
+				class="point joint-point"
+				[class.selected]="p.selected"
 				[style.left.px]="p.tPoint.x"
 				[style.top.px]="p.tPoint.y"
 				(click)="onJointPointClick(i)"

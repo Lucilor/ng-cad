@@ -1,6 +1,5 @@
 import {Component, OnInit} from "@angular/core";
-import {ActivatedRoute} from "@angular/router";
-import {take} from "rxjs/operators";
+import {ActivatedRoute, Router, Params} from "@angular/router";
 
 @Component({
 	selector: "app-page-not-found",
@@ -8,12 +7,15 @@ import {take} from "rxjs/operators";
 	styleUrls: ["./page-not-found.component.scss"]
 })
 export class PageNotFoundComponent implements OnInit {
-	constructor(private route: ActivatedRoute) {}
-	path: string;
+	constructor(private route: ActivatedRoute, private router: Router) {}
+	data: {path: string; queryParams: Params};
 
 	ngOnInit() {
-		this.route.data.pipe(take(1)).subscribe((data: {path: string}) => {
-			this.path = data.path;
-		});
+		this.data = this.route.snapshot.data.redirect;
+		console.log(this.route.snapshot.data);
+	}
+
+	redirect() {
+		this.router.navigate([this.data.path], {queryParams: this.data.queryParams});
 	}
 }
