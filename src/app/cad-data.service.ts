@@ -78,20 +78,26 @@ export class CadDataService {
 			data = encodeURIComponent(data);
 			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
 			if (response.code === 0 && response.data) {
-				const {分类, 名字, 条件, 选项} = response.data;
-				const json = response.data.json as CadData;
-				if (!json.entities) {
-					json.entities = [];
+				if (!Array.isArray(response.data)) {
+					response.data = [response.data];
 				}
-				if (!json.layers) {
-					json.layers = [];
-				}
-				json.name = 名字;
-				json.type = 分类;
-				json.options = 选项;
-				json.conditions = 条件;
-				this.currentFragment = new CadViewer(json).exportData();
-				return this.currentFragment;
+				const result: CadData[] = [];
+				response.data.forEach(d => {
+					const {分类, 名字, 条件, 选项} = d;
+					const json = d.json as CadData;
+					if (!json.entities) {
+						json.entities = [];
+					}
+					if (!json.layers) {
+						json.layers = [];
+					}
+					json.name = 名字;
+					json.type = 分类;
+					json.options = 选项;
+					json.conditions = 条件;
+					result.push(json);
+				});
+				return result;
 			} else {
 				throw new Error(response.msg);
 			}

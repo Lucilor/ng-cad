@@ -1,5 +1,5 @@
 import {Component, Output, EventEmitter, Inject, OnInit} from "@angular/core";
-import {Dimension} from "@lucilor/cad-viewer";
+import {Dimension, CadViewer} from "@lucilor/cad-viewer";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {FormBuilder, FormGroup, ValidatorFn, AbstractControl} from "@angular/forms";
 
@@ -11,14 +11,16 @@ import {FormBuilder, FormGroup, ValidatorFn, AbstractControl} from "@angular/for
 export class DimFormComponent implements OnInit {
 	@Output() dimensionEmitter = new EventEmitter<Dimension>();
 	form: FormGroup;
+	dimension: Dimension;
 	constructor(
 		private fb: FormBuilder,
 		public dialogRef: MatDialogRef<DimFormComponent>,
-		@Inject(MAT_DIALOG_DATA) public dimension: Dimension
+		@Inject(MAT_DIALOG_DATA) public data: {cad: CadViewer; index: number}
 	) {}
 
 	ngOnInit() {
-		const dimension = this.dimension;
+		const dimension = this.data.cad.data.dimensions[this.data.index];
+		this.dimension = dimension;
 		this.form = this.fb.group({
 			mingzi: [dimension.mingzi],
 			qujian: [dimension.qujian, [this.qujianValidator()]],
@@ -31,16 +33,19 @@ export class DimFormComponent implements OnInit {
 	}
 
 	submit() {
-		const value = this.form.value;
-		const dimension = this.dimension;
-		dimension.mingzi = value.mingzi;
-		dimension.qujian = value.qujian;
-		dimension.entity1.location = value.e1Location;
-		dimension.entity2.location = value.e2Location;
-		dimension.axis = value.axis;
-		dimension.distance = value.distance;
-		dimension.fontSize = value.fontSize;
-		this.dialogRef.close();
+		if (this.form.valid) {
+			const value = this.form.value;
+			const dimension = this.dimension;
+			dimension.mingzi = value.mingzi;
+			dimension.qujian = value.qujian;
+			dimension.entity1.location = value.e1Location;
+			dimension.entity2.location = value.e2Location;
+			dimension.axis = value.axis;
+			dimension.distance = value.distance;
+			dimension.fontSize = value.fontSize;
+			this.data.cad.render();
+			this.dialogRef.close();
+		}
 	}
 
 	cancle(): void {

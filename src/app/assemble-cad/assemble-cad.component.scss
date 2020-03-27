@@ -1,5 +1,10 @@
 @import "../../styles.scss";
 
+.menu.right {
+	width: 336px;
+	padding: 10px;
+}
+
 .option {
 	mat-form-field {
 		width: calc(100% - 42px);

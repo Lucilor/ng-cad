@@ -1,14 +1,22 @@
 import {Injectable} from "@angular/core";
-import {Resolve, ActivatedRouteSnapshot, RouterStateSnapshot} from "@angular/router";
+import {Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Params} from "@angular/router";
 import {paths} from "./app.common";
 
 @Injectable({
 	providedIn: "root"
 })
-export class PathResolveService implements Resolve<string> {
+export class PathResolveService implements Resolve<{path: string; queryParams: Params}> {
 	constructor() {}
 	resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-		const typoPath = state.url.replace("/", "");
+		const url = state.url.replace("/", "");
+		let index = -1;
+		for (let i = 0; i < url.length; i++) {
+			if (["#", "?"].includes(url[i])) {
+				index = i;
+				break;
+			}
+		}
+		const typoPath = url.slice(0, index);
 		const threshold = this.getThreshold(typoPath);
 		const dictionary = Object.values(paths).filter(path => Math.abs(path.length - typoPath.length) < threshold);
 
@@ -18,7 +26,7 @@ export class PathResolveService implements Resolve<string> {
 
 		this.sortByDistances(typoPath, dictionary);
 
-		return `/${dictionary[0]}`;
+		return {path: `/${dictionary[0]}`, queryParams: route.queryParams};
 	}
 
 	getThreshold(path: string): number {

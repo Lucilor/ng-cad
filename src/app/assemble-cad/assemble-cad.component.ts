@@ -27,6 +27,8 @@ export class AssembleCadComponent implements AfterViewInit {
 		this.status = {names: [], lines: [], activeComponent: null, assembling: false};
 		this.components = [];
 		this.options = {space: "", position: "absolute"};
+		// tslint:disable-next-line
+		window["view"] = this;
 	}
 
 	async ngAfterViewInit() {
@@ -34,7 +36,7 @@ export class AssembleCadComponent implements AfterViewInit {
 		let data: CadData;
 		const params = this.route.snapshot.queryParams;
 		if (params.data) {
-			data = await this.dataService.getCadData(params.encode, params.data);
+			data = (await this.dataService.getCadData(params.encode, params.data))[0];
 		} else {
 			data = this.dataService.currentFragment;
 		}
@@ -121,7 +123,6 @@ export class AssembleCadComponent implements AfterViewInit {
 		this.cd.detectChanges();
 		this.cadContainer.nativeElement.append(cad.view);
 		this.refresh();
-		window["view"] = this;
 	}
 
 	refresh(data?: CadData) {
@@ -134,6 +135,9 @@ export class AssembleCadComponent implements AfterViewInit {
 			.drawDimensions()
 			.render(true);
 		this.components.length = 0;
+		this.status = {names: [], lines: [], activeComponent: null, assembling: false};
+		this.components = [];
+		this.options = {space: "", position: "absolute"};
 		cad.exportData().components.data.forEach((v, i) => {
 			const smallerCad = new CadViewer({entities: v.entities, layers: []}).render(true);
 			const img = smallerCad.exportImage();
