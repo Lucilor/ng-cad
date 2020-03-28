@@ -1,12 +1,12 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 
-import { PathResolveService } from './path-resolve.service';
+import { PathResolveService } from "./path-resolve.service";
 
-describe('PathResolveService', () => {
+describe("PathResolveService", () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
-  it('should be created', () => {
-    const service: PathResolveService = TestBed.get(PathResolveService);
+  it("should be created", () => {
+    const service: PathResolveService = TestBed.inject(PathResolveService);
     expect(service).toBeTruthy();
   });
 });

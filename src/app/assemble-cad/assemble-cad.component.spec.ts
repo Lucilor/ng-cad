@@ -1,8 +1,8 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { AssembleCadComponent } from './assemble-cad.component';
+import { AssembleCadComponent } from "./assemble-cad.component";
 
-describe('AssembleCadComponent', () => {
+describe("AssembleCadComponent", () => {
   let component: AssembleCadComponent;
   let fixture: ComponentFixture<AssembleCadComponent>;
 
@@ -19,7 +19,7 @@ describe('AssembleCadComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

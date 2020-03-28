@@ -1,8 +1,8 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 
-import { CadDataService } from './cad-data.service';
+import { CadDataService } from "./cad-data.service";
 
-describe('CadDataService', () => {
+describe("CadDataService", () => {
   let service: CadDataService;
 
   beforeEach(() => {
@@ -10,7 +10,7 @@ describe('CadDataService', () => {
     service = TestBed.inject(CadDataService);
   });
 
-  it('should be created', () => {
+  it("should be created", () => {
     expect(service).toBeTruthy();
   });
 });
