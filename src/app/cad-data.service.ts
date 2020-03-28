@@ -59,6 +59,7 @@ export class CadDataService {
 			data = encodeURIComponent(data);
 			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/read_dxf_file/${encode}?data=${data}`).toPromise();
 			if (response.code === 0) {
+				this.rawData = response.data;
 				return response.data as CadData;
 			} else {
 				throw new Error(response.msg);

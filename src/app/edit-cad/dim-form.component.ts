@@ -43,8 +43,7 @@ export class DimFormComponent implements OnInit {
 			dimension.axis = value.axis;
 			dimension.distance = value.distance;
 			dimension.fontSize = value.fontSize;
-			this.data.cad.render();
-			this.dialogRef.close();
+			this.dialogRef.close(this.data.cad.exportData().dimensions[this.data.index]);
 		}
 	}
 

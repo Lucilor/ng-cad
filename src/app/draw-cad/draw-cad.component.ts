@@ -24,13 +24,18 @@ export class DrawCadComponent implements AfterViewInit {
 		document.title = "查看CAD";
 		const params = this.route.snapshot.queryParams;
 		const data = await this.dataService.getRawData(params.encode, params.data);
-		const cad = new CadViewer(data, innerWidth, innerHeight, {selectMode: "multiple"}).render(true);
+		const cad = new CadViewer(data, innerWidth, innerHeight, {selectMode: "multiple"});
 		this.dataService.fragmentsData.forEach(f => this.selectLines(f));
 		cad.enableDragging()
 			.enableKeyboard()
 			.enableWheeling();
 		this.cad = cad;
 		this.cadContainer.nativeElement.append(cad.view);
+
+		cad.render(!this.dataService.loadViewerStatus(cad, "mainCad"));
+		window.addEventListener("beforeunload", () => {
+			this.dataService.saveViewerStatus(cad, "mainCad");
+		});
 	}
 
 	selectLines(fragment?: CadData) {
@@ -70,8 +75,8 @@ export class DrawCadComponent implements AfterViewInit {
 		const {dataService, cad} = this;
 		dataService.rawData = dataService.rawData;
 		dataService.saveViewerStatus(cad, "mainCad");
-		cad.reset(dataService.mainData);
+		cad.reset(dataService.mainData).render(!dataService.loadViewerStatus(cad, "mainCad"));
 		this.frags.length = 0;
-		dataService.loadViewerStatus(cad, "mainCad");
+		dataService.removeFragments(dataService.fragmentsData);
 	}
 }
