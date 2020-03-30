@@ -133,39 +133,104 @@ export class CadDataService {
 		}
 	}
 
-	async postCadData(cadData: CadData, encode: string, data?: string) {
-		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "postCadData"});
-		const formData = new FormData();
-		if (data) {
-			formData.append("data", data);
-		}
-		formData.append("cadData", JSON.stringify(cadData));
-		try {
-			encode = encodeURIComponent(encode);
-			data = encodeURIComponent(data);
-			const response = await this.http.post<Response>(`${apiBasePath}/peijian/cad/setCAD/${encode}`, formData).toPromise();
-			if (response.code === 0) {
-				const {json, 分类, 名字, 条件, 选项} = response.data;
-				if (!json) {
-					return null;
+	async postCadData(cadData: CadData[], encode: string, data?: string) {
+		encode = encodeURIComponent(encode);
+		data = encodeURIComponent(data);
+		const promises: Promise<Response>[] = [];
+		const result: CadData[] = [];
+		let counter = 0;
+		let successCounter = 0;
+		this.store.dispatch<LoadingAction>({
+			type: ActionTypes.setLoadingProgress,
+			name: "postCadData",
+			progress: 0
+		});
+		return new Promise<CadData[]>((resolve, reject) => {
+			cadData.forEach(async d => {
+				const formData = new FormData();
+				if (data) {
+					formData.append("data", data);
 				}
-				json.name = 名字;
-				json.type = 分类;
-				json.options = 选项;
-				json.conditions = 条件;
-				const currentFragment = json as CadData;
-				this.currentFragment = currentFragment;
-				this.snackBar.open(response.msg);
-				return currentFragment;
-			} else {
-				throw new Error(response.msg);
-			}
-		} catch (error) {
-			this.alert(error);
-			return null;
-		} finally {
-			// this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "postCadData"});
-		}
+				formData.append("cadData", JSON.stringify(d));
+				try {
+					const response = await this.http.post<Response>(`${apiBasePath}/peijian/cad/setCAD/${encode}`, formData).toPromise();
+					if (response.code === 0) {
+						const {json, 分类, 名字, 条件, 选项} = response.data;
+						if (!json) {
+							return null;
+						}
+						json.name = 名字;
+						json.type = 分类;
+						json.options = 选项;
+						json.conditions = 条件;
+						result.push(json);
+						successCounter++;
+					} else {
+						throw new Error(response.msg);
+					}
+				} catch (error) {
+					result.push(null);
+				} finally {
+					counter++;
+				}
+				this.store.dispatch<LoadingAction>({
+					type: ActionTypes.setLoadingProgress,
+					name: "postCadData",
+					progress: counter / cadData.length
+				});
+				if (counter / cadData.length >= 1) {
+					setTimeout(() => {
+						this.store.dispatch<LoadingAction>({
+							type: ActionTypes.setLoadingProgress,
+							name: "postCadData",
+							progress: -1
+						});
+					}, 200);
+				}
+				if (counter >= cadData.length) {
+					if (successCounter === counter) {
+						this.snackBar.open(`${result.length > 1 ? "全部" : ""}成功`);
+					} else {
+						this.snackBar.open(`${successCounter > 0 ? "部分" : "全部"}失败`);
+					}
+					resolve(result);
+				}
+			});
+		});
+		return result;
+		Promise.all(promises)
+			.then(
+				responses => {
+					responses.forEach(response => {
+						if (response.code === 0) {
+							const {json, 分类, 名字, 条件, 选项} = response.data;
+							if (!json) {
+								return null;
+							}
+							json.name = 名字;
+							json.type = 分类;
+							json.options = 选项;
+							json.conditions = 条件;
+							result.push(json);
+						} else {
+							result.push(null);
+						}
+					});
+					this.currentFragment = result[0];
+					if (responses.length === result.length) {
+						this.snackBar.open(`${result.length > 1 ? "全部" : ""}成功`);
+					} else {
+						this.snackBar.open("部分成功");
+					}
+				},
+				() => {
+					this.snackBar.open("提交失败或未全部成功");
+				}
+			)
+			.finally(() => {
+				this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "postCadData"});
+			});
+		return result;
 	}
 
 	get rawData() {

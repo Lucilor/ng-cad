@@ -15,12 +15,18 @@ export const maxLoadingTime = 10000;
 export class LoadingComponent implements OnInit {
 	visible: boolean;
 	timeout: any;
+	progress: number;
 
 	constructor(private store: Store<State>) {
 		this.store.select(getLoading).subscribe(loading => {
-			this.visible = loading.size > 0;
+			this.visible = loading.list.size > 0;
+			this.progress = loading.progress;
 		});
 	}
 
 	ngOnInit() {}
+
+	getScaleX() {
+		return `scaleX(${this.progress})`;
+	}
 }

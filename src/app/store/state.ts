@@ -1,7 +1,7 @@
 export interface State {
-	loading: Set<string>;
+	loading: {list: Set<string>; progress: number};
 }
 
 export const initialState: State = {
-	loading: new Set()
+	loading: {list: new Set(), progress: -1}
 };

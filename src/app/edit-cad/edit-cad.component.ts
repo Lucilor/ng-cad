@@ -297,16 +297,18 @@ export class EditCadComponent implements AfterViewInit {
 	async submit() {
 		const data = this.cad.exportData("object");
 		const params = this.route.snapshot.queryParams;
-		const resData = await this.dataService.postCadData(data, params.encode, params.data);
-		this.cad.reset(resData);
+		const resData = await this.dataService.postCadData([data], params.encode, params.data);
+		this.cad.reset(resData[0]);
 		this.refresh();
 	}
 
 	async submitAll() {
-		const data = this.cad.exportData("object");
+		const data = this.cads.map(v => v.exportData("object"));
 		const params = this.route.snapshot.queryParams;
 		const resData = await this.dataService.postCadData(data, params.encode, params.data);
-		this.cad.reset(resData);
+		resData.forEach((d, i) => {
+			this.cads[i].reset(d);
+		});
 		this.refresh();
 	}
 

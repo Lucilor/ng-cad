@@ -168,8 +168,8 @@ export class AssembleCadComponent implements AfterViewInit {
 	async submit() {
 		const data = this.cad.exportData("object");
 		const params = this.route.snapshot.queryParams;
-		const resData = await this.dataService.postCadData(data, params.encode, params.data);
-		this.refresh(resData);
+		const resData = await this.dataService.postCadData([data], params.encode, params.data);
+		this.refresh(resData[0]);
 	}
 
 	toggleAssemble(event: Event) {
