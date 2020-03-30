@@ -38,6 +38,21 @@ export class EditCadComponent implements AfterViewInit {
 	partners: {id: string; name: string; img: string}[];
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
+
+	private initVals = {
+		options: {name: "", value: ""},
+		conditions: "",
+		baseLines: {name: "", idX: "", idY: ""},
+		jointPoints: {name: "", valueX: null, valueY: null},
+		dimensions: {
+			axis: "x",
+			entity1: {id: "", location: "start"},
+			entity2: {id: "", location: "end"},
+			distance: 16,
+			fontSize: 16,
+			dimstyle: ""
+		}
+	};
 	constructor(
 		private route: ActivatedRoute,
 		private dataService: CadDataService,
@@ -68,7 +83,9 @@ export class EditCadComponent implements AfterViewInit {
 			padding: [40, 380, 40, 150],
 			showLineLength: 8,
 			selectMode: "single",
-			backgroundColor: 0
+			backgroundColor: 0,
+			drawDimensions: true,
+			drawMTexts: true
 		})
 			.enableDragging()
 			.enableWheeling()
@@ -76,7 +93,8 @@ export class EditCadComponent implements AfterViewInit {
 		this.vCad = vCad;
 		vCad.on(Events.entityclick, (event: PIXI.interaction.InteractionEvent, entity: CadEntity) => {
 			const {status, cads, cad} = this;
-			this.status.entity = entity as CadLine;
+			status.entity = entity as CadLine;
+			const prevCadIdx = status.cadIdx;
 			cads.some((v, i) => {
 				if (v.findEntity(entity.id, v.data.entities)) {
 					status.cadIdx = i;
@@ -87,28 +105,36 @@ export class EditCadComponent implements AfterViewInit {
 			if (entity.type === CadTypes.Line) {
 				const lineEntity = entity as CadLine;
 				const line = new Line(new Point(lineEntity.start), new Point(lineEntity.end));
+				const index = status.mode.index;
 				if (status.mode.type === "baseLine") {
-					const index = status.mode.index;
+					const vIdx = this.getVIdx("baseLines");
 					if (line.slope === 0) {
 						cad.data.baseLines[index].idY = entity.selected ? entity.id : null;
+						vCad.data.baseLines[vIdx + index].idY = entity.selected ? entity.id : null;
 					}
 					if (!isFinite(line.slope)) {
 						cad.data.baseLines[index].idX = entity.selected ? entity.id : null;
+						vCad.data.baseLines[vIdx + index].idX = entity.selected ? entity.id : null;
 					}
 					cad.calculateBaseLines(index);
 					const baseLine = cad.data.baseLines[index];
 					vCad.data.entities.forEach(e => (e.selected = [baseLine.idX, baseLine.idY].includes(e.id)));
 				}
 				if (status.mode.type.includes("dimension")) {
-					const dimension = cad.data.dimensions[status.mode.index];
-					const vDimIdx = this.getVDimIdx();
+					const currCad = this.cad;
+					status.cadIdx = prevCadIdx;
+					const vIdx = this.getVIdx("dimensions");
+					const prevCad = this.cad;
+					const dimension = prevCad.data.dimensions[index];
 					if (status.mode.type === "dimension1") {
 						dimension.entity1.id = entity.id;
-						vCad.data.dimensions[vDimIdx].entity1.id = entity.id;
+						vCad.data.dimensions[vIdx + index].entity1.id = entity.id;
+						dimension.cad1 = currCad.data.name;
 					}
 					if (status.mode.type === "dimension2") {
 						dimension.entity2.id = entity.id;
-						vCad.data.dimensions[vDimIdx].entity2.id = entity.id;
+						vCad.data.dimensions[vIdx + index].entity2.id = entity.id;
+						dimension.cad2 = currCad.data.name;
 					}
 				}
 				vCad.render();
@@ -135,35 +161,29 @@ export class EditCadComponent implements AfterViewInit {
 
 	refresh() {
 		const {vCad, cads} = this;
-		this.status = {...this.status, mode: {type: "normal", index: -1}, dimension: null};
+		this.status = {...this.status, entity: null, mode: {type: "normal", index: -1}, dimension: null};
 		const setData = (d: CadData) => {
 			if (d.options.length < 1) {
-				d.options.push({name: "", value: ""});
+				this.addItem(0, "options", d);
 			}
 			if (d.conditions.length < 1) {
-				d.conditions.push("");
+				this.addItem(0, "conditions", d);
 			}
 			if (d.baseLines.length < 1) {
-				d.baseLines.push({name: "", idX: "", idY: ""});
+				this.addItem(0, "baseLines", d);
 			}
 			if (d.jointPoints.length < 1) {
-				d.jointPoints.push({name: ""});
+				this.addItem(0, "jointPoints", d);
 			}
 			if (d.dimensions.length < 1) {
-				d.dimensions.push({
-					axis: "x",
-					entity1: {id: "", location: "start"},
-					entity2: {id: "", location: "end"},
-					distance: 0,
-					dimstyle: "",
-					fontSize: 16
-				});
+				this.addItem(0, "dimensions", d);
 			}
 		};
 		vCad.reset({});
 		cads.forEach(v => {
 			setData(v.data);
 			const newData = v.exportData();
+			setData(newData);
 			const rect1 = vCad.getBounds();
 			const rect2 = v.getBounds();
 			const offset = new Point(rect1.x - rect2.x, rect1.y - rect2.y);
@@ -177,6 +197,9 @@ export class EditCadComponent implements AfterViewInit {
 
 			vCad.data.entities = vCad.data.entities.concat(newData.entities);
 			vCad.data.partners = vCad.data.partners.concat(newData.partners);
+			vCad.data.options = vCad.data.options.concat(newData.options);
+			vCad.data.conditions = vCad.data.conditions.concat(newData.conditions);
+			vCad.data.baseLines = vCad.data.baseLines.concat(newData.baseLines);
 			vCad.data.jointPoints = vCad.data.jointPoints.concat(newData.jointPoints);
 			vCad.data.dimensions = vCad.data.dimensions.concat(newData.dimensions);
 			document.body.append(v.render(true).view);
@@ -199,10 +222,7 @@ export class EditCadComponent implements AfterViewInit {
 			});
 			vCad.joinPartners();
 		}
-		vCad.reassembleComponents()
-			.render(true)
-			.drawDimensions()
-			.render(true);
+		vCad.reassembleComponents().render(true);
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
@@ -220,25 +240,30 @@ export class EditCadComponent implements AfterViewInit {
 		this.cad?.render(true);
 	}
 
-	addItem(i: number, field: string, initVal: any) {
-		this.cad.data[field].splice(i + 1, 0, initVal);
+	addItem(i: number, field: string, data?: any) {
+		const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
+		(data || this.cad.data)[field].splice(i + 1, 0, initVal);
+		this.vCad.data[field].splice(this.getVIdx(field) + 1, initVal);
 	}
 
-	removeItem(i: number, field: string, initVal: any) {
+	removeItem(i: number, field: string) {
+		const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
 		if (this.cad.data[field].length === 1) {
 			this.cad.data[field][0] = initVal;
+			this.vCad.data[field][this.getVIdx(field)] = initVal;
 		} else {
 			this.cad.data[field].splice(i, 1);
+			this.vCad.data[field].splice(this.getVIdx(field), 1);
 		}
 	}
 
 	selectBaseline(i: number) {
-		const {status, cad} = this;
+		const {status, vCad} = this;
 		if (status.mode.type === "baseLine" && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
-			const {idX, idY} = cad.data.baseLines[i];
-			cad.data.entities.forEach(e => (e.selected = [idX, idY].includes(e.id)));
+			const {idX, idY} = vCad.data.baseLines[this.getVIdx("baseLines")];
+			vCad.data.entities.forEach(e => (e.selected = [idX, idY].includes(e.id)));
 			this.selectLineBegin("baseLine", i);
 		}
 	}
@@ -255,11 +280,17 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	onJointPointClick(i: number) {
-		const {pointsMap, status, cad} = this;
+		const {pointsMap, status, cad, vCad} = this;
 		pointsMap.forEach((v, j) => (v.selected = i === j));
-		const jointPoint = cad.data.jointPoints[status.mode.index];
-		jointPoint.valueX = pointsMap[i].point.x;
-		jointPoint.valueY = pointsMap[i].point.y;
+		const index = status.mode.index;
+		const vIdx = this.getVIdx("jointPoints");
+		const point = pointsMap[i].point;
+		const jointPoint = cad.data.jointPoints[index];
+		jointPoint.valueX = point.x;
+		jointPoint.valueY = point.y;
+		const vJointPoint = vCad.data.jointPoints[vIdx + index];
+		vJointPoint.valueX = point.x;
+		vJointPoint.valueY = point.y;
 	}
 
 	async submit() {
@@ -270,14 +301,23 @@ export class EditCadComponent implements AfterViewInit {
 		this.refresh();
 	}
 
+	async submitAll() {
+		const data = this.cad.exportData("object");
+		const params = this.route.snapshot.queryParams;
+		const resData = await this.dataService.postCadData(data, params.encode, params.data);
+		this.cad.reset(resData);
+		this.refresh();
+	}
+
 	selectLineBegin(type: Mode["type"], index: number) {
 		const vCad = this.vCad;
+		const ids = this.cad.data.entities.map(e => e.id);
 		vCad.data.entities.forEach(e => {
 			if (e.container) {
 				if (e.type === CadTypes.Line) {
 					const le = e as CadLine;
 					const slope = new Line(new Point(le.start), new Point(le.end)).slope;
-					if (slope === 0 || !isFinite(slope)) {
+					if ((type.includes("dimension") || ids.includes(e.id)) && (slope === 0 || !isFinite(slope))) {
 						e.container.alpha = 1;
 						e.selectable = true;
 					} else {
@@ -424,8 +464,9 @@ export class EditCadComponent implements AfterViewInit {
 				pointsMap.push({point, lines: [line], tPoint: vCad.translatePoint(point), selected: false});
 			}
 		};
-		const entities = cad.data.entities;
-		for (const entity of entities) {
+		const vIdx = this.getVIdx("entities");
+		const entities = vCad.data.entities.slice(vIdx, vIdx + cad.data.entities.length);
+		entities.forEach(entity => {
 			if (entity.type === CadTypes.Line) {
 				const lineEntity = entity as CadLine;
 				const line = new Line(new Point(lineEntity.start), new Point(lineEntity.end));
@@ -444,7 +485,7 @@ export class EditCadComponent implements AfterViewInit {
 					addToMap(arc.endPoint, entity);
 				}
 			}
-		}
+		});
 		this.pointsMap = pointsMap;
 	}
 
@@ -505,11 +546,14 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	setEntityText(event: Event, field: string) {
-		const entity = this.status.entity as CadLine;
+		const entity = this.status.entity;
+		const value = (event.target as HTMLInputElement).value;
 		if (!entity || entity.type !== CadTypes.Line) {
 			return;
 		}
-		entity[field] = (event.target as HTMLInputElement).value;
+		entity[field] = value;
+		this.cad.findEntity(entity.id)[field] = value;
+		this.vCad.render();
 	}
 
 	editPartner(id: string) {
@@ -517,41 +561,13 @@ export class EditCadComponent implements AfterViewInit {
 		window.open(`edit-cad?encode=${params.encode}&data=${RSAEncrypt({id})}`);
 	}
 
-	getVDimIdx() {
+	getVIdx(field: string) {
 		let index = 0;
 		for (let i = 0; i < this.status.cadIdx; i++) {
-			index += this.cads[i].data.dimensions.length;
+			index += this.cads[i].data[field].length;
 		}
-		index += this.status.mode.index;
-		return Math.max(0, index);
-	}
-
-	addDimension(i: number) {
-		this.cad.data.dimensions.splice(i + 1, 0, {
-			axis: "x",
-			entity1: {id: "", location: "start"},
-			entity2: {id: "", location: "end"},
-			distance: 16,
-			fontSize: 16,
-			dimstyle: ""
-		});
-		this.vCad.data.dimensions.splice(this.getVDimIdx() + 1, 0, {
-			axis: "x",
-			entity1: {id: "", location: "start"},
-			entity2: {id: "", location: "end"},
-			distance: 16,
-			fontSize: 16,
-			dimstyle: ""
-		});
-	}
-
-	removeDimension(i: number) {
-		this.cad.data.dimensions.splice(i, 1);
-		this.vCad.data.dimensions.splice(this.getVDimIdx(), 1);
-		if (this.cad.data.dimensions.length === 0) {
-			this.addDimension(0);
-		}
-		this.vCad.render();
+		index += Math.max(0, this.status.mode.index);
+		return index;
 	}
 
 	selectDimLine(i: number, line: number) {
@@ -559,7 +575,7 @@ export class EditCadComponent implements AfterViewInit {
 		if (status.mode.type === "dimension" + line && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
-			const {entity1, entity2} = vCad.data.dimensions[i];
+			const {entity1, entity2} = vCad.data.dimensions[this.getVIdx("dimensions") + i];
 			if (line === 1) {
 				vCad.data.entities.forEach(e => (e.selected = e.id === entity1.id));
 				this.selectLineBegin("dimension1", i);
@@ -573,10 +589,29 @@ export class EditCadComponent implements AfterViewInit {
 
 	editDimension(i: number) {
 		this.status.dimension = this.cad.data.dimensions[i];
-		const ref: MatDialogRef<DimFormComponent, Dimension> = this.dialog.open(DimFormComponent, {data: {cad: this.cad, index: i}});
+		const ref: MatDialogRef<DimFormComponent, Dimension> = this.dialog.open(DimFormComponent, {
+			data: {cad: this.cad, index: i},
+			disableClose: true
+		});
 		ref.afterClosed().subscribe(dimension => {
-			this.vCad.data.dimensions[this.getVDimIdx()] = dimension;
+			this.vCad.data.dimensions[this.getVIdx("dimensions")] = dimension;
 			this.vCad.render();
 		});
+	}
+
+	get drawDimensions() {
+		return this.vCad.config.drawDimensions;
+	}
+	set drawDimensions(value) {
+		this.vCad.config.drawDimensions = value;
+		this.vCad.render();
+	}
+
+	get drawMTexts() {
+		return this.vCad.config.drawMTexts;
+	}
+	set drawMTexts(value) {
+		this.vCad.config.drawMTexts = value;
+		this.vCad.render();
 	}
 }

@@ -163,7 +163,7 @@ export class CadDataService {
 			this.alert(error);
 			return null;
 		} finally {
-			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "postCadData"});
+			// this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "postCadData"});
 		}
 	}
 

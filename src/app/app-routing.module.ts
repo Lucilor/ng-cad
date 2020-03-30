@@ -7,12 +7,14 @@ import {PathResolveService} from "./path-resolve.service";
 import {IndexComponent} from "./index/index.component";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
+import {PrintCadComponent} from "./print-cad/print-cad.component";
 
 const routes: Routes = [
 	{path: "", component: IndexComponent},
 	{path: paths["draw-cad"], component: DrawCadComponent},
 	{path: paths["edit-cad"], component: EditCadComponent},
 	{path: paths["assemble-cad"], component: AssembleCadComponent},
+	{path: paths["print-cad"], component: PrintCadComponent},
 	{path: "**", component: PageNotFoundComponent, resolve: {redirect: PathResolveService}}
 ];
 

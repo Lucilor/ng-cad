@@ -22,7 +22,7 @@
     "@angular/platform-browser": "^9.1.0",
     "@angular/platform-browser-dynamic": "^9.1.0",
     "@angular/router": "^9.1.0",
-    "@lucilor/cad-viewer": "^1.0.12",
+    "@lucilor/cad-viewer": "^1.0.13",
     "@lucilor/utils": "^1.0.18",
     "@ngrx/store": "^9.0.0",
     "rxjs": "~6.5.4",

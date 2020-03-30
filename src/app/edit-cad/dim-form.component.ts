@@ -43,12 +43,12 @@ export class DimFormComponent implements OnInit {
 			dimension.axis = value.axis;
 			dimension.distance = value.distance;
 			dimension.fontSize = value.fontSize;
-			this.dialogRef.close(this.data.cad.exportData().dimensions[this.data.index]);
+			this.close();
 		}
 	}
 
-	cancle(): void {
-		this.dialogRef.close();
+	close() {
+		this.dialogRef.close(this.data.cad.exportData().dimensions[this.data.index]);
 	}
 
 	mqValidator(): ValidatorFn {
@@ -67,9 +67,6 @@ export class DimFormComponent implements OnInit {
 	qujianValidator(): ValidatorFn {
 		return (control: AbstractControl) => {
 			const err = {qujian: "区间应有且仅有一个~或-，且该符号不位于开头或结尾。"};
-			if (typeof control.value !== "string") {
-				return err;
-			}
 			return !control.value || control.value.match(/^[^-~]+(-|~)[^-~]+$/) ? null : err;
 		};
 	}

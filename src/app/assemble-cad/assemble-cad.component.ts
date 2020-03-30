@@ -48,7 +48,9 @@ export class AssembleCadComponent implements AfterViewInit {
 			backgroundColor: 0,
 			padding: [40, 416, 40, 150],
 			selectMode: "single",
-			selectedColor: 0x0000ff
+			selectedColor: 0x0000ff,
+			drawDimensions: true,
+			// drawMText: true
 		}).render(true);
 		cad.enableDragging()
 			.enableWheeling()
@@ -131,9 +133,7 @@ export class AssembleCadComponent implements AfterViewInit {
 			cad.reset(data);
 		}
 		document.title = "装配CAD - " + cad.data.name;
-		cad.render(true)
-			.drawDimensions()
-			.render(true);
+		cad.render(true);
 		this.components.length = 0;
 		this.status = {names: [], lines: [], activeComponent: null, assembling: false};
 		this.components = [];

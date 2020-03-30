@@ -24,6 +24,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
 import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
+import {PrintCadComponent} from "./print-cad/print-cad.component";
 
 @NgModule({
 	declarations: [
@@ -35,7 +36,8 @@ import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 		AlertComponent,
 		EditCadComponent,
 		DimFormComponent,
-		AssembleCadComponent
+		AssembleCadComponent,
+		PrintCadComponent
 	],
 	imports: [
 		BrowserModule,

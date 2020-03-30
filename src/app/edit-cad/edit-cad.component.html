@@ -8,6 +8,11 @@
 		<button mat-raised-button color="primary" (click)="rotate(false)">逆时针旋转</button>
 		<input matInput type="number" [(ngModel)]="rotateAngle" />
 		<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
+		<button mat-raised-button color="primary" (click)="drawDimensions = !drawDimensions">
+			{{ drawDimensions ? "隐藏" : "显示" }}标注
+		</button>
+		<button mat-raised-button color="primary" (click)="drawMTexts = !drawMTexts">{{ drawMTexts ? "隐藏" : "显示" }}MTexts</button>
+		<button mat-raised-button color="accent" *ngIf="cads?.length > 1" (click)="submitAll()">修改全部</button>
 	</div>
 	<div class="menu right">
 		<mat-accordion multi>
@@ -38,10 +43,8 @@
 					<mat-form-field>
 						<mat-label></mat-label>
 						<input matInput type="text" [(ngModel)]="o.value" placeholder="选项" />
-						<mat-icon matSuffix color="primary" (click)="addItem(i, 'options', {name: '', value: ''})">add_circle</mat-icon>
-						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'options', {name: '', value: ''})"
-							>remove_circle</mat-icon
-						>
+						<mat-icon matSuffix color="primary" (click)="addItem(i, 'options')">add_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'options')">remove_circle</mat-icon>
 					</mat-form-field>
 				</div>
 				<div class="cad-info conditions" *ngFor="let c of cad?.data.conditions; let i = index">
@@ -49,8 +52,8 @@
 					<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
 						<mat-label></mat-label>
 						<input matInput type="text" [(ngModel)]="(cad?.data.conditions)[i]" placeholder="条件" />
-						<mat-icon matSuffix color="primary" (click)="addItem(i, 'conditions', '')">add_circle</mat-icon>
-						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'conditions', '')">remove_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="addItem(i, 'conditions')">add_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'conditions')">remove_circle</mat-icon>
 					</mat-form-field>
 				</div>
 				<div class="cad-info baselines" *ngFor="let b of cad?.data.baseLines; let i = index">
@@ -59,17 +62,13 @@
 						[color]="status.mode.type === 'baseLine' && status.mode.index === i ? 'accent' : 'primary'"
 						(click)="selectBaseline(i)"
 					>
-						基准
+						&nbsp;基准&nbsp;
 					</button>
 					<mat-form-field>
 						<mat-label></mat-label>
 						<input matInput type="text" [(ngModel)]="b.name" placeholder="请输入名字" />
-						<mat-icon matSuffix color="primary" (click)="addItem(i, 'baseLines', {name: '', idX: '', idY: ''})"
-							>add_circle</mat-icon
-						>
-						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'baseLines', {name: '', idX: '', idY: ''})"
-							>remove_circle</mat-icon
-						>
+						<mat-icon matSuffix color="primary" (click)="addItem(i, 'baseLines')">add_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'baseLines')">remove_circle</mat-icon>
 						<mat-hint [align]="'start'">x:{{ b.valueX?.toFixed(2) }}, y:{{ b.valueY?.toFixed(2) }}</mat-hint>
 					</mat-form-field>
 				</div>
@@ -84,12 +83,8 @@
 					<mat-form-field>
 						<mat-label></mat-label>
 						<input matInput type="text" [(ngModel)]="j.name" placeholder="请输入名字" />
-						<mat-icon matSuffix color="primary" (click)="addItem(i, 'jointPoints', {name: ''})"
-							>add_circle</mat-icon
-						>
-						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'jointPoints', {name: ''})"
-							>remove_circle</mat-icon
-						>
+						<mat-icon matSuffix color="primary" (click)="addItem(i, 'jointPoints')">add_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'jointPoints')">remove_circle</mat-icon>
 						<mat-hint [align]="'start'">x:{{ j.valueX?.toFixed(2) }}, y:{{ j.valueY?.toFixed(2) }}</mat-hint>
 					</mat-form-field>
 				</div>
@@ -195,8 +190,8 @@
 					<mat-form-field>
 						<mat-label></mat-label>
 						<input disabled matInput type="text" [ngModel]="d.qujian || d.mingzi || ''" placeholder="标注内容" />
-						<mat-icon matSuffix color="primary" (click)="addDimension(i)">add_circle</mat-icon>
-						<mat-icon matSuffix color="primary" (click)="removeDimension(i)">remove_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="addItem(i, 'dimensions')">add_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'dimensions'); vCad.render()">remove_circle</mat-icon>
 						<mat-hint [align]="'start'">
 							<button
 								mat-raised-button

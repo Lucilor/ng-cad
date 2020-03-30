@@ -5,5 +5,5 @@
 <!-- <div *ngIf="path">You might want to go to the <a [routerLink]="path">"{{ path }}" page</a></p> -->
 <div *ngIf="data?.path">
 	你可能想去:
-	<a style="word-break: break-all;" href="" (click)="redirect()">{{ data.path }}</a>
+	<a style="word-break: break-all;" (click)="redirect()">{{ data.path }}</a>
 </div>

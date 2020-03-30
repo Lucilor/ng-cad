@@ -41,15 +41,12 @@
 			}
 		}
 
-		&.baselines,
-		&.dimension-info {
-			mat-form-field {
-				width: calc(100% - 74px);
-				margin-bottom: 10px;
+		&.joint-points,
+		&.baselines {
+			button {
+				width: 74px;
 			}
-		}
 
-		&.joint-points {
 			mat-form-field {
 				width: calc(100% - 84px);
 				margin-bottom: 10px;
@@ -57,6 +54,11 @@
 		}
 
 		&.dimension-info {
+			mat-form-field {
+				width: calc(100% - 74px);
+				margin-bottom: 10px;
+			}
+
 			mat-hint {
 				button {
 					min-width: unset;
