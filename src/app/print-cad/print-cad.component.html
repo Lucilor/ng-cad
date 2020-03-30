@@ -1,1 +1,5 @@
-<p>print-cad works!</p>
+<ng-container *ngIf="!printing">
+	<div #cadContainer></div>
+	<button mat-raised-button color="primary" (click)="print()">打印</button>
+</ng-container>
+<img [src]="img" *ngIf="printing">

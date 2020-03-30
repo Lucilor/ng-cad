@@ -10,6 +10,7 @@ import {AlertComponent} from "./alert/alert.component";
 import {SessionStorage, Point, Line, RSAEncrypt} from "@lucilor/utils";
 import * as UUID from "uuid";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {cloneDeep} from "lodash";
 
 const session = new SessionStorage("cad-data");
 @Injectable({
@@ -172,10 +173,16 @@ export class CadDataService {
 	}
 
 	set rawData(value) {
+		if (!Array.isArray(value.lineText)) {
+			value.lineText = [];
+		}
+		if (!Array.isArray(value.globalText)) {
+			value.globalText = [];
+		}
 		this._rawData = value;
-		this._mainData = value;
 		session.save("lineText", value.lineText);
 		session.save("globalText", value.globalText);
+		this._mainData = cloneDeep(value);
 	}
 
 	get mainData() {

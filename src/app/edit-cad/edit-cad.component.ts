@@ -7,6 +7,7 @@ import {AlertComponent} from "../alert/alert.component";
 import {Line, Point, Angle, Arc, getColorLightness, RSAEncrypt} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
 import {DimFormComponent} from "./dim-form.component";
+import {cloneDeep} from "lodash";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension1" | "dimension2" | "jointPoint";
@@ -241,7 +242,7 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	addItem(i: number, field: string, data?: any) {
-		const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
+		const initVal = cloneDeep(this.initVals[field]);
 		(data || this.cad.data)[field].splice(i + 1, 0, initVal);
 		this.vCad.data[field].splice(this.getVIdx(field) + 1, initVal);
 	}

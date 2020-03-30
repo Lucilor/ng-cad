@@ -12,7 +12,6 @@ export class PageNotFoundComponent implements OnInit {
 
 	ngOnInit() {
 		this.data = this.route.snapshot.data.redirect;
-		console.log(this.route.snapshot.data);
 	}
 
 	redirect() {
