@@ -1,5 +1,19 @@
-<ng-container *ngIf="!printing">
+<div [hidden]="printing" class="print-menu-boundary">
 	<div #cadContainer></div>
-	<button mat-raised-button color="primary" (click)="print()">打印</button>
-</ng-container>
-<img [src]="img" *ngIf="printing">
+	<div class="print-menu" cdkDrag cdkDragBoundary=".print-menu-boundary">
+		<div class="handle" cdkDragHandle>
+			<mat-icon (click)="miniMenu = !miniMenu">{{ miniMenu ? "add" : "remove" }}</mat-icon>
+			<svg width="24px" fill="currentColor" viewBox="0 0 24 24">
+				<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
+				<path d="M0 0h24v24H0z" fill="none"></path>
+			</svg>
+		</div>
+		<mat-form-field *ngIf="!miniMenu">
+			<mat-label>放大倍数</mat-label>
+			<input type="number" matInput [(ngModel)]="scale" />
+			<mat-hint [align]="'start'">初始尺寸210*297，倍数越大则越清晰</mat-hint>
+		</mat-form-field>
+		<button *ngIf="!miniMenu" mat-raised-button color="primary" (click)="print()">打印</button>
+	</div>
+</div>
+<img [src]="img" [hidden]="!printing" />

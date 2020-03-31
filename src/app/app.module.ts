@@ -19,6 +19,7 @@ import {MatInputModule} from "@angular/material/input";
 import {MatExpansionModule} from "@angular/material/expansion";
 import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
+import {DragDropModule} from "@angular/cdk/drag-drop";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DimFormComponent} from "./edit-cad/dim-form.component";
@@ -59,6 +60,7 @@ import {PrintCadComponent} from "./print-cad/print-cad.component";
 		MatIconModule,
 		MatSelectModule,
 		MatSnackBarModule,
+		DragDropModule,
 		FormsModule,
 		ReactiveFormsModule
 	],

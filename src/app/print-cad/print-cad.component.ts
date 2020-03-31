@@ -15,6 +15,8 @@ export class PrintCadComponent implements AfterViewInit {
 	cad: CadViewer;
 	printing = false;
 	img = "";
+	scale = 16;
+	miniMenu = false;
 	constructor(private dialog: MatDialog, private dataService: CadDataService) {
 		// tslint:disable-next-line
 		window["view"] = this;
@@ -67,13 +69,13 @@ export class PrintCadComponent implements AfterViewInit {
 		cad.render();
 	}
 
-	print(scale = 4) {
+	print() {
 		this.printing = true;
 		const cad = this.cad;
-		const rect = cad.getBounds();
-		const width = rect.width;
-		const height = rect.height;
-		const newViewer = new CadViewer(cad.exportData(), width * scale, height * scale, cad.config).render(true);
+		const scale = Math.max(1, this.scale);
+		const width = 210 * scale;
+		const height = 297 * scale;
+		const newViewer = new CadViewer(cad.exportData(), width, height, cad.config).render(true);
 		this.img = newViewer.exportImage().src;
 		newViewer.destroy();
 		setTimeout(() => {
@@ -82,4 +84,6 @@ export class PrintCadComponent implements AfterViewInit {
 			this.printing = false;
 		}, 0);
 	}
+
+	toggleMenu() {}
 }

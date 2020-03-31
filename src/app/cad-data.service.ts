@@ -145,8 +145,8 @@ export class CadDataService {
 			name: "postCadData",
 			progress: 0
 		});
-		return new Promise<CadData[]>((resolve, reject) => {
-			cadData.forEach(async d => {
+		return new Promise<CadData[]>(resolve => {
+			cadData.forEach(async (d, i) => {
 				const formData = new FormData();
 				if (data) {
 					formData.append("data", data);
@@ -163,13 +163,13 @@ export class CadDataService {
 						json.type = 分类;
 						json.options = 选项;
 						json.conditions = 条件;
-						result.push(json);
+						result[i] = json;
 						successCounter++;
 					} else {
 						throw new Error(response.msg);
 					}
 				} catch (error) {
-					result.push(null);
+					result[i] = null;
 				} finally {
 					counter++;
 				}
@@ -189,7 +189,7 @@ export class CadDataService {
 				}
 				if (counter >= cadData.length) {
 					if (successCounter === counter) {
-						this.snackBar.open(`${result.length > 1 ? "全部" : ""}成功`);
+						this.snackBar.open(`${successCounter > 1 ? "全部" : ""}成功`);
 					} else {
 						this.snackBar.open(`${successCounter > 0 ? "部分" : "全部"}失败`);
 					}
@@ -197,40 +197,6 @@ export class CadDataService {
 				}
 			});
 		});
-		return result;
-		Promise.all(promises)
-			.then(
-				responses => {
-					responses.forEach(response => {
-						if (response.code === 0) {
-							const {json, 分类, 名字, 条件, 选项} = response.data;
-							if (!json) {
-								return null;
-							}
-							json.name = 名字;
-							json.type = 分类;
-							json.options = 选项;
-							json.conditions = 条件;
-							result.push(json);
-						} else {
-							result.push(null);
-						}
-					});
-					this.currentFragment = result[0];
-					if (responses.length === result.length) {
-						this.snackBar.open(`${result.length > 1 ? "全部" : ""}成功`);
-					} else {
-						this.snackBar.open("部分成功");
-					}
-				},
-				() => {
-					this.snackBar.open("提交失败或未全部成功");
-				}
-			)
-			.finally(() => {
-				this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "postCadData"});
-			});
-		return result;
 	}
 
 	get rawData() {
