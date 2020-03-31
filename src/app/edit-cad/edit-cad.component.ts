@@ -37,6 +37,8 @@ export class EditCadComponent implements AfterViewInit {
 	pointsMap: LinesAtPoint[];
 	rotateAngle = 0;
 	partners: {id: string; name: string; img: string}[];
+	pointer: Point;
+	dragButton: number;
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
 
@@ -88,7 +90,31 @@ export class EditCadComponent implements AfterViewInit {
 			drawDimensions: true,
 			drawMTexts: true
 		})
-			.enableDragging()
+			.enableDragging(
+				event => {
+					this.pointer = new Point(event.clientX, event.clientY);
+					this.dragButton = event.button;
+				},
+				event => {
+					const {pointer, dragButton, cad, status} = this;
+					if (pointer && cad && (dragButton === 1 || (event.shiftKey && dragButton === 0))) {
+						const currPointer = new Point(event.clientX, event.clientY);
+						const translate = currPointer.clone().sub(pointer);
+						const start = this.getVIdx("entities");
+						const end = start + cad.data.entities.length;
+						const entities = vCad.data.entities.slice(start, end);
+						status.line.start.add(translate);
+						status.line.end.add(translate);
+						const scale = 1 / vCad.getScale();
+						translate.multiply(scale, -scale);
+						vCad.transformEntities(entities, {translate}).render();
+						this.pointer = currPointer;
+					}
+				},
+				event => {
+					this.pointer = null;
+				}
+			)
 			.enableWheeling()
 			.enableKeyboard();
 		this.vCad = vCad;

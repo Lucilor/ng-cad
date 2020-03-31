@@ -1,7 +1,7 @@
 import {Component, Output, EventEmitter, Inject, OnInit} from "@angular/core";
 import {Dimension, CadViewer} from "@lucilor/cad-viewer";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {FormBuilder, FormGroup, ValidatorFn, AbstractControl} from "@angular/forms";
+import {FormBuilder, FormGroup, ValidatorFn, AbstractControl, FormControl} from "@angular/forms";
 
 @Component({
 	selector: "app-dim-form",
@@ -24,11 +24,13 @@ export class DimFormComponent implements OnInit {
 		this.form = this.fb.group({
 			mingzi: [dimension.mingzi],
 			qujian: [dimension.qujian, [this.qujianValidator()]],
-			e1Location: dimension.entity1.location,
-			e2Location: dimension.entity2.location,
+			e1Location: dimension.entity1?.location,
+			e2Location: dimension.entity2?.location,
 			axis: dimension.axis,
 			distance: dimension.distance,
-			fontSize: dimension.fontSize
+			fontSize: dimension.fontSize,
+			cad1: new FormControl({value: dimension.cad1, disabled: true}),
+			cad2: new FormControl({value: dimension.cad2, disabled: true})
 		});
 	}
 
