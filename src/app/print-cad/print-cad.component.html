@@ -11,7 +11,7 @@
 		<mat-form-field *ngIf="!miniMenu">
 			<mat-label>放大倍数</mat-label>
 			<input type="number" matInput [(ngModel)]="scale" />
-			<mat-hint [align]="'start'">初始尺寸210*297，倍数越大则越清晰</mat-hint>
+			<mat-hint [align]="'start'">A4大小</mat-hint>
 		</mat-form-field>
 		<button *ngIf="!miniMenu" mat-raised-button color="primary" (click)="print()">打印</button>
 	</div>

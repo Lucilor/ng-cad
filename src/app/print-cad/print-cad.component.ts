@@ -51,8 +51,7 @@ export class PrintCadComponent implements AfterViewInit {
 			drawMTexts: true,
 			drawPolyline: true,
 			drawDimensions: true,
-			fontSize: 26,
-			selectMode: "single"
+			fontSize: 26
 		}).render();
 		cad.enableDragging()
 			.enableKeyboard()

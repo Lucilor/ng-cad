@@ -88,7 +88,10 @@
 						<mat-hint [align]="'start'">x:{{ j.valueX?.toFixed(2) }}, y:{{ j.valueY?.toFixed(2) }}</mat-hint>
 					</mat-form-field>
 				</div>
-				<button mat-raised-button color="accent" [disabled]="!cad" (click)="submit()">确定修改</button>
+				<div class="btn-group">
+					<button mat-raised-button color="accent" [disabled]="!cad" (click)="submit()">确定修改</button>
+					<button mat-raised-button color="accent" [disabled]="!cad" (click)="replaceData()">替换数据</button>
+				</div>
 			</mat-expansion-panel>
 			<mat-expansion-panel expanded>
 				<mat-expansion-panel-header>

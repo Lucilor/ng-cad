@@ -8,6 +8,7 @@ import {Line, Point, Angle, Arc, getColorLightness, RSAEncrypt} from "@lucilor/u
 import {MatSelectChange} from "@angular/material/select";
 import {DimFormComponent} from "./dim-form.component";
 import {cloneDeep} from "lodash";
+import {ListCadComponent} from "../list-cad/list-cad.component";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension1" | "dimension2" | "jointPoint";
@@ -426,33 +427,7 @@ export class EditCadComponent implements AfterViewInit {
 			}
 			this.generatePointsMap();
 			const lines = this.findAllAdjacentLines(entity, line.end);
-			lines.forEach(e => {
-				if (e.type === CadTypes.Line) {
-					const l = e as CadLine;
-					l.start[0] += offset.x;
-					l.start[1] += offset.y;
-					l.end[0] += offset.x;
-					l.end[1] += offset.y;
-					const e2 = vCad.findEntity(e.id) as CadLine;
-					if (e2.type === CadTypes.Line) {
-						e2.start[0] += offset.x;
-						e2.start[1] += offset.y;
-						e2.end[0] += offset.x;
-						e2.end[1] += offset.y;
-					}
-				}
-				if (e.type === CadTypes.Arc) {
-					const a = e as CadArc;
-					a.center[0] += offset.x;
-					a.center[1] += offset.y;
-					const e2 = vCad.findEntity(e.id) as CadArc;
-					if (e2.type === CadTypes.Line) {
-						e2.center[0] += offset.x;
-						e2.center[1] += offset.y;
-					}
-				}
-			});
-			vCad.render();
+			vCad.transformEntities(lines, {translate: offset}).render();
 			this.setPoints();
 		}
 	}
@@ -642,5 +617,15 @@ export class EditCadComponent implements AfterViewInit {
 	set drawMTexts(value) {
 		this.vCad.config.drawMTexts = value;
 		this.vCad.render();
+	}
+
+	replaceData() {
+		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}});
+		ref.afterClosed().subscribe(id => {
+			if (typeof id === "string") {
+				this.cad.data.id = id;
+				this.submit();
+			}
+		});
 	}
 }

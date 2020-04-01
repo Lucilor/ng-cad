@@ -9,7 +9,6 @@ import {FormBuilder, FormGroup, ValidatorFn, AbstractControl, FormControl} from 
 	styleUrls: ["./dim-form.component.scss"]
 })
 export class DimFormComponent implements OnInit {
-	@Output() dimensionEmitter = new EventEmitter<Dimension>();
 	form: FormGroup;
 	dimension: Dimension;
 	constructor(

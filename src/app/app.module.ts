@@ -19,6 +19,9 @@ import {MatInputModule} from "@angular/material/input";
 import {MatExpansionModule} from "@angular/material/expansion";
 import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
+import {MatPaginatorModule, MatPaginatorIntl} from "@angular/material/paginator";
+import {MatRadioModule} from "@angular/material/radio";
+import {MatCheckboxModule} from "@angular/material/checkbox";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
@@ -26,6 +29,8 @@ import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
 import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 import {PrintCadComponent} from "./print-cad/print-cad.component";
+import {ListCadComponent} from "./list-cad/list-cad.component";
+import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
 
 @NgModule({
 	declarations: [
@@ -38,7 +43,8 @@ import {PrintCadComponent} from "./print-cad/print-cad.component";
 		EditCadComponent,
 		DimFormComponent,
 		AssembleCadComponent,
-		PrintCadComponent
+		PrintCadComponent,
+		ListCadComponent
 	],
 	imports: [
 		BrowserModule,
@@ -60,12 +66,18 @@ import {PrintCadComponent} from "./print-cad/print-cad.component";
 		MatIconModule,
 		MatSelectModule,
 		MatSnackBarModule,
+		MatPaginatorModule,
+		MatRadioModule,
+		MatCheckboxModule,
 		DragDropModule,
 		FormsModule,
 		ReactiveFormsModule
 	],
-	entryComponents: [AlertComponent, DimFormComponent],
-	providers: [{provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {duration: 3000, verticalPosition: "top"}}],
+	entryComponents: [],
+	providers: [
+		{provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {duration: 3000, verticalPosition: "top"}},
+		{provide: MatPaginatorIntl, useClass: MyMatPaginatorIntl}
+	],
 	bootstrap: [AppComponent]
 })
 export class AppModule {}

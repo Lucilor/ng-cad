@@ -1,0 +1,23 @@
+@import "../../styles.scss";
+
+mat-paginator,
+.data-container {
+	@include font();
+}
+
+mat-radio-group,
+.checkbox-group {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.data-container {
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+	margin: 12px;
+}
+
+.mat-dialog-actions {
+	justify-content: center !important;
+}

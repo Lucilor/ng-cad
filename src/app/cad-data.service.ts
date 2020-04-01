@@ -75,9 +75,9 @@ export class CadDataService {
 
 	async getCadData(encode: string, data: string) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadData"});
+		encode = encodeURIComponent(encode);
+		data = encodeURIComponent(data);
 		try {
-			encode = encodeURIComponent(encode);
-			data = encodeURIComponent(data);
 			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
 			if (response.code === 0 && response.data) {
 				if (!Array.isArray(response.data)) {
@@ -111,6 +111,41 @@ export class CadDataService {
 		}
 	}
 
+	async getCadDataPage(encode: string, page: number, limit: number) {
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
+		encode = encodeURIComponent(encode);
+		try {
+			const data = RSAEncrypt({page, limit});
+			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
+			if (response.code === 0 && response.data) {
+				const result: CadData[] = [];
+				response.data.forEach(d => {
+					const {分类, 名字, 条件, 选项} = d;
+					const json = d.json as CadData;
+					if (!json.entities) {
+						json.entities = [];
+					}
+					if (!json.layers) {
+						json.layers = [];
+					}
+					json.name = 名字;
+					json.type = 分类;
+					json.options = 选项;
+					json.conditions = 条件;
+					result.push(json);
+				});
+				return {data: result, count: response.count};
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alert(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
+		}
+	}
+
 	async postRawData(encode: string, data: CadRawData) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "postRawData"});
 		const formData = new FormData();
@@ -135,8 +170,7 @@ export class CadDataService {
 
 	async postCadData(cadData: CadData[], encode: string, data?: string) {
 		encode = encodeURIComponent(encode);
-		data = encodeURIComponent(data);
-		const promises: Promise<Response>[] = [];
+		data = data ? encodeURIComponent(data) : data;
 		const result: CadData[] = [];
 		let counter = 0;
 		let successCounter = 0;
