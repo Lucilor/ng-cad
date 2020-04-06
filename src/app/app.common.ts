@@ -4,6 +4,7 @@ const host = environment.host;
 export const apiBasePath = host + "/n/zy/index";
 
 export const paths = {
+	playground: "playground",
 	"draw-cad": "draw-cad",
 	"edit-cad": "edit-cad",
 	"assemble-cad": "assemble-cad",

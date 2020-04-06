@@ -31,6 +31,7 @@ import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 import {PrintCadComponent} from "./print-cad/print-cad.component";
 import {ListCadComponent} from "./list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
+import {PlaygroundComponent} from "./playground/playground.component";
 
 @NgModule({
 	declarations: [
@@ -44,7 +45,8 @@ import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
 		DimFormComponent,
 		AssembleCadComponent,
 		PrintCadComponent,
-		ListCadComponent
+		ListCadComponent,
+		PlaygroundComponent
 	],
 	imports: [
 		BrowserModule,

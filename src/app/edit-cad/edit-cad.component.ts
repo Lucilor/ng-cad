@@ -38,7 +38,6 @@ export class EditCadComponent implements AfterViewInit {
 	pointsMap: LinesAtPoint[];
 	rotateAngle = 0;
 	partners: {id: string; name: string; img: string}[];
-	pointer: Point;
 	dragButton: number;
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
@@ -93,27 +92,30 @@ export class EditCadComponent implements AfterViewInit {
 		})
 			.enableDragging(
 				event => {
-					this.pointer = new Point(event.clientX, event.clientY);
 					this.dragButton = event.button;
 				},
 				event => {
-					const {pointer, dragButton, cad, status} = this;
-					if (pointer && cad && (dragButton === 1 || (event.shiftKey && dragButton === 0))) {
-						const currPointer = new Point(event.clientX, event.clientY);
-						const translate = currPointer.clone().sub(pointer);
-						const start = this.getVIdx("entities");
-						const end = start + cad.data.entities.length;
-						const entities = vCad.data.entities.slice(start, end);
-						status.line.start.add(translate);
-						status.line.end.add(translate);
-						const scale = 1 / vCad.getScale();
-						translate.multiply(scale, -scale);
-						vCad.transformEntities(entities, {translate}).render();
-						this.pointer = currPointer;
+					const {dragButton, cad, status} = this;
+					const translate = new Point(event.movementX, event.movementY);
+					if (cad) {
+						if (dragButton === 1) {
+							const pos = vCad.getPosition().add(translate.multiply(1, -1));
+							this.vCad.setPosition(pos);
+						}
+						if (event.shiftKey && dragButton === 0) {
+							const start = this.getVIdx("entities");
+							const end = start + cad.data.entities.length;
+							const entities = vCad.data.entities.slice(start, end);
+							status.line.start.add(translate);
+							status.line.end.add(translate);
+							const scale = 1 / vCad.getScale();
+							translate.multiply(scale, -scale);
+							vCad.transformEntities(entities, {translate}).render();
+						}
 					}
 				},
 				event => {
-					this.pointer = null;
+					this.dragButton = null;
 				}
 			)
 			.enableWheeling()
@@ -183,6 +185,7 @@ export class EditCadComponent implements AfterViewInit {
 		document.addEventListener("keydown", event => {
 			if (event.key === "Escape") {
 				this.status.entity = null;
+				this.status.cadIdx = -1;
 			}
 		});
 	}
@@ -271,7 +274,7 @@ export class EditCadComponent implements AfterViewInit {
 	addItem(i: number, field: string, data?: any) {
 		const initVal = cloneDeep(this.initVals[field]);
 		(data || this.cad.data)[field].splice(i + 1, 0, initVal);
-		this.vCad.data[field].splice(this.getVIdx(field) + 1, initVal);
+		this.vCad.data[field].splice(this.getVIdx(field) + 1, 0, initVal);
 	}
 
 	removeItem(i: number, field: string) {
