@@ -3,6 +3,55 @@
 .menu.right {
 	width: 336px;
 	padding: 10px;
+
+	.dimension-info {
+		mat-form-field {
+			width: calc(100% - 42px);
+			margin-left: 10px;
+
+			input {
+				@include font();
+			}
+
+			mat-icon {
+				cursor: pointer;
+				font-size: 1.5rem;
+				width: 1.5rem;
+			}
+
+			mat-hint {
+				font-size: 1rem;
+			}
+
+			mat-select {
+				@include font();
+			}
+		}
+
+		label {
+			line-height: 1.5rem;
+			font-size: 1rem;
+		}
+
+		&.dimension-info {
+			mat-form-field {
+				width: calc(100% - 74px);
+				margin-bottom: 10px;
+			}
+
+			mat-hint {
+				button {
+					min-width: unset;
+					width: 40px;
+					height: 24px;
+					font-size: 0.8rem;
+					line-height: 24px;
+					margin: 0 5px;
+					padding: 0;
+				}
+			}
+		}
+	}
 }
 
 .option {

@@ -58,6 +58,36 @@
 					<img [src]="d.img" (click)="selectComponent(i)" />
 				</div>
 			</mat-expansion-panel>
+			<mat-expansion-panel expanded>
+				<mat-expansion-panel-header>
+					<mat-panel-title>标注信息</mat-panel-title>
+				</mat-expansion-panel-header>
+				<div class="dimension-info" *ngFor="let d of cad?.data.dimensions; let i = index">
+					<button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
+					<mat-form-field>
+						<mat-label></mat-label>
+						<input disabled matInput type="text" [ngModel]="d.qujian || d.mingzi || ''" placeholder="标注内容" />
+						<mat-icon matSuffix color="primary" (click)="addItem(i, 'dimensions')">add_circle</mat-icon>
+						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'dimensions'); cad.render()">remove_circle</mat-icon>
+						<mat-hint [align]="'start'">
+							<button
+								mat-raised-button
+								[color]="status.mode.type === 'dimension1' && status.mode.index === i ? 'accent' : 'primary'"
+								(click)="selectDimLine(i, 1)"
+							>
+								线1
+							</button>
+							<button
+								mat-raised-button
+								[color]="status.mode.type === 'dimension2' && status.mode.index === i ? 'accent' : 'primary'"
+								(click)="selectDimLine(i, 2)"
+							>
+								线2
+							</button>
+						</mat-hint>
+					</mat-form-field>
+				</div>
+			</mat-expansion-panel>
 		</mat-accordion>
 	</div>
 </ng-container>
