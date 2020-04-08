@@ -14,7 +14,7 @@ import {cloneDeep} from "lodash";
 
 const session = new SessionStorage("cad-data");
 @Injectable({
-	providedIn: "root"
+	providedIn: "root",
 })
 export class CadDataService {
 	private _rawData: CadRawData;
@@ -34,7 +34,7 @@ export class CadDataService {
 	private getUUID() {
 		const fragmentsData = (session.load("fragmentsData", true) as CadData[]) || [];
 		let count = 0;
-		const names = fragmentsData.map(v => v.name);
+		const names = fragmentsData.map((v) => v.name);
 		while (count < 100) {
 			const uuid = UUID.v1();
 			if (!names.includes(uuid)) {
@@ -84,7 +84,7 @@ export class CadDataService {
 					response.data = [response.data];
 				}
 				const result: CadData[] = [];
-				response.data.forEach(d => {
+				response.data.forEach((d) => {
 					const {分类, 名字, 条件, 选项} = d;
 					const json = d.json as CadData;
 					if (!json.entities) {
@@ -119,7 +119,7 @@ export class CadDataService {
 			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
 			if (response.code === 0 && response.data) {
 				const result: CadData[] = [];
-				response.data.forEach(d => {
+				response.data.forEach((d) => {
 					const {分类, 名字, 条件, 选项} = d;
 					const json = d.json as CadData;
 					if (!json.entities) {
@@ -177,9 +177,9 @@ export class CadDataService {
 		this.store.dispatch<LoadingAction>({
 			type: ActionTypes.setLoadingProgress,
 			name: "postCadData",
-			progress: 0
+			progress: 0,
 		});
-		return new Promise<CadData[]>(resolve => {
+		return new Promise<CadData[]>((resolve) => {
 			cadData.forEach(async (d, i) => {
 				const formData = new FormData();
 				if (data) {
@@ -210,14 +210,14 @@ export class CadDataService {
 				this.store.dispatch<LoadingAction>({
 					type: ActionTypes.setLoadingProgress,
 					name: "postCadData",
-					progress: counter / cadData.length
+					progress: counter / cadData.length,
 				});
 				if (counter / cadData.length >= 1) {
 					setTimeout(() => {
 						this.store.dispatch<LoadingAction>({
 							type: ActionTypes.setLoadingProgress,
 							name: "postCadData",
-							progress: -1
+							progress: -1,
 						});
 					}, 200);
 				}
@@ -272,8 +272,8 @@ export class CadDataService {
 
 	updateFragments(fragments: CadData[]) {
 		const fragmentsData = (this.fragmentsData || []) as CadData[];
-		const ids = fragmentsData.map(v => v.id);
-		const names = fragmentsData.map(v => v.name);
+		const ids = fragmentsData.map((v) => v.id);
+		const names = fragmentsData.map((v) => v.name);
 		const rawData = this.rawData;
 		for (const f of fragments) {
 			const idx = ids.indexOf(f.id);
@@ -292,7 +292,7 @@ export class CadDataService {
 			f.parent = rawData.id;
 			f.dimensions = [];
 			f.mtexts = [];
-			const find = (id: string) => f.entities.find(e => e.id === id) as CadLine;
+			const find = (id: string) => f.entities.find((e) => e.id === id) as CadLine;
 			const accuracy = 3;
 			const used = [];
 			for (const t of rawData.lineText) {
@@ -313,7 +313,7 @@ export class CadDataService {
 							f.mtexts.push(mtext);
 						}
 					} else {
-						t.text.to.forEach(id => {
+						t.text.to.forEach((id) => {
 							if (used.includes(t.id)) {
 								return;
 							}
@@ -344,7 +344,7 @@ export class CadDataService {
 						mingzi: d.text.mingzi || "",
 						qujian: d.text.qujian || "",
 						fontSize: d.font_size,
-						dimstyle: d.dimstyle
+						dimstyle: d.dimstyle,
 					};
 					const sub = new Point(d.defpoint).sub(new Point(d.defpoint3));
 					if (Math.abs(sub.x) < 0.1) {
@@ -386,7 +386,7 @@ export class CadDataService {
 						}
 					};
 					if (length === 2 || length === 4) {
-						t.text.to.forEach(id => set(find(id)));
+						t.text.to.forEach((id) => set(find(id)));
 						if (dimension.entity1 || dimension.entity2) {
 							if (dimension.entity1) {
 								dimension.cad1 = f.id;
@@ -435,14 +435,14 @@ export class CadDataService {
 
 	removeFragments(fragments: CadData[]) {
 		let fragmentsData = (session.load("fragmentsData", true) as CadData[]) || [];
-		const names = fragments.map(v => v.name);
-		fragmentsData = fragmentsData.filter(f => !names.includes(f.name));
+		const names = fragments.map((v) => v.name);
+		fragmentsData = fragmentsData.filter((f) => !names.includes(f.name));
 		session.save("fragmentsData", fragmentsData);
 		return fragmentsData;
 	}
 
 	saveViewerStatus(viewer: CadViewer, field: string) {
-		const status = {position: viewer.getPosition(), scale: viewer.getScale(), id: viewer.data.id};
+		const status = {position: viewer.position, scale: viewer.scale, id: viewer.data.id};
 		session.save(field, status);
 		return status;
 	}
@@ -451,10 +451,10 @@ export class CadDataService {
 		const status = session.load(field, true);
 		if (status && status.id === viewer.data.id) {
 			if (status.position) {
-				viewer.setPosition(new Point(status.position.x, status.position.y));
+				viewer.position = new Point(status.position.x, status.position.y);
 			}
 			if (status.scale) {
-				viewer.setScale(status.scale);
+				viewer.scale = status.scale;
 			}
 			return status;
 		} else {

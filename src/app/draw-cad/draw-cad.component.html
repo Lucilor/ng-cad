@@ -2,8 +2,8 @@
 <div class="menu left">
 	<button mat-raised-button color="primary" (click)="selectLines()">确定</button>
 	<button mat-raised-button color="primary" (click)="resetData()">还原数据</button>
-	<button mat-raised-button color="primary" (click)="cad.setScale(cad.getScale() + 0.1)">放大</button>
-	<button mat-raised-button color="primary" (click)="cad.setScale(cad.getScale() - 0.1)">缩小</button>
+	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale + 0.1">放大</button>
+	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale - 0.1">缩小</button>
 </div>
 <div class="menu right">
 	<div class="cad-fragment-container" *ngFor="let frag of frags; let i = index">

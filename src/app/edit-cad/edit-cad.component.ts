@@ -95,21 +95,31 @@ export class EditCadComponent implements AfterViewInit {
 					this.dragButton = event.button;
 				},
 				(event) => {
-					const {dragButton, cad, status} = this;
+					const {dragButton, cad, status, cads} = this;
 					const translate = new Point(event.movementX, event.movementY);
+					const scale = vCad.scale;
 					if (cad) {
 						if (dragButton === 1) {
-							const pos = vCad.getPosition().add(translate.multiply(1, -1));
-							this.vCad.setPosition(pos);
+							translate.divide(scale, -scale);
+							const pos = vCad.position.add(translate);
+							this.vCad.position = pos;
+							this.setPoints();
 						}
 						if (event.shiftKey && dragButton === 0) {
-							const start = this.getVIdx("entities");
-							const end = start + cad.data.entities.length;
-							const entities = vCad.data.entities.slice(start, end);
+							let start = this.getVIdx("entities");
+							let end = start + cad.data.entities.length;
+							let entities = vCad.data.entities.slice(start, end);
+							start = 0;
+							for (let i = 0; i < status.cadIdx; i++) {
+								start += cads[i].data.components.data.length;
+							}
+							end = start + cad.data.components.data.length;
+							vCad.data.components.data.slice(start, end).forEach((component) => {
+								entities = entities.concat(component.entities);
+							});
 							status.line.start.add(translate);
 							status.line.end.add(translate);
-							const scale = 1 / vCad.getScale();
-							translate.multiply(scale, -scale);
+							translate.divide(scale, -scale);
 							vCad.transformEntities(entities, {translate}).render();
 						}
 					}
@@ -126,7 +136,7 @@ export class EditCadComponent implements AfterViewInit {
 			status.entity = entity as CadLine;
 			const prevCadIdx = status.cadIdx;
 			cads.some((v, i) => {
-				if (v.findEntity(entity.id, v.data.entities)) {
+				if (v.findEntity(entity.id)) {
 					status.cadIdx = i;
 					return true;
 				}
@@ -233,6 +243,8 @@ export class EditCadComponent implements AfterViewInit {
 			vCad.data.baseLines = vCad.data.baseLines.concat(newData.baseLines);
 			vCad.data.jointPoints = vCad.data.jointPoints.concat(newData.jointPoints);
 			vCad.data.dimensions = vCad.data.dimensions.concat(newData.dimensions);
+			vCad.data.components.data = vCad.data.components.data.concat(newData.components.data);
+			vCad.data.components.connections = vCad.data.components.connections.concat(newData.components.connections);
 			document.body.append(v.render(true).view);
 		});
 		this.selectLineEnd();

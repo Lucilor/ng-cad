@@ -148,32 +148,11 @@ export class AssembleCadComponent implements AfterViewInit {
 				const dimension = cad.data.dimensions[index];
 				if (status.mode.type === "dimension1") {
 					dimension.entity1.id = entity.id;
-					if (cad.findEntity(entity.id, cad.data.entities)) {
-						dimension.cad1 = cad.data.name;
-					} else {
-						cad.data.components.data.some((d) => {
-							if (cad.findEntity(entity.id, d.entities)) {
-								dimension.cad1 = d.name;
-								return true;
-							}
-							return false;
-						});
-					}
+					dimension.cad1 = cad.data.name;
 				}
 				if (status.mode.type === "dimension2") {
 					dimension.entity2.id = entity.id;
 					dimension.cad2 = cad.data.name;
-					if (cad.findEntity(entity.id, cad.data.entities)) {
-						dimension.cad2 = cad.data.name;
-					} else {
-						cad.data.components.data.some((d) => {
-							if (cad.findEntity(entity.id, d.entities)) {
-								dimension.cad2 = d.name;
-								return true;
-							}
-							return false;
-						});
-					}
 				}
 			}
 		});
