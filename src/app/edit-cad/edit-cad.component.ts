@@ -38,7 +38,7 @@ export class EditCadComponent implements AfterViewInit {
 	pointsMap: LinesAtPoint[];
 	rotateAngle = 0;
 	partners: {id: string; name: string; img: string}[];
-	dragButton: number;
+	drag: {button: number; pointer: Point; entities: CadEntity[]};
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
 
@@ -92,40 +92,45 @@ export class EditCadComponent implements AfterViewInit {
 		})
 			.enableDragging(
 				(event) => {
-					this.dragButton = event.button;
+					this.drag = {button: event.button, pointer: new Point(event.screenX, event.screenY), entities: null};
 				},
 				(event) => {
-					const {dragButton, cad, status, cads} = this;
-					const translate = new Point(event.movementX, event.movementY);
-					const scale = vCad.scale;
-					if (cad) {
-						if (dragButton === 1) {
+					const {cad, status, cads} = this;
+					const {button, pointer} = this.drag || {};
+					if (this.drag && cad) {
+						const currPointer = new Point(event.screenX, event.screenY);
+						const translate = currPointer.clone().sub(pointer);
+						this.drag.pointer = currPointer;
+						const scale = vCad.scale;
+						if (button === 1) {
 							translate.divide(scale, -scale);
 							const pos = vCad.position.add(translate);
 							this.vCad.position = pos;
 							this.setPoints();
 						}
-						if (event.shiftKey && dragButton === 0) {
-							let start = this.getVIdx("entities");
-							let end = start + cad.data.entities.length;
-							let entities = vCad.data.entities.slice(start, end);
-							start = 0;
-							for (let i = 0; i < status.cadIdx; i++) {
-								start += cads[i].data.components.data.length;
+						if (event.shiftKey && button === 0) {
+							if (!this.drag.entities) {
+								let start = this.getVIdx("entities");
+								let end = start + cad.data.entities.length;
+								this.drag.entities = vCad.data.entities.slice(start, end);
+								start = 0;
+								for (let i = 0; i < status.cadIdx; i++) {
+									start += cads[i].data.components.data.length;
+								}
+								end = start + cad.data.components.data.length;
+								vCad.data.components.data.slice(start, end).forEach((component) => {
+									this.drag.entities = this.drag.entities.concat(component.entities);
+								});
 							}
-							end = start + cad.data.components.data.length;
-							vCad.data.components.data.slice(start, end).forEach((component) => {
-								entities = entities.concat(component.entities);
-							});
 							status.line.start.add(translate);
 							status.line.end.add(translate);
 							translate.divide(scale, -scale);
-							vCad.transformEntities(entities, {translate}).render();
+							vCad.transformEntities(this.drag.entities, {translate}).render();
 						}
 					}
 				},
 				(event) => {
-					this.dragButton = null;
+					this.drag = {button: null, pointer: null, entities: null};
 				}
 			)
 			.enableWheeling()
