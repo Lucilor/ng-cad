@@ -16,8 +16,4 @@ export class AlertComponent implements OnInit {
 	constructor(public dialogRef: MatDialogRef<AlertComponent>, @Inject(MAT_DIALOG_DATA) public data: AlertData) {}
 
 	ngOnInit() {}
-
-	close() {
-		this.dialogRef.close();
-	}
 }

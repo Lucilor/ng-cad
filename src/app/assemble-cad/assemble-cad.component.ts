@@ -25,6 +25,7 @@ export class AssembleCadComponent implements AfterViewInit {
 	components: {name: string; img: string}[];
 	options: {space: string; position: ComponentPosition};
 	status: {names: string[]; lines: string[]; mode: Mode; activeComponent: string; dimension?: Dimension};
+	dimNameFocus = -1;
 	private initVals = {
 		options: {name: "", value: ""},
 		conditions: "",
@@ -256,12 +257,17 @@ export class AssembleCadComponent implements AfterViewInit {
 	}
 
 	removeItem(i: number, field: string) {
-		const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
-		if (this.cad.data[field].length === 1) {
-			this.cad.data[field][0] = initVal;
-		} else {
-			this.cad.data[field].splice(i, 1);
-		}
+		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
+		ref.afterClosed().subscribe((res) => {
+			if (res === true) {
+				const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
+				if (this.cad.data[field].length === 1) {
+					this.cad.data[field][0] = initVal;
+				} else {
+					this.cad.data[field].splice(i, 1);
+				}
+			}
+		});
 	}
 
 	private focus(name: string) {
@@ -311,8 +317,13 @@ export class AssembleCadComponent implements AfterViewInit {
 		}
 	}
 
-	deleteConnection(i: number) {
-		this.cad.data.components.connections.splice(i, 1);
+	removeConnection(i: number) {
+		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
+		ref.afterClosed().subscribe((res) => {
+			if (res === true) {
+				this.cad.data.components.connections.splice(i, 1);
+			}
+		});
 	}
 
 	selectLineBegin(type: Mode["type"], index: number) {
@@ -395,5 +406,13 @@ export class AssembleCadComponent implements AfterViewInit {
 				cad.render();
 			}
 		});
+	}
+
+	getDimensionName(dimension: Dimension, index: number) {
+		if (this.dimNameFocus === index) {
+			return dimension.mingzi || "";
+		} else {
+			return `${dimension.mingzi || ""} ${dimension.qujian || ""}`;
+		}
 	}
 }

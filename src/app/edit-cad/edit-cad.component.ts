@@ -39,6 +39,7 @@ export class EditCadComponent implements AfterViewInit {
 	rotateAngle = 0;
 	partners: {id: string; name: string; img: string}[];
 	drag: {button: number; pointer: Point; entities: CadEntity[]};
+	dimNameFocus = -1;
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
 
@@ -295,14 +296,19 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	removeItem(i: number, field: string) {
-		const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
-		if (this.cad.data[field].length === 1) {
-			this.cad.data[field][0] = initVal;
-			this.vCad.data[field][this.getVIdx(field)] = initVal;
-		} else {
-			this.cad.data[field].splice(i, 1);
-			this.vCad.data[field].splice(this.getVIdx(field), 1);
-		}
+		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
+		ref.afterClosed().subscribe((res) => {
+			if (res === true) {
+				const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
+				if (this.cad.data[field].length === 1) {
+					this.cad.data[field][0] = initVal;
+					this.vCad.data[field][this.getVIdx(field)] = initVal;
+				} else {
+					this.cad.data[field].splice(i, 1);
+					this.vCad.data[field].splice(this.getVIdx(field), 1);
+				}
+			}
+		});
 	}
 
 	selectBaseline(i: number) {
@@ -649,5 +655,13 @@ export class EditCadComponent implements AfterViewInit {
 				this.submit();
 			}
 		});
+	}
+
+	getDimensionName(dimension: Dimension, index: number) {
+		if (this.dimNameFocus === index) {
+			return dimension.mingzi || "";
+		} else {
+			return `${dimension.mingzi || ""} ${dimension.qujian || ""}`;
+		}
 	}
 }

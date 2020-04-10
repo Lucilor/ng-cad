@@ -225,7 +225,7 @@ export class CadDataService {
 					if (successCounter === counter) {
 						this.snackBar.open(`${successCounter > 1 ? "全部" : ""}成功`);
 					} else {
-						this.snackBar.open(`${successCounter > 0 ? "部分" : "全部"}失败`);
+						this.snackBar.open(`${counter > 1 ? (successCounter > 0 ? "部分" : "全部") : ""}失败`);
 					}
 					resolve(result);
 				}

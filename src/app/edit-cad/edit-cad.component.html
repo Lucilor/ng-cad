@@ -51,7 +51,13 @@
 					<label>{{ i === 0 ? "条件" : "" }}</label>
 					<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
 						<mat-label></mat-label>
-						<input matInput type="text" [(ngModel)]="(cad?.data.conditions)[i]" placeholder="条件" />
+						<input
+							matInput
+							type="text"
+							[ngModel]="c"
+							(change)="cad?.data.conditions[i] = $event.target.value"
+							placeholder="条件"
+						/>
 						<mat-icon matSuffix color="primary" (click)="addItem(i, 'conditions')">add_circle</mat-icon>
 						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'conditions')">remove_circle</mat-icon>
 					</mat-form-field>
@@ -192,7 +198,15 @@
 					<button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
 					<mat-form-field>
 						<mat-label></mat-label>
-						<input disabled matInput type="text" [ngModel]="d.qujian || d.mingzi || ''" placeholder="标注内容" />
+						<input
+							matInput
+							type="text"
+							[ngModel]="getDimensionName(d, i)"
+							(focus)="dimNameFocus = i"
+							(blur)="dimNameFocus = -1"
+							(change)="d.mingzi = $event.target.value"
+							placeholder="标注内容"
+						/>
 						<mat-icon matSuffix color="primary" (click)="addItem(i, 'dimensions')">add_circle</mat-icon>
 						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'dimensions'); vCad.render()">remove_circle</mat-icon>
 						<mat-hint [align]="'start'">
