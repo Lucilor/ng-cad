@@ -1,4 +1,3 @@
-import p5 from "p5";
 import {
 	CadData,
 	Config,
@@ -9,9 +8,22 @@ import {
 	CadLine,
 	CadArc,
 	CadCircle,
-	CadHatch
+	CadHatch,
 } from "@lucilor/cad-viewer";
-import {index2RGB, Rectangle, Point, Angle, Arc, Line} from "@lucilor/utils";
+import {index2RGB, Rectangle, Point, Angle, Arc} from "@lucilor/utils";
+import {
+	Scene,
+	PerspectiveCamera,
+	WebGLRenderer,
+	LineBasicMaterial,
+	Line3,
+	Vector3,
+	BufferGeometry,
+	Line,
+	Object3D,
+	CameraHelper,
+} from "three";
+import OrbitControls from "orbit-controls-es6";
 
 export interface LineStyle {
 	color?: number;
@@ -26,10 +38,17 @@ export interface TextStyle {
 export class CadViewer {
 	data: CadData;
 	config: Config;
-	sketch: p5;
+	width: number;
+	height: number;
+	view: HTMLCanvasElement;
+	scene: Scene;
+	camera: PerspectiveCamera;
+	renderer: WebGLRenderer;
+	objects: {[key: string]: Object3D} = {};
+	controls: OrbitControls;
 	private _renderTimer = {id: null, time: 0};
 
-	constructor(data: CadData, node?: HTMLElement, config: Config = {}) {
+	constructor(data: CadData, width = 300, height = 150, config: Config = {}) {
 		this.data = transformData(data, "array");
 		this.config = {...defaultConfig, ...config};
 		const padding = this.config.padding;
@@ -46,29 +65,38 @@ export class CadViewer {
 		} else if (padding.length === 3) {
 			this.config.padding = [padding[0], padding[1], padding[0], padding[2]];
 		}
-		const sk = new p5((sketch: p5) => {
-			sketch.preload = () => {
-				this.sketch = sketch;
-			};
 
-			sketch.setup = () => {
-				const {width, height, backgroundColor} = this.config;
-				sketch.createCanvas(width, height);
-				sketch.background("#000000");
-				sketch.noLoop();
-			};
+		const scene = new Scene();
+		const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
+		const renderer = new WebGLRenderer();
+		scene.add(new CameraHelper(camera));
+		renderer.setSize(width, height);
 
-			sketch.mouseMoved = () => {
-				this.render();
-			};
+		camera.position.set(0, 0, 300);
+		camera.lookAt(0, 0, 0);
+		const l = new Vector3();
+		l.applyQuaternion(this.camera.quaternion);
 
-			sketch.mouseDragged = (event: MouseEvent) => {
-				if (sketch.mouseButton === "center") {
-					sketch.translate(event.movementX, event.movementY);
-					this.render();
-				}
-			};
-		}, node);
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.enabled = true;
+		controls.maxDistance = 1500;
+		controls.minDistance = 0;
+		console.log(controls);
+
+		this.view = renderer.domElement;
+		this.scene = scene;
+		this.camera = camera;
+		this.renderer = renderer;
+		this.controls = controls;
+		this.width = width;
+		this.height = height;
+
+		const animate = () => {
+			requestAnimationFrame(animate.bind(this));
+			this.renderer.render(this.scene, this.camera);
+			this.controls.update();
+		};
+		animate();
 	}
 
 	render(center = false, mode: number = 0b111, entities?: CadEntity[], style: LineStyle = {}) {
@@ -80,7 +108,6 @@ export class CadViewer {
 			return this;
 		}
 		this._renderTimer.time = now;
-		this.sketch.clear().background("#000000");
 		const draw = (entity: CadEntity) => {
 			if (!entity) {
 				return;
@@ -146,10 +173,10 @@ export class CadViewer {
 			}
 		};
 		if (entities) {
-			entities.forEach(entity => draw(entity));
+			entities.forEach((entity) => draw(entity));
 		} else {
 			if (mode & 0b100) {
-				this.data.entities.forEach(entity => draw(entity));
+				this.data.entities.forEach((entity) => draw(entity));
 			}
 			// if (mode & 0b010) {
 			// 	this._status.partners.forEach(i => {
@@ -180,17 +207,19 @@ export class CadViewer {
 	}
 
 	center(entities?: CadEntity[]) {
-		const {width, height, padding, maxScale, minScale} = this.config;
+		const {padding, maxScale, minScale} = this.config;
+		const {width, height} = this;
 		const rect = this.getBounds(entities);
+
 		const scaleX = (width - padding[1] - padding[3]) / (rect.width + 10);
 		const scaleY = (height - padding[0] - padding[2]) / (rect.height + 10);
 		const scale = Math.min(scaleX, scaleY);
 		this.config.minScale = Math.min(scale, minScale);
 		this.config.maxScale = Math.max(scale, maxScale);
-		this.sketch.scale(scale);
+		// this.sketch.scale(scale);
 		const positionX = (width - rect.width + (padding[3] - padding[1]) / scale) / 2 - rect.x;
 		const positionY = (height - rect.height + (padding[2] - padding[0]) / scale) / 2 - rect.y;
-		this.sketch.translate(positionX, positionY);
+		// this.sketch.translate(positionX, positionY);
 		console.log(scale, positionX, positionY);
 		return this;
 	}
@@ -256,21 +285,28 @@ export class CadViewer {
 	}
 
 	drawLine(entity: CadLine, style: LineStyle) {
-		const sketch = this.sketch;
-		const line = new Line(new Point(entity.start), new Point(entity.end));
-		const d = 5;
-		// const p = 
-		const rect = new Rectangle(line.start.clone().sub(0, d), line.length, d * 2);
-		// rect.containsPoint(new);
+		// const sketch = this.sketch;
+		// const start = new Vector3(...entity.start);
+		// const end = new Vector3(...entity.end);
+		const {scene, objects} = this;
+		const start = new Vector3(0, 0, 0);
+		const end = new Vector3(100, 100, 100);
+		const lineWidth = style && style.lineWidth ? style.lineWidth : entity.lineWidth;
 		let colorRGB = entity.colorRGB;
 		if (style && style.color) {
 			colorRGB = style.color;
 		}
-		const lineWidth = style && style.lineWidth ? style.lineWidth : entity.lineWidth;
-		sketch.push();
-		sketch.stroke("#" + colorRGB.toString(16).padStart(6, "0"));
-		sketch.strokeWeight(lineWidth);
-		sketch.line(entity.start[0], entity.start[1], entity.end[0], entity.end[1]);
+		if (objects[entity.id]) {
+			const line = objects[entity.id] as Line;
+			line.geometry.setFromPoints([start, end]);
+		} else {
+			const geometry = new BufferGeometry().setFromPoints([start, end]);
+			const material = new LineBasicMaterial({color: colorRGB});
+			const line = new Line(geometry, material);
+			line.name = entity.id;
+			objects[entity.id] = line;
+			scene.add(line);
+		}
 	}
 
 	findLayerByName(layerName: string) {

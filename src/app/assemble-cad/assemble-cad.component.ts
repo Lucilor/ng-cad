@@ -199,16 +199,29 @@ export class AssembleCadComponent implements AfterViewInit {
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
-		this.cad.flip(vertical, horizontal).render(true);
+		const name = this.status.activeComponent;
+		if (name) {
+			this.cad.flipComponent(name, vertical, horizontal);
+		} else {
+			this.cad.flip(vertical, horizontal);
+		}
+		this.cad.render(true);
 	}
 
 	rotate(clockwise?: boolean) {
+		const name = this.status.activeComponent;
+		let angle: number;
 		if (clockwise === true) {
-			this.cad.rotate(-Math.PI / 2);
+			angle = -Math.PI / 2;
 		} else if (clockwise === false) {
-			this.cad.rotate(Math.PI / 2);
+			angle = Math.PI / 2;
 		} else {
-			this.cad.rotate(new Angle(this.rotateAngle, "deg").rad);
+			angle = new Angle(this.rotateAngle, "deg").rad;
+		}
+		if (name) {
+			this.cad.rotateComponent(name, angle);
+		} else {
+			this.cad.rotate(angle);
 		}
 		this.cad.render(true);
 	}
