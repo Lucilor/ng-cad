@@ -1,6 +1,6 @@
-import {Component, OnInit, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
+import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
 import {CadDataService} from "../cad-data.service";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 import {CadViewer, CadData} from "@lucilor/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../alert/alert.component";
@@ -24,11 +24,9 @@ export class DrawCadComponent implements AfterViewInit {
 		document.title = "查看CAD";
 		const params = this.route.snapshot.queryParams;
 		const data = await this.dataService.getRawData(params.encode, params.data);
-		const cad = new CadViewer(data, innerWidth, innerHeight, {selectMode: "multiple"});
-		this.dataService.fragmentsData.forEach(f => this.selectLines(f));
-		cad.enableDragging()
-			.enableKeyboard()
-			.enableWheeling();
+		const cad = new CadViewer(data, innerWidth, innerHeight, {selectMode: "multiple", drawPolyline: true});
+		this.dataService.fragmentsData.forEach((f) => this.selectLines(f));
+		cad.enableDragging().enableKeyboard().enableWheeling();
 		this.cad = cad;
 		this.cadContainer.nativeElement.append(cad.view);
 

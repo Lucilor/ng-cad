@@ -34,7 +34,7 @@
 		"object-literal-sort-keys": false,
 		"ordered-imports": false,
 		"quotemark": [true, "double"],
-		"trailing-comma": false,
+		"trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
 		"no-conflicting-lifecycle": true,
 		"no-host-metadata-property": true,
 		"no-input-rename": true,
@@ -49,7 +49,8 @@
 		"use-pipe-transform-interface": true,
 		"indent": ["tab", 4],
 		"variable-name": ["allow-leading-underscore"],
-		"forin": false
+		"forin": false,
+		"no-bitwise": false
 	},
 	"rulesDirectory": ["codelyzer"]
 }

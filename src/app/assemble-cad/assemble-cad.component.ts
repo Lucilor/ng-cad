@@ -1,4 +1,4 @@
-import {Component, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef} from "@angular/core";
+import {Component, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef} from "@angular/core";
 import {CadViewer, CadData, Events, CadEntity, ComponentPosition, CadTypes, CadLine, Dimension} from "@lucilor/cad-viewer";
 import {ActivatedRoute} from "@angular/router";
 import {CadDataService} from "../cad-data.service";
@@ -16,7 +16,7 @@ interface Mode {
 @Component({
 	selector: "app-assemble-cad",
 	templateUrl: "./assemble-cad.component.html",
-	styleUrls: ["./assemble-cad.component.scss"],
+	styleUrls: ["./assemble-cad.component.scss"]
 })
 export class AssembleCadComponent implements AfterViewInit {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
@@ -37,8 +37,8 @@ export class AssembleCadComponent implements AfterViewInit {
 			entity2: {id: "", location: "end"},
 			distance: 16,
 			fontSize: 16,
-			dimstyle: "",
-		},
+			dimstyle: ""
+		}
 	};
 	constructor(
 		private route: ActivatedRoute,
@@ -71,7 +71,7 @@ export class AssembleCadComponent implements AfterViewInit {
 			padding: [40, 416, 40, 150],
 			selectMode: "none",
 			selectedColor: 0x0000ff,
-			drawDimensions: true,
+			drawDimensions: true
 			// drawMText: true
 		}).render(true);
 		cad.enableDragging().enableWheeling().enableKeyboard();
@@ -191,7 +191,7 @@ export class AssembleCadComponent implements AfterViewInit {
 		this.status = {names: [], lines: [], activeComponent: null, mode: {type: "normal", index: -1}};
 		this.components = [];
 		this.options = {space: "", position: "absolute"};
-		cad.exportData().components.data.forEach((v, i) => {
+		cad.exportData().components.data.forEach((v) => {
 			const smallerCad = new CadViewer({entities: v.entities, layers: []}).render(true);
 			const img = smallerCad.exportImage();
 			this.components.push({name: v.name, img: img.src});
@@ -411,7 +411,7 @@ export class AssembleCadComponent implements AfterViewInit {
 		status.mode.type = "normal";
 		const ref: MatDialogRef<DimFormComponent, Dimension> = this.dialog.open(DimFormComponent, {
 			data: {cad, index: i},
-			disableClose: true,
+			disableClose: true
 		});
 		ref.afterClosed().subscribe((dimension) => {
 			if (dimension) {

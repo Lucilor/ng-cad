@@ -8,9 +8,9 @@ import {
 	CadLine,
 	CadArc,
 	CadCircle,
-	CadHatch,
+	CadHatch
 } from "@lucilor/cad-viewer";
-import {index2RGB, Rectangle, Point, Angle, Arc} from "@lucilor/utils";
+import {index2RGB} from "@lucilor/utils";
 import {
 	Scene,
 	PerspectiveCamera,
@@ -22,6 +22,9 @@ import {
 	Line,
 	Object3D,
 	CameraHelper,
+	Vector2,
+	ArcCurve,
+	MathUtils
 } from "three";
 import OrbitControls from "orbit-controls-es6";
 
@@ -67,18 +70,19 @@ export class CadViewer {
 		}
 
 		const scene = new Scene();
-		const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
+		const camera = new PerspectiveCamera(75, width / height, 0.1, 5000);
 		const renderer = new WebGLRenderer();
 		scene.add(new CameraHelper(camera));
 		renderer.setSize(width, height);
 
 		camera.position.set(0, 0, 300);
 		camera.lookAt(0, 0, 0);
+		// camera.up.set(0, 0, 1);
 		const l = new Vector3();
-		l.applyQuaternion(this.camera.quaternion);
+		l.applyQuaternion(camera.quaternion);
 
 		const controls = new OrbitControls(camera, renderer.domElement);
-		controls.enabled = true;
+		controls.enabled = false;
 		controls.maxDistance = 1500;
 		controls.minDistance = 0;
 		console.log(controls);
@@ -93,10 +97,31 @@ export class CadViewer {
 
 		const animate = () => {
 			requestAnimationFrame(animate.bind(this));
+			// this.camera.lookAt(this.camera.position);
 			this.renderer.render(this.scene, this.camera);
-			this.controls.update();
 		};
 		animate();
+
+		let dragPoint: Vector3 = null;
+		this.view.addEventListener("mousedown", (event) => {
+			dragPoint = new Vector3(event.clientX, event.clientY);
+		});
+		this.view.addEventListener("mousemove", (event) => {
+			if (dragPoint) {
+				const currPoint = new Vector3(event.clientX, event.clientY);
+				const offset = currPoint.clone().sub(dragPoint);
+				this.camera.position.sub(offset.multiply(new Vector3(1, -1, 0)));
+				dragPoint = currPoint;
+			}
+		});
+		this.view.addEventListener("mouseup", (event) => {
+			dragPoint = null;
+		});
+		this.view.addEventListener("wheel", (event) => {
+			this.camera.position.z += event.deltaY;
+		});
+
+		// this.drawLine({id: "awew", layer: "", color: 1, type: "LINE", start: [0, -innerHeight / 2, 0], end: [0, innerHeight / 2, 0]});
 	}
 
 	render(center = false, mode: number = 0b111, entities?: CadEntity[], style: LineStyle = {}) {
@@ -210,17 +235,19 @@ export class CadViewer {
 		const {padding, maxScale, minScale} = this.config;
 		const {width, height} = this;
 		const rect = this.getBounds(entities);
+		console.log(rect);
 
-		const scaleX = (width - padding[1] - padding[3]) / (rect.width + 10);
-		const scaleY = (height - padding[0] - padding[2]) / (rect.height + 10);
-		const scale = Math.min(scaleX, scaleY);
-		this.config.minScale = Math.min(scale, minScale);
-		this.config.maxScale = Math.max(scale, maxScale);
-		// this.sketch.scale(scale);
-		const positionX = (width - rect.width + (padding[3] - padding[1]) / scale) / 2 - rect.x;
-		const positionY = (height - rect.height + (padding[2] - padding[0]) / scale) / 2 - rect.y;
-		// this.sketch.translate(positionX, positionY);
-		console.log(scale, positionX, positionY);
+		// const scaleX = (width - padding[1] - padding[3]) / (rect.width + 10);
+		// const scaleY = (height - padding[0] - padding[2]) / (rect.height + 10);
+		// const scale = Math.min(scaleX, scaleY);
+		// this.config.minScale = Math.min(scale, minScale);
+		// this.config.maxScale = Math.max(scale, maxScale);
+		// // this.sketch.scale(scale);
+		// const positionX = (width - rect.width + (padding[3] - padding[1]) / scale) / 2 - rect.x;
+		// const positionY = (height - rect.height + (padding[2] - padding[0]) / scale) / 2 - rect.y;
+		// // this.sketch.translate(positionX, positionY);
+		// console.log(scale, positionX, positionY);
+		this.camera.position.set(rect.x, -rect.y, 300);
 		return this;
 	}
 
@@ -229,7 +256,7 @@ export class CadViewer {
 		let minX = Infinity;
 		let maxY = -Infinity;
 		let minY = Infinity;
-		const calc = (point: Point) => {
+		const calc = (point: Vector2) => {
 			maxX = Math.max(point.x, maxX);
 			maxY = Math.max(point.y, maxY);
 			minX = Math.min(point.x, minX);
@@ -243,26 +270,35 @@ export class CadViewer {
 			// this.data.components.data.forEach(v => (entities = entities.concat(v.entities)));
 		}
 		if (entities.length < 1) {
-			return new Rectangle(new Point(), 0, 0);
+			return {x: 0, y: 0, width: 0, height: 0};
 		}
 		for (const entity of entities) {
 			if (entity.type === CadTypes.Line) {
 				const {start, end} = entity as CadLine;
-				calc(new Point(start));
-				calc(new Point(end));
+				calc(new Vector2(...start));
+				calc(new Vector2(...end));
 			}
 			if (entity.type === CadTypes.Arc) {
 				const arcEntity = entity as CadArc;
-				const start = new Angle(arcEntity.start_angle, "deg");
-				const end = new Angle(arcEntity.end_angle, "deg");
-				const arc = new Arc(new Point(arcEntity.center), arcEntity.radius, start, end);
-				calc(arc.startPoint);
-				calc(arc.endPoint);
+				const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
+				const arc = new ArcCurve(
+					center[0],
+					center[1],
+					radius,
+					MathUtils.degToRad(start_angle),
+					MathUtils.degToRad(end_angle),
+					clockwise
+				);
+				// const start = new Angle(arcEntity.start_angle, "deg");
+				// const end = new Angle(arcEntity.end_angle, "deg");
+				// const arc = new Arc(new Point(arcEntity.center), arcEntity.radius, start, end);
+				calc(arc.getPoint(0));
+				calc(arc.getPoint(1));
 			}
 			if (entity.type === CadTypes.Circle) {
 				const {center, radius} = entity as CadCircle;
-				calc(new Point(center).add(radius));
-				calc(new Point(center).sub(radius));
+				calc(new Vector2(...center).addScalar(radius));
+				calc(new Vector2(...center).subScalar(radius));
 			}
 		}
 		// let rect: PIXI.Rectangle;
@@ -281,27 +317,26 @@ export class CadViewer {
 		// 	minX = Math.min(rect.left, minX);
 		// 	minY = Math.min(rect.top, minY);
 		// }
-		return new Rectangle(new Point(minX, minY), maxX - minX, maxY - minY);
+		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
 	}
 
-	drawLine(entity: CadLine, style: LineStyle) {
-		// const sketch = this.sketch;
-		// const start = new Vector3(...entity.start);
-		// const end = new Vector3(...entity.end);
+	drawLine(entity: CadLine, style?: LineStyle) {
 		const {scene, objects} = this;
-		const start = new Vector3(0, 0, 0);
-		const end = new Vector3(100, 100, 100);
+		const start = new Vector3(...entity.start);
+		const end = new Vector3(...entity.end);
+
 		const lineWidth = style && style.lineWidth ? style.lineWidth : entity.lineWidth;
 		let colorRGB = entity.colorRGB;
 		if (style && style.color) {
 			colorRGB = style.color;
 		}
+
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints([start, end]);
 		} else {
 			const geometry = new BufferGeometry().setFromPoints([start, end]);
-			const material = new LineBasicMaterial({color: colorRGB});
+			const material = new LineBasicMaterial({color: colorRGB, linewidth: lineWidth});
 			const line = new Line(geometry, material);
 			line.name = entity.id;
 			objects[entity.id] = line;

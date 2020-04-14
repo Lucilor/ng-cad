@@ -243,7 +243,7 @@ export class EditCadComponent implements AfterViewInit {
 			});
 
 			vCad.data.entities = vCad.data.entities.concat(newData.entities);
-			vCad.data.partners = vCad.data.partners.concat(newData.partners);
+			// vCad.data.partners = vCad.data.partners.concat(newData.partners);
 			vCad.data.options = vCad.data.options.concat(newData.options);
 			vCad.data.conditions = vCad.data.conditions.concat(newData.conditions);
 			vCad.data.baseLines = vCad.data.baseLines.concat(newData.baseLines);
