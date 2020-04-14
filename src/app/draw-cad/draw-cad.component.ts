@@ -23,8 +23,16 @@ export class DrawCadComponent implements AfterViewInit {
 	async ngAfterViewInit() {
 		document.title = "查看CAD";
 		const params = this.route.snapshot.queryParams;
-		const data = await this.dataService.getRawData(params.encode, params.data);
-		const cad = new CadViewer(data, innerWidth, innerHeight, {selectMode: "multiple", drawPolyline: true});
+		let data = await this.dataService.getRawData(params.encode, params.data);
+		const cad = new CadViewer(data, innerWidth, innerHeight, {
+			selectMode: "multiple",
+			drawPolyline: true,
+			drawMTexts: true,
+			drawDimensions: true
+		});
+		this.dataService.updateFragments([data]);
+		data = this.dataService.fragmentsData.pop();
+		this.dataService.removeFragments([data]);
 		this.dataService.fragmentsData.forEach((f) => this.selectLines(f));
 		cad.enableDragging().enableKeyboard().enableWheeling();
 		this.cad = cad;

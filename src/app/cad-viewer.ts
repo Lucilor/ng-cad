@@ -8,7 +8,8 @@ import {
 	CadLine,
 	CadArc,
 	CadCircle,
-	CadHatch
+	Events,
+	Component
 } from "@lucilor/cad-viewer";
 import {index2RGB} from "@lucilor/utils";
 import {
@@ -16,17 +17,18 @@ import {
 	PerspectiveCamera,
 	WebGLRenderer,
 	LineBasicMaterial,
-	Line3,
 	Vector3,
-	BufferGeometry,
 	Line,
 	Object3D,
-	CameraHelper,
 	Vector2,
 	ArcCurve,
-	MathUtils
+	MathUtils,
+	Raycaster,
+	Geometry,
+	Box3
 } from "three";
 import OrbitControls from "orbit-controls-es6";
+import {EventEmitter} from "events";
 
 export interface LineStyle {
 	color?: number;
@@ -38,6 +40,9 @@ export interface TextStyle {
 	fontSize?: number;
 }
 
+declare type MouseEvent0 = (event: PointerEvent) => void;
+declare type WheelEvent0 = (event: WheelEvent) => void;
+declare type KeyboardEvent0 = (event: KeyboardEvent) => void;
 export class CadViewer {
 	data: CadData;
 	config: Config;
@@ -49,10 +54,40 @@ export class CadViewer {
 	renderer: WebGLRenderer;
 	objects: {[key: string]: Object3D} = {};
 	controls: OrbitControls;
+	raycaster = new Raycaster();
+	currentObject: Object3D;
 	private _renderTimer = {id: null, time: 0};
+	private _events: {
+		onMouseDown: MouseEvent0;
+		onMouseMove: MouseEvent0;
+		onMouseUp: MouseEvent0;
+		onWheel: WheelEvent0;
+		onKeyDown: KeyboardEvent0;
+	};
+	private _status = {
+		pFrom: new Vector2(),
+		pTo: new Vector2(),
+		dragging: false,
+		button: -10,
+		componentName: ""
+	};
+	private _emitter = new EventEmitter();
+	private _multiSelector: Line;
 
 	constructor(data: CadData, width = 300, height = 150, config: Config = {}) {
-		this.data = transformData(data, "array");
+		transformData(data, "array");
+		this.data = {
+			entities: [],
+			baseLines: [],
+			jointPoints: [],
+			options: [],
+			conditions: [],
+			type: "",
+			partners: [],
+			components: {data: [], connections: []},
+			dimensions: [],
+			...data
+		};
 		this.config = {...defaultConfig, ...config};
 		const padding = this.config.padding;
 		if (typeof padding === "number") {
@@ -68,11 +103,11 @@ export class CadViewer {
 		} else if (padding.length === 3) {
 			this.config.padding = [padding[0], padding[1], padding[0], padding[2]];
 		}
+		this._events = {onMouseDown: () => {}, onMouseMove: () => {}, onMouseUp: () => {}, onWheel: () => {}, onKeyDown: () => {}};
 
 		const scene = new Scene();
-		const camera = new PerspectiveCamera(75, width / height, 0.1, 5000);
+		const camera = new PerspectiveCamera(75, width / height, 0.1, 15000);
 		const renderer = new WebGLRenderer();
-		scene.add(new CameraHelper(camera));
 		renderer.setSize(width, height);
 
 		camera.position.set(0, 0, 300);
@@ -83,11 +118,12 @@ export class CadViewer {
 
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.enabled = false;
-		controls.maxDistance = 1500;
+		controls.maxDistance = 15000;
 		controls.minDistance = 0;
 		console.log(controls);
 
-		this.view = renderer.domElement;
+		const view = renderer.domElement;
+		this.view = view;
 		this.scene = scene;
 		this.camera = camera;
 		this.renderer = renderer;
@@ -95,34 +131,248 @@ export class CadViewer {
 		this.width = width;
 		this.height = height;
 
+		view.addEventListener("pointerdown", (event) => this._events.onMouseDown(event));
+		view.addEventListener("pointermove", (event) => this._events.onMouseMove(event));
+		["pointercancel", "pointerleave", "pointerout", "pointerup"].forEach((v) => {
+			view.addEventListener(v, (event: PointerEvent) => this._events.onMouseUp(event));
+		});
+		view.addEventListener("wheel", (event) => this._events.onWheel(event));
+		view.addEventListener("keydown", (event) => this._events.onKeyDown(event));
+
 		const animate = () => {
 			requestAnimationFrame(animate.bind(this));
-			// this.camera.lookAt(this.camera.position);
-			this.renderer.render(this.scene, this.camera);
+			const {renderer, camera, scene} = this;
+			// this.camera.lookAt(this.camera.position.clone().multiply(new Vector3(1, 1, 0)));
+			renderer.render(scene, camera);
 		};
 		animate();
-
-		let dragPoint: Vector3 = null;
-		this.view.addEventListener("mousedown", (event) => {
-			dragPoint = new Vector3(event.clientX, event.clientY);
-		});
-		this.view.addEventListener("mousemove", (event) => {
-			if (dragPoint) {
-				const currPoint = new Vector3(event.clientX, event.clientY);
-				const offset = currPoint.clone().sub(dragPoint);
-				this.camera.position.sub(offset.multiply(new Vector3(1, -1, 0)));
-				dragPoint = currPoint;
-			}
-		});
-		this.view.addEventListener("mouseup", (event) => {
-			dragPoint = null;
-		});
-		this.view.addEventListener("wheel", (event) => {
-			this.camera.position.z += event.deltaY;
-		});
-
 		// this.drawLine({id: "awew", layer: "", color: 1, type: "LINE", start: [0, -innerHeight / 2, 0], end: [0, innerHeight / 2, 0]});
 	}
+
+	private _getNDC(position: Vector2) {
+		const rect = this.view.getBoundingClientRect();
+		return new Vector3(((position.x - rect.left) / rect.width) * 2 - 1, (-(position.y - rect.top) / rect.height) * 2 + 1, 0.5);
+	}
+
+	private _getScreenPosition(position: Vector3) {
+		const rect = this.view.getBoundingClientRect();
+		const {x, y} = position.clone().project(this.camera);
+		return new Vector2(Math.floor(((x + 1) * rect.width) / 2 + rect.left), Math.floor(((1 - y) * rect.height) / 2 + rect.top));
+	}
+
+	private _getInterSection(pointer: Vector2) {
+		const {raycaster, camera, objects} = this;
+		raycaster.setFromCamera(this._getNDC(pointer), camera);
+		const intersects = raycaster.intersectObjects(Object.values(objects));
+		if (intersects.length) {
+			this.currentObject = intersects[0].object;
+			return this.currentObject;
+		}
+		return null;
+	}
+
+	enableDragging(onDragStart?: MouseEvent0, onDrag?: MouseEvent0, onDragEnd?: MouseEvent0) {
+		const flags = [true, true, true];
+		if (typeof onDragStart !== "function") {
+			onDragStart = (event) => {
+				const {clientX: x, clientY: y} = event instanceof TouchEvent ? event.targetTouches[0] : event;
+				this._status.pFrom.set(x, y);
+				this._status.pTo.set(x, y);
+				this._status.dragging = true;
+				this._emitter.emit(Events.dragstart, event);
+				this._status.button = (event as MouseEvent).button;
+			};
+			flags[0] = false;
+		}
+		if (typeof onDrag !== "function") {
+			onDrag = (event) => {
+				const p = new Vector2(event.clientX, event.clientY);
+				if (this._status.dragging) {
+					const {pFrom, pTo, componentName} = this._status;
+					if (this._status.button === 1 || (event.shiftKey && this._status.button === 0)) {
+						const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
+						if (componentName) {
+							const component = this.data.components.data.find((v) => v.name === componentName);
+							if (component) {
+								this.moveComponent(component, offset);
+								this.render(false, 0b001);
+							}
+						} else {
+							if (!this.config.dragAxis.includes("x")) {
+								offset.x = 0;
+							}
+							if (!this.config.dragAxis.includes("y")) {
+								offset.y = 0;
+							}
+							this.position.sub(new Vector3(offset.x, offset.y, 0));
+						}
+					} else {
+						if (this.config.selectMode === "multiple") {
+							const box = new Box3(new Vector3(pFrom.x, pFrom.y, -10), new Vector3(pTo.x, pTo.y, this.position.z + 10));
+							const points = [pFrom, pTo].map((p) => this._getNDC(p).unproject(this.camera));
+							if (!this._multiSelector) {
+								const geometry = new Geometry().setFromPoints(points);
+								const material = new LineBasicMaterial({color: this._correctColor(0xffffff)});
+								const line = new Line(geometry, material);
+								this.scene.add(line);
+								this._multiSelector = line;
+							} else {
+								const line = this._multiSelector as Line;
+								line.geometry.setFromPoints(points);
+								(line.geometry as Geometry).verticesNeedUpdate = true;
+							}
+							// this.drawMultiSelector(new Rectangle(from, x - from.x, y - from.y));
+						}
+					}
+				}
+				let object = this._getInterSection(p);
+				if (object && object.userData.selected !== true) {
+					if (object instanceof Line) {
+						if (object.material instanceof LineBasicMaterial) {
+							object.material.color.set(this.config.hoverColor);
+						}
+					}
+				} else if (this.currentObject && this.currentObject.userData.selected !== true) {
+					object = this.currentObject;
+					if (object instanceof Line) {
+						if (object.material instanceof LineBasicMaterial) {
+							object.material.color.set(this.findEntity(object.name)?.colorRGB);
+						}
+					}
+				}
+				this._emitter.emit(Events.drag, event);
+				this._status.pTo.set(p.x, p.y);
+			};
+			flags[1] = false;
+		}
+		if (typeof onDragEnd !== "function") {
+			onDragEnd = (event) => {
+				const p = new Vector2(event.clientX, event.clientY);
+				const {pFrom, pTo, dragging} = this._status;
+				if (dragging) {
+					// this.clearMultiSelector();
+					// if (this.config.selectMode === "multiple" && event instanceof MouseEvent && event.button === 0) {
+					// 	const box = new Box3(new Vector3(pFrom.x, pFrom.y, -10), new Vector3(pTo.x, pTo.y, this.position.z + 10));
+					// 	const toBeSelected: CadEntity[] = [];
+					// 	for (const entity of this.data.entities) {
+					// 		if (!entity.selectable) {
+					// 			continue;
+					// 		}
+					// 		if (entity.type === CadTypes.Line) {
+					// 			const lineEntity = entity as CadLine;
+					// 			const start = this.translatePoint(new Point(lineEntity.start));
+					// 			const end = this.translatePoint(new Point(lineEntity.end));
+					// 			if (box.containsLine(new Line(start, end))) {
+					// 				toBeSelected.push(entity);
+					// 			}
+					// 		} else if (entity.type === CadTypes.Arc) {
+					// 			const arcEntity = entity as CadArc;
+					// 			const start = new Angle(arcEntity.start_angle, "deg");
+					// 			const end = new Angle(arcEntity.end_angle, "deg");
+					// 			const arc = new Arc(new Point(arcEntity.center), arcEntity.radius, start, end);
+					// 			if (
+					// 				box.containsPoint(this.translatePoint(arc.startPoint)) &&
+					// 				box.containsPoint(this.translatePoint(arc.endPoint))
+					// 			) {
+					// 				toBeSelected.push(entity);
+					// 			}
+					// 		} else if (entity.type === CadTypes.Circle) {
+					// 			const circleEntity = entity as CadCircle;
+					// 			const center = this.translatePoint(new Point(circleEntity.center));
+					// 			if (box.containsPoint(center)) {
+					// 				toBeSelected.push(entity);
+					// 			}
+					// 		}
+					// 	}
+					// 	const allSelected = toBeSelected.every((e) => e.selected);
+					// 	toBeSelected.forEach((entity) => (entity.selected = !allSelected));
+					// 	this.render(false, null, toBeSelected);
+					// }
+					this._emitter.emit(Events.dragend, event);
+				}
+				const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
+				if (Math.abs(offset.x) < 5 && Math.abs(offset.y) < 5) {
+					const object = this._getInterSection(p);
+					if (object) {
+						if (object.userData.selected === true) {
+							if (object instanceof Line) {
+								if (object.material instanceof LineBasicMaterial) {
+									object.userData.selected = false;
+									object.material.color.set(this.findEntity(object.name)?.colorRGB);
+								}
+							}
+						} else {
+							if (object instanceof Line) {
+								if (object.material instanceof LineBasicMaterial) {
+									object.userData.selected = true;
+									object.material.color.set(this.config.selectedColor);
+								}
+							}
+						}
+					}
+				}
+				this._status.dragging = false;
+			};
+			flags[2] = false;
+		}
+		if (new Set(flags).size > 1) {
+			console.warn("正常情况下，设置拖拽事件时你应该同时设置3个（前中后）事件。");
+		}
+		this._events.onMouseDown = onDragStart;
+		this._events.onMouseMove = onDrag;
+		this._events.onMouseUp = onDragEnd;
+		return this;
+	}
+
+	enableWheeling(onWheel?: WheelEvent0) {
+		if (typeof onWheel !== "function") {
+			onWheel = (event) => {
+				if (event.deltaY > 0) {
+					this.camera.position.z += 50;
+				} else if (event.deltaY < 0) {
+					this.camera.position.z -= 50;
+				}
+			};
+		}
+		this._events.onWheel = onWheel;
+		return this;
+	}
+
+	// enableKeyboard(onKeyDown?: KeyboardEvent0) {
+	// 	const {view} = this;
+	// 	const step = 10 / this._scale;
+	// 	view.tabIndex = 0;
+	// 	view.focus();
+	// 	if (typeof onKeyDown !== "function") {
+	// 		onKeyDown = (event) => {
+	// 			const {x, y} = this.position;
+	// 			switch (event.key) {
+	// 				case "w":
+	// 				case "ArrowUp":
+	// 					this.position = new Point(x, y + step);
+	// 					break;
+	// 				case "a":
+	// 				case "ArrowLeft":
+	// 					this.position = new Point(x - step, y);
+	// 					break;
+	// 				case "s":
+	// 				case "ArrowDown":
+	// 					this.position = new Point(x, y - step);
+	// 					break;
+	// 				case "d":
+	// 				case "ArrowRight":
+	// 					this.position = new Point(x + step, y);
+	// 					break;
+	// 				case "Escape":
+	// 					this.unselectAll();
+	// 					break;
+	// 				default:
+	// 			}
+	// 		};
+	// 	}
+	// 	this._events.onKeyDown = onKeyDown;
+	// 	return this;
+	// }
 
 	render(center = false, mode: number = 0b111, entities?: CadEntity[], style: LineStyle = {}) {
 		const now = new Date().getTime();
@@ -155,9 +405,9 @@ export class CadViewer {
 				}
 			}
 			if (entity.selected === true && localStyle.color === undefined) {
-				localStyle.color = this.correctColor(this.config.selectedColor);
+				localStyle.color = this._correctColor(this.config.selectedColor);
 			} else {
-				localStyle.color = this.correctColor(entity.colorRGB);
+				localStyle.color = this._correctColor(entity.colorRGB);
 			}
 			switch (entity.type) {
 				case CadTypes.Line:
@@ -232,8 +482,6 @@ export class CadViewer {
 	}
 
 	center(entities?: CadEntity[]) {
-		const {padding, maxScale, minScale} = this.config;
-		const {width, height} = this;
 		const rect = this.getBounds(entities);
 		console.log(rect);
 
@@ -247,7 +495,13 @@ export class CadViewer {
 		// const positionY = (height - rect.height + (padding[2] - padding[0]) / scale) / 2 - rect.y;
 		// // this.sketch.translate(positionX, positionY);
 		// console.log(scale, positionX, positionY);
-		this.camera.position.set(rect.x, -rect.y, 300);
+		const fov = MathUtils.degToRad(this.camera.fov);
+		const aspect = this.camera.aspect;
+		const z = 1042 / (2 * Math.tan(fov / 2) * Math.sin(Math.atan(aspect)));
+		console.log(830 * (2 * Math.tan(fov / 2) * Math.sin(Math.atan(aspect))));
+		this.camera.position.set(rect.x, rect.y, z);
+		this.camera.lookAt(rect.x, rect.y, 0);
+		console.log(aspect, rect.height * aspect);
 		return this;
 	}
 
@@ -335,7 +589,7 @@ export class CadViewer {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints([start, end]);
 		} else {
-			const geometry = new BufferGeometry().setFromPoints([start, end]);
+			const geometry = new Geometry().setFromPoints([start, end]);
 			const material = new LineBasicMaterial({color: colorRGB, linewidth: lineWidth});
 			const line = new Line(geometry, material);
 			line.name = entity.id;
@@ -353,7 +607,43 @@ export class CadViewer {
 		return null;
 	}
 
-	private correctColor(color: number, threshold = 5) {
+	getEntities(mode = 0b111) {
+		let result: CadEntity[] = [];
+		if (mode & 0b100) {
+			result = result.concat(this.data.entities);
+		}
+		if (mode & 0b010) {
+			this.data.partners.forEach((partner) => {
+				result = result.concat(partner.entities);
+			});
+		}
+		if (mode & 0b001) {
+			this.data.components.data.forEach((component) => {
+				result = result.concat(component.entities);
+			});
+		}
+		return result;
+	}
+
+	findEntity(id: string, entities: CadEntity[] | number = 0b111) {
+		if (typeof entities === "number") {
+			entities = this.getEntities(entities);
+		}
+		for (const entity of entities) {
+			if (entity.id === id) {
+				return entity;
+			}
+		}
+		return null;
+	}
+
+	moveComponent(curr: Component, translate: Vector2, prev?: Component) {}
+
+	get position() {
+		return this.camera.position;
+	}
+
+	private _correctColor(color: number, threshold = 5) {
 		if (typeof color === "number" && Math.abs(color - this.config.backgroundColor) <= threshold && this.config.reverseSimilarColor) {
 			return 0xfffffff - color;
 		}

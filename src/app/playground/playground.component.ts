@@ -12,7 +12,8 @@ export class PlaygroundComponent implements AfterViewInit {
 	constructor() {}
 
 	ngAfterViewInit() {
-		const cad = new CadViewer(data as any, innerWidth, innerHeight).render(true);
+		const cad = new CadViewer(data as any, innerWidth, innerHeight, {selectMode: "multiple"}).render(true);
+		cad.enableDragging().enableWheeling();
 		this.cadEl.nativeElement.append(cad.view);
 		// tslint:disable-next-line: no-string-literal
 		window["cad"] = cad;

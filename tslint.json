@@ -50,7 +50,8 @@
 		"indent": ["tab", 4],
 		"variable-name": ["allow-leading-underscore"],
 		"forin": false,
-		"no-bitwise": false
+		"no-bitwise": false,
+		"no-shadowed-variable": false
 	},
 	"rulesDirectory": ["codelyzer"]
 }

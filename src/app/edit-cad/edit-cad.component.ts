@@ -25,7 +25,7 @@ interface LinesAtPoint {
 @Component({
 	selector: "app-edit-cad",
 	templateUrl: "./edit-cad.component.html",
-	styleUrls: ["./edit-cad.component.scss"],
+	styleUrls: ["./edit-cad.component.scss"]
 })
 export class EditCadComponent implements AfterViewInit {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
@@ -54,8 +54,8 @@ export class EditCadComponent implements AfterViewInit {
 			entity2: {id: "", location: "end"},
 			distance: 16,
 			fontSize: 16,
-			dimstyle: "",
-		},
+			dimstyle: ""
+		}
 	};
 	constructor(
 		private route: ActivatedRoute,
@@ -89,7 +89,7 @@ export class EditCadComponent implements AfterViewInit {
 			selectMode: "single",
 			backgroundColor: 0,
 			drawDimensions: true,
-			drawMTexts: true,
+			drawMTexts: true
 		})
 			.enableDragging(
 				(event) => {
@@ -621,7 +621,7 @@ export class EditCadComponent implements AfterViewInit {
 		status.dimension = cad.data.dimensions[i];
 		const ref: MatDialogRef<DimFormComponent, Dimension> = this.dialog.open(DimFormComponent, {
 			data: {cad: this.cad, index: i},
-			disableClose: true,
+			disableClose: true
 		});
 		ref.afterClosed().subscribe((dimension) => {
 			if (dimension) {

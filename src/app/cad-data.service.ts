@@ -14,7 +14,7 @@ import {cloneDeep} from "lodash";
 
 const session = new SessionStorage("cad-data");
 @Injectable({
-	providedIn: "root",
+	providedIn: "root"
 })
 export class CadDataService {
 	private _rawData: CadRawData;
@@ -177,7 +177,7 @@ export class CadDataService {
 		this.store.dispatch<LoadingAction>({
 			type: ActionTypes.setLoadingProgress,
 			name: "postCadData",
-			progress: 0,
+			progress: 0
 		});
 		return new Promise<CadData[]>((resolve) => {
 			cadData.forEach(async (d, i) => {
@@ -210,14 +210,14 @@ export class CadDataService {
 				this.store.dispatch<LoadingAction>({
 					type: ActionTypes.setLoadingProgress,
 					name: "postCadData",
-					progress: counter / cadData.length,
+					progress: counter / cadData.length
 				});
 				if (counter / cadData.length >= 1) {
 					setTimeout(() => {
 						this.store.dispatch<LoadingAction>({
 							type: ActionTypes.setLoadingProgress,
 							name: "postCadData",
-							progress: -1,
+							progress: -1
 						});
 					}, 200);
 				}
@@ -344,7 +344,7 @@ export class CadDataService {
 						mingzi: d.text.mingzi || "",
 						qujian: d.text.qujian || "",
 						fontSize: d.font_size,
-						dimstyle: d.dimstyle,
+						dimstyle: d.dimstyle
 					};
 					const sub = new Point(d.defpoint).sub(new Point(d.defpoint3));
 					if (Math.abs(sub.x) < 0.1) {

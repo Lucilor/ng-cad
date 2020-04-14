@@ -195,6 +195,7 @@ export class AssembleCadComponent implements AfterViewInit {
 			const smallerCad = new CadViewer({entities: v.entities, layers: []}).render(true);
 			const img = smallerCad.exportImage();
 			this.components.push({name: v.name, img: img.src});
+			smallerCad.destroy();
 		});
 	}
 

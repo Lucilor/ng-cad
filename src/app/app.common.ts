@@ -1,7 +1,8 @@
 import {environment} from "src/environments/environment";
 
 const host = environment.host;
-export const apiBasePath = host + "/n/zy/index";
+// export const apiBasePath = host + "/n/zy/index";
+export const apiBasePath = localStorage.getItem("baseURL");
 
 export const paths = {
 	playground: "playground",
