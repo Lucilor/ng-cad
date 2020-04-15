@@ -373,7 +373,8 @@ export class EditCadComponent implements AfterViewInit {
 				if (e.type === CadTypes.Line) {
 					const le = e as CadLine;
 					const slope = new Line(new Point(le.start), new Point(le.end)).slope;
-					if ((type.includes("dimension") || ids.includes(e.id)) && (slope === 0 || !isFinite(slope))) {
+					const flag = type.includes("dimension") ? true : (slope === 0 || !isFinite(slope));
+					if ((type.includes("dimension") || ids.includes(e.id)) && flag) {
 						e.container.alpha = 1;
 						e.selectable = true;
 					} else {

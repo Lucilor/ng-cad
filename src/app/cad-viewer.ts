@@ -25,10 +25,15 @@ import {
 	MathUtils,
 	Raycaster,
 	Geometry,
-	Box3
+	Box3,
+	BufferGeometry,
+	BufferAttribute,
+	DynamicDrawUsage,
+	Float32BufferAttribute
 } from "three";
 import OrbitControls from "orbit-controls-es6";
 import {EventEmitter} from "events";
+import Stats from "stats.js";
 
 export interface LineStyle {
 	color?: number;
@@ -58,9 +63,9 @@ export class CadViewer {
 	currentObject: Object3D;
 	private _renderTimer = {id: null, time: 0};
 	private _events: {
-		onMouseDown: MouseEvent0;
-		onMouseMove: MouseEvent0;
-		onMouseUp: MouseEvent0;
+		onDragStart: MouseEvent0;
+		onDrag: MouseEvent0;
+		onDragEnd: MouseEvent0;
 		onWheel: WheelEvent0;
 		onKeyDown: KeyboardEvent0;
 	};
@@ -73,6 +78,7 @@ export class CadViewer {
 	};
 	private _emitter = new EventEmitter();
 	private _multiSelector: Line;
+	private _cameraZ = 0;
 
 	constructor(data: CadData, width = 300, height = 150, config: Config = {}) {
 		transformData(data, "array");
@@ -103,14 +109,14 @@ export class CadViewer {
 		} else if (padding.length === 3) {
 			this.config.padding = [padding[0], padding[1], padding[0], padding[2]];
 		}
-		this._events = {onMouseDown: () => {}, onMouseMove: () => {}, onMouseUp: () => {}, onWheel: () => {}, onKeyDown: () => {}};
+		this._events = {onDragStart: () => {}, onDrag: () => {}, onDragEnd: () => {}, onWheel: () => {}, onKeyDown: () => {}};
 
 		const scene = new Scene();
-		const camera = new PerspectiveCamera(75, width / height, 0.1, 15000);
+		const camera = new PerspectiveCamera(60, width / height, 0.1, 15000);
 		const renderer = new WebGLRenderer();
 		renderer.setSize(width, height);
 
-		camera.position.set(0, 0, 300);
+		camera.position.set(0, 0, 0);
 		camera.lookAt(0, 0, 0);
 		// camera.up.set(0, 0, 1);
 		const l = new Vector3();
@@ -122,6 +128,9 @@ export class CadViewer {
 		controls.minDistance = 0;
 		console.log(controls);
 
+		const stats = new Stats();
+		document.body.appendChild(stats.dom);
+
 		const view = renderer.domElement;
 		this.view = view;
 		this.scene = scene;
@@ -131,19 +140,48 @@ export class CadViewer {
 		this.width = width;
 		this.height = height;
 
-		view.addEventListener("pointerdown", (event) => this._events.onMouseDown(event));
-		view.addEventListener("pointermove", (event) => this._events.onMouseMove(event));
+		view.addEventListener("pointerdown", (event) => this._events.onDragStart(event));
+		view.addEventListener("pointermove", (event) => {
+			this._events.onDrag(event);
+			let object = this._getInterSection(new Vector2(event.clientX, event.clientY));
+			if (object && object.userData.selected !== true) {
+				if (object instanceof Line) {
+					if (object.material instanceof LineBasicMaterial) {
+						object.material.color.set(this.config.hoverColor);
+					}
+				}
+			} else if (this.currentObject && this.currentObject.userData.selected !== true) {
+				object = this.currentObject;
+				if (object instanceof Line) {
+					if (object.material instanceof LineBasicMaterial) {
+						object.material.color.set(this.findEntity(object.name)?.colorRGB);
+					}
+				}
+			}
+		});
 		["pointercancel", "pointerleave", "pointerout", "pointerup"].forEach((v) => {
-			view.addEventListener(v, (event: PointerEvent) => this._events.onMouseUp(event));
+			view.addEventListener(v, (event: PointerEvent) => this._events.onDragEnd(event));
 		});
 		view.addEventListener("wheel", (event) => this._events.onWheel(event));
 		view.addEventListener("keydown", (event) => this._events.onKeyDown(event));
+
+		// multiSelector
+		(() => {
+			const geometry = new BufferGeometry();
+			const material = new LineBasicMaterial({color: this._correctColor(0xffffff)});
+			const line = new Line(geometry, material);
+			scene.add(line);
+			line.name = "multiSelector";
+			line.renderOrder = 1;
+			this._multiSelector = line;
+		})();
 
 		const animate = () => {
 			requestAnimationFrame(animate.bind(this));
 			const {renderer, camera, scene} = this;
 			// this.camera.lookAt(this.camera.position.clone().multiply(new Vector3(1, 1, 0)));
 			renderer.render(scene, camera);
+			stats.update();
 		};
 		animate();
 		// this.drawLine({id: "awew", layer: "", color: 1, type: "LINE", start: [0, -innerHeight / 2, 0], end: [0, innerHeight / 2, 0]});
@@ -191,6 +229,8 @@ export class CadViewer {
 					const {pFrom, pTo, componentName} = this._status;
 					if (this._status.button === 1 || (event.shiftKey && this._status.button === 0)) {
 						const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
+						const scale = this.position.z / this._cameraZ;
+						offset.multiplyScalar(scale);
 						if (componentName) {
 							const component = this.data.components.data.find((v) => v.name === componentName);
 							if (component) {
@@ -208,35 +248,23 @@ export class CadViewer {
 						}
 					} else {
 						if (this.config.selectMode === "multiple") {
-							const box = new Box3(new Vector3(pFrom.x, pFrom.y, -10), new Vector3(pTo.x, pTo.y, this.position.z + 10));
-							const points = [pFrom, pTo].map((p) => this._getNDC(p).unproject(this.camera));
-							if (!this._multiSelector) {
-								const geometry = new Geometry().setFromPoints(points);
-								const material = new LineBasicMaterial({color: this._correctColor(0xffffff)});
-								const line = new Line(geometry, material);
-								this.scene.add(line);
-								this._multiSelector = line;
-							} else {
-								const line = this._multiSelector as Line;
-								line.geometry.setFromPoints(points);
-								(line.geometry as Geometry).verticesNeedUpdate = true;
-							}
-							// this.drawMultiSelector(new Rectangle(from, x - from.x, y - from.y));
-						}
-					}
-				}
-				let object = this._getInterSection(p);
-				if (object && object.userData.selected !== true) {
-					if (object instanceof Line) {
-						if (object.material instanceof LineBasicMaterial) {
-							object.material.color.set(this.config.hoverColor);
-						}
-					}
-				} else if (this.currentObject && this.currentObject.userData.selected !== true) {
-					object = this.currentObject;
-					if (object instanceof Line) {
-						if (object.material instanceof LineBasicMaterial) {
-							object.material.color.set(this.findEntity(object.name)?.colorRGB);
+							const {x: x1, y: y1} = pFrom;
+							const {x: x2, y: y2} = pTo;
+							const box = new Box3(new Vector3(x1, y1, -10), new Vector3(x2, y2, this.position.z + 10));
+							// const points = [pFrom, new Vector2(pFrom.x, pTo.y), pTo, new Vector2(pTo.x, pFrom.y), pFrom].map((p) =>
+							// 	this._getNDC(p).unproject(this.camera).toArray()
+							// );
+							const arr = [x1, y1, 0, x1, y2, 0, x2, y2, 0, x2, y1, 0, x1, y1, 0];
+							const line = this._multiSelector as Line;
+							line.visible = true;
+							const geometry = line.geometry as BufferGeometry;
+							const position = new Float32BufferAttribute(arr, 3);
+							position.needsUpdate = true;
+							geometry.setAttribute("position", position);
+							// geometry.
+							// (geometry.getAttribute("position") as Float32BufferAttribute).setUsage(DynamicDrawUsage);
+							// (geometry.getAttribute("position") as Float32BufferAttribute).needsUpdate = true;
+							// console.log(geometry.getAttribute("position"));
 						}
 					}
 				}
@@ -250,7 +278,7 @@ export class CadViewer {
 				const p = new Vector2(event.clientX, event.clientY);
 				const {pFrom, pTo, dragging} = this._status;
 				if (dragging) {
-					// this.clearMultiSelector();
+					this._multiSelector.visible = false;
 					// if (this.config.selectMode === "multiple" && event instanceof MouseEvent && event.button === 0) {
 					// 	const box = new Box3(new Vector3(pFrom.x, pFrom.y, -10), new Vector3(pTo.x, pTo.y, this.position.z + 10));
 					// 	const toBeSelected: CadEntity[] = [];
@@ -318,9 +346,9 @@ export class CadViewer {
 		if (new Set(flags).size > 1) {
 			console.warn("正常情况下，设置拖拽事件时你应该同时设置3个（前中后）事件。");
 		}
-		this._events.onMouseDown = onDragStart;
-		this._events.onMouseMove = onDrag;
-		this._events.onMouseUp = onDragEnd;
+		this._events.onDragStart = onDragStart;
+		this._events.onDrag = onDrag;
+		this._events.onDragEnd = onDragEnd;
 		return this;
 	}
 
@@ -483,25 +511,14 @@ export class CadViewer {
 
 	center(entities?: CadEntity[]) {
 		const rect = this.getBounds(entities);
-		console.log(rect);
-
-		// const scaleX = (width - padding[1] - padding[3]) / (rect.width + 10);
-		// const scaleY = (height - padding[0] - padding[2]) / (rect.height + 10);
-		// const scale = Math.min(scaleX, scaleY);
-		// this.config.minScale = Math.min(scale, minScale);
-		// this.config.maxScale = Math.max(scale, maxScale);
-		// // this.sketch.scale(scale);
-		// const positionX = (width - rect.width + (padding[3] - padding[1]) / scale) / 2 - rect.x;
-		// const positionY = (height - rect.height + (padding[2] - padding[0]) / scale) / 2 - rect.y;
-		// // this.sketch.translate(positionX, positionY);
-		// console.log(scale, positionX, positionY);
 		const fov = MathUtils.degToRad(this.camera.fov);
 		const aspect = this.camera.aspect;
-		const z = 1042 / (2 * Math.tan(fov / 2) * Math.sin(Math.atan(aspect)));
-		console.log(830 * (2 * Math.tan(fov / 2) * Math.sin(Math.atan(aspect))));
+		const aspectRect = rect.width / rect.height;
+		const width = aspect > aspectRect ? rect.height * aspect : rect.width;
+		const z = width / (2 * Math.tan(fov / 2) * aspect);
 		this.camera.position.set(rect.x, rect.y, z);
 		this.camera.lookAt(rect.x, rect.y, 0);
-		console.log(aspect, rect.height * aspect);
+		this._cameraZ = z;
 		return this;
 	}
 
@@ -641,6 +658,13 @@ export class CadViewer {
 
 	get position() {
 		return this.camera.position;
+	}
+
+	get scale() {
+		return this.camera.position.z / this._cameraZ;
+	}
+	set scale(value) {
+		this.camera.position.z = this._cameraZ * value;
 	}
 
 	private _correctColor(color: number, threshold = 5) {

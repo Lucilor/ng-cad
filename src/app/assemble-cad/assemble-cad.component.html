@@ -72,7 +72,7 @@
 							[ngModel]="getDimensionName(d, i)"
 							(focus)="dimNameFocus = i"
 							(blur)="dimNameFocus = -1"
-							(change)="d.mingzi = $event.target.value"
+							(change)="d.mingzi = $event.target.value;cad.render()"
 							placeholder="标注内容"
 						/>
 						<mat-icon matSuffix color="primary" (click)="addItem(i, 'dimensions')">add_circle</mat-icon>
