@@ -1,16 +1,4 @@
-import {
-	CadData,
-	Config,
-	defaultConfig,
-	transformData,
-	CadEntity,
-	CadTypes,
-	CadLine,
-	CadArc,
-	CadCircle,
-	Events,
-	Component
-} from "@lucilor/cad-viewer";
+import {CadData, Config, defaultConfig, transformData, CadEntity, CadTypes, CadLine, CadArc, CadCircle, Events} from "@lucilor/cad-viewer";
 import {index2RGB} from "@lucilor/utils";
 import {
 	Scene,
@@ -83,7 +71,7 @@ export class CadViewer {
 	constructor(data: CadData, width = 300, height = 150, config: Config = {}) {
 		transformData(data, "array");
 		this.data = {
-			entities: [],
+			entities: {line: [], arc: [], circle: [], hatch: [], dimension: [], mtext: []},
 			baseLines: [],
 			jointPoints: [],
 			options: [],
@@ -91,7 +79,6 @@ export class CadViewer {
 			type: "",
 			partners: [],
 			components: {data: [], connections: []},
-			dimensions: [],
 			...data
 		};
 		this.config = {...defaultConfig, ...config};
@@ -479,7 +466,7 @@ export class CadViewer {
 			entities.forEach((entity) => draw(entity));
 		} else {
 			if (mode & 0b100) {
-				this.data.entities.forEach((entity) => draw(entity));
+				this.flatEntities().forEach((entity) => draw(entity));
 			}
 			// if (mode & 0b010) {
 			// 	this._status.partners.forEach(i => {
@@ -534,7 +521,7 @@ export class CadViewer {
 			minY = Math.min(point.y, minY);
 		};
 		if (!entities) {
-			entities = this.data.entities;
+			entities = this.flatEntities();
 			// this._status.partners.forEach(i => {
 			// 	entities = entities.concat(this.data.partners[i].entities);
 			// });
@@ -591,6 +578,24 @@ export class CadViewer {
 		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
 	}
 
+	flatEntities(from = this.data, mode = 0b111) {
+		let result: CadEntity[] = [];
+		if (mode & 0b100) {
+			result = result.concat(Object.values(from.entities).flat());
+		}
+		if (mode & 0b010) {
+			from.partners.forEach((partner) => {
+				result = result.concat(Object.values(partner.entities).flat());
+			});
+		}
+		if (mode & 0b001) {
+			from.components.data.forEach((component) => {
+				result = result.concat(Object.values(component.entities).flat());
+			});
+		}
+		return result;
+	}
+
 	drawLine(entity: CadLine, style?: LineStyle) {
 		const {scene, objects} = this;
 		const start = new Vector3(...entity.start);
@@ -624,27 +629,9 @@ export class CadViewer {
 		return null;
 	}
 
-	getEntities(mode = 0b111) {
-		let result: CadEntity[] = [];
-		if (mode & 0b100) {
-			result = result.concat(this.data.entities);
-		}
-		if (mode & 0b010) {
-			this.data.partners.forEach((partner) => {
-				result = result.concat(partner.entities);
-			});
-		}
-		if (mode & 0b001) {
-			this.data.components.data.forEach((component) => {
-				result = result.concat(component.entities);
-			});
-		}
-		return result;
-	}
-
 	findEntity(id: string, entities: CadEntity[] | number = 0b111) {
 		if (typeof entities === "number") {
-			entities = this.getEntities(entities);
+			entities = this.flatEntities(this.data, entities);
 		}
 		for (const entity of entities) {
 			if (entity.id === id) {
@@ -654,7 +641,7 @@ export class CadViewer {
 		return null;
 	}
 
-	moveComponent(curr: Component, translate: Vector2, prev?: Component) {}
+	moveComponent(curr: CadData, translate: Vector2, prev?: CadData) {}
 
 	get position() {
 		return this.camera.position;

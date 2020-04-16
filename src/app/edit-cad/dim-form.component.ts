@@ -1,5 +1,5 @@
-import {Component, Output, EventEmitter, Inject, OnInit} from "@angular/core";
-import {Dimension, CadViewer} from "@lucilor/cad-viewer";
+import {Component, Inject, OnInit} from "@angular/core";
+import {CadViewer, CadDimension} from "@lucilor/cad-viewer";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {FormBuilder, FormGroup, ValidatorFn, AbstractControl, FormControl} from "@angular/forms";
 
@@ -10,7 +10,7 @@ import {FormBuilder, FormGroup, ValidatorFn, AbstractControl, FormControl} from 
 })
 export class DimFormComponent implements OnInit {
 	form: FormGroup;
-	dimension: Dimension;
+	dimension: CadDimension;
 	constructor(
 		private fb: FormBuilder,
 		public dialogRef: MatDialogRef<DimFormComponent>,
@@ -18,7 +18,7 @@ export class DimFormComponent implements OnInit {
 	) {}
 
 	ngOnInit() {
-		const dimension = this.data.cad.data.dimensions[this.data.index];
+		const dimension = this.data.cad.data.entities.dimension[this.data.index];
 		this.dimension = dimension;
 		this.form = this.fb.group({
 			mingzi: [dimension.mingzi],
@@ -27,7 +27,7 @@ export class DimFormComponent implements OnInit {
 			e2Location: dimension.entity2?.location,
 			axis: dimension.axis,
 			distance: dimension.distance,
-			fontSize: dimension.fontSize,
+			fontSize: dimension.font_size,
 			cad1: new FormControl({value: dimension.cad1, disabled: true}),
 			cad2: new FormControl({value: dimension.cad2, disabled: true})
 		});
@@ -43,13 +43,13 @@ export class DimFormComponent implements OnInit {
 			dimension.entity2.location = value.e2Location;
 			dimension.axis = value.axis;
 			dimension.distance = value.distance;
-			dimension.fontSize = value.fontSize;
+			dimension.font_size = value.fontSize;
 			this.close();
 		}
 	}
 
 	close() {
-		this.dialogRef.close(this.data.cad.exportData().dimensions[this.data.index]);
+		this.dialogRef.close(this.data.cad.exportData().entities.dimension[this.data.index]);
 	}
 
 	mqValidator(): ValidatorFn {

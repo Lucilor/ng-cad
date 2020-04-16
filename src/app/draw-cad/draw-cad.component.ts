@@ -47,7 +47,7 @@ export class DrawCadComponent implements AfterViewInit {
 	selectLines(fragment?: CadData) {
 		const {cad} = this;
 		const data: CadData = fragment || {entities: cad.getSelectedEntities(), layers: this.cad.data.layers};
-		const lines = data.entities;
+		const lines = data.entities.line;
 		if (Object.keys(lines).length < 1) {
 			this.dialog.open(AlertComponent, {data: {title: "", content: "至少选择一条线"}});
 			return;

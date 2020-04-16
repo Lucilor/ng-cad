@@ -4,7 +4,7 @@ import {State} from "./store/state";
 import {LoadingAction, ActionTypes} from "./store/actions";
 import {HttpClient} from "@angular/common/http";
 import {apiBasePath, Response} from "./app.common";
-import {CadData, CadRawData, CadLine, CadTypes, MText, CadMText, CadDimension, Dimension, CadViewer} from "@lucilor/cad-viewer";
+import {CadData, CadRawData, CadLine, CadTypes, CadMText, CadDimension, CadViewer} from "@lucilor/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "./alert/alert.component";
 import {SessionStorage, Point, Line, RSAEncrypt} from "@lucilor/utils";
@@ -21,7 +21,12 @@ export class CadDataService {
 	private _mainData: CadData;
 	constructor(private store: Store<State>, private http: HttpClient, private dialog: MatDialog, private snackBar: MatSnackBar) {
 		if (!this._rawData) {
-			this._rawData = {entities: [], layers: [], lineText: [], globalText: []};
+			this._rawData = {
+				entities: {line: [], arc: [], circle: [], hatch: [], dimension: [], mtext: []},
+				layers: [],
+				lineText: [],
+				globalText: []
+			};
 		}
 		const lineText = session.load("lineText", true);
 		const globalText = session.load("globalText", true);
@@ -87,12 +92,6 @@ export class CadDataService {
 				response.data.forEach((d) => {
 					const {分类, 名字, 条件, 选项} = d;
 					const json = d.json as CadData;
-					if (!json.entities) {
-						json.entities = [];
-					}
-					if (!json.layers) {
-						json.layers = [];
-					}
 					json.name = 名字;
 					json.type = 分类;
 					json.options = 选项;
@@ -122,12 +121,6 @@ export class CadDataService {
 				response.data.forEach((d) => {
 					const {分类, 名字, 条件, 选项} = d;
 					const json = d.json as CadData;
-					if (!json.entities) {
-						json.entities = [];
-					}
-					if (!json.layers) {
-						json.layers = [];
-					}
 					json.name = 名字;
 					json.type = 分类;
 					json.options = 选项;
@@ -290,138 +283,149 @@ export class CadDataService {
 				}
 			}
 			f.parent = rawData.id;
-			f.dimensions = [];
-			f.mtexts = [];
-			const find = (id: string) => f.entities.find((e) => e.id === id) as CadLine;
-			const accuracy = 3;
-			const used = [];
-			for (const t of rawData.lineText) {
-				const length = t.text.to.length;
-				if (length < 1 || length > 4) {
-					// console.warn(t);
-					continue;
+			const entities = Object.values(f.entities).flat();
+			const ids2 = entities.map((e) => e.id);
+			rawData.entities.dimension.forEach((d) => {
+				if (ids2.includes(d.entity1?.id) && ids2.includes(d.entity2?.id)) {
+					const d2 = cloneDeep(d);
+					delete d2.container;
+					delete d2.selectable;
+					delete d2.selected;
+					f.entities.dimension.push(d2);
 				}
-				if (t.type === CadTypes.MText || length === 1) {
-					const match = t.text.text?.match(/#/g);
-					if (t.type === CadTypes.MText && match && match.length > 1) {
-						const entity = find(t.text.to[0]);
-						if (entity) {
-							const mtext: MText = {entity: entity.id, distance: 0, fontSize: t.font_size, text: t.text.text};
-							const insert = new Point((t as CadMText).insert);
-							const line = new Line(new Point(entity.start), new Point(entity.end));
-							mtext.distance = line.distance(insert);
-							f.mtexts.push(mtext);
-						}
-					} else {
-						t.text.to.forEach((id) => {
-							if (used.includes(t.id)) {
-								return;
-							}
-							const line = find(id);
-							if (line) {
-								if (!line.mingzi) {
-									line.mingzi = t.text.mingzi;
-								}
-								if (!line.qujian) {
-									line.qujian = t.text.qujian;
-								}
-								if (!line.gongshi) {
-									line.gongshi = t.text.gongshi;
-								}
-								used.push(t.id);
-							}
-						});
-					}
-				} else if (t.type === CadTypes.Dimension) {
-					const d = t as CadDimension;
-					const p1 = new Point(d.defpoint2);
-					const p2 = new Point(d.defpoint3);
-					const dimension: Dimension = {
-						axis: null,
-						entity1: null,
-						entity2: null,
-						distance: 0,
-						mingzi: d.text.mingzi || "",
-						qujian: d.text.qujian || "",
-						fontSize: d.font_size,
-						dimstyle: d.dimstyle
-					};
-					const sub = new Point(d.defpoint).sub(new Point(d.defpoint3));
-					if (Math.abs(sub.x) < 0.1) {
-						dimension.axis = "x";
-						dimension.distance = sub.y;
-					} else if (Math.abs(sub.y) < 0.1) {
-						dimension.axis = "y";
-						dimension.distance = sub.x;
-					} else {
-						const sub2 = new Point(d.defpoint).sub(new Point(d.defpoint2));
-						if (Math.abs(sub2.x) < 0.1) {
-							dimension.axis = "x";
-							dimension.distance = sub2.y;
-						} else if (Math.abs(sub2.y) < 0.1) {
-							dimension.axis = "y";
-							dimension.distance = sub2.x;
-						} else {
-							console.warn("invalid defpoints", t);
-							continue;
-						}
-					}
-					const set = (e: CadLine) => {
-						if (!e) {
-							return;
-						}
-						const start = new Point(e.start);
-						const end = new Point(e.end);
-						if (p1.equalsAppr(start, accuracy)) {
-							dimension.entity1 = {id: e.id, location: "start"};
-						}
-						if (p1.equalsAppr(end, accuracy)) {
-							dimension.entity1 = {id: e.id, location: "end"};
-						}
-						if (p2.equalsAppr(start, accuracy)) {
-							dimension.entity2 = {id: e.id, location: "start"};
-						}
-						if (p2.equalsAppr(end, accuracy)) {
-							dimension.entity2 = {id: e.id, location: "end"};
-						}
-					};
-					if (length === 2 || length === 4) {
-						t.text.to.forEach((id) => set(find(id)));
-						if (dimension.entity1 || dimension.entity2) {
-							if (dimension.entity1) {
-								dimension.cad1 = f.id;
-							}
-							if (dimension.entity2) {
-								dimension.cad2 = f.id;
-							}
-							f.dimensions.push(dimension);
-						}
-					}
-					if (length === 3) {
-						for (const id of t.text.to) {
-							const line = find(id);
-							if (line) {
-								const start = new Point(line.start);
-								const end = new Point(line.end);
-								if (
-									(p1.equalsAppr(start, accuracy) && p2.equalsAppr(end, accuracy)) ||
-									(p2.equalsAppr(start, accuracy) && p1.equalsAppr(end, accuracy))
-								) {
-									if (!line.mingzi) {
-										line.mingzi = t.text.mingzi;
-									}
-									if (!line.qujian) {
-										line.qujian = t.text.qujian;
-									}
-									if (!line.gongshi) {
-										line.gongshi = t.text.gongshi;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			});
+			// f.dimensions = [];
+			// f.mtexts = [];
+			// const find = (id: string) => f.entities.find((e) => e.id === id) as CadLine;
+			// const accuracy = 3;
+			// const used = [];
+			// for (const t of rawData.lineText) {
+			// 	const length = t.text.to.length;
+			// 	if (length < 1 || length > 4) {
+			// 		// console.warn(t);
+			// 		continue;
+			// 	}
+			// 	if (t.type === CadTypes.MText || length === 1) {
+			// 		const match = t.text.text?.match(/#/g);
+			// 		if (t.type === CadTypes.MText && match && match.length > 1) {
+			// 			const entity = find(t.text.to[0]);
+			// 			if (entity) {
+			// 				const mtext: MText = {entity: entity.id, distance: 0, fontSize: t.font_size, text: t.text.text};
+			// 				const insert = new Point((t as CadMText).insert);
+			// 				const line = new Line(new Point(entity.start), new Point(entity.end));
+			// 				mtext.distance = line.distance(insert);
+			// 				f.mtexts.push(mtext);
+			// 			}
+			// 		} else {
+			// 			t.text.to.forEach((id) => {
+			// 				if (used.includes(t.id)) {
+			// 					return;
+			// 				}
+			// 				const line = find(id);
+			// 				if (line) {
+			// 					if (!line.mingzi) {
+			// 						line.mingzi = t.text.mingzi;
+			// 					}
+			// 					if (!line.qujian) {
+			// 						line.qujian = t.text.qujian;
+			// 					}
+			// 					if (!line.gongshi) {
+			// 						line.gongshi = t.text.gongshi;
+			// 					}
+			// 					used.push(t.id);
+			// 				}
+			// 			});
+			// 		}
+			// 	} else if (t.type === CadTypes.Dimension) {
+			// 		const d = t as CadDimension;
+			// 		const p1 = new Point(d.defpoint2);
+			// 		const p2 = new Point(d.defpoint3);
+			// 		const dimension: Dimension = {
+			// 			axis: null,
+			// 			entity1: null,
+			// 			entity2: null,
+			// 			distance: 0,
+			// 			mingzi: d.text.mingzi || "",
+			// 			qujian: d.text.qujian || "",
+			// 			fontSize: d.font_size,
+			// 			dimstyle: d.dimstyle
+			// 		};
+			// 		const sub = new Point(d.defpoint).sub(new Point(d.defpoint3));
+			// 		if (Math.abs(sub.x) < 0.1) {
+			// 			dimension.axis = "x";
+			// 			dimension.distance = sub.y;
+			// 		} else if (Math.abs(sub.y) < 0.1) {
+			// 			dimension.axis = "y";
+			// 			dimension.distance = sub.x;
+			// 		} else {
+			// 			const sub2 = new Point(d.defpoint).sub(new Point(d.defpoint2));
+			// 			if (Math.abs(sub2.x) < 0.1) {
+			// 				dimension.axis = "x";
+			// 				dimension.distance = sub2.y;
+			// 			} else if (Math.abs(sub2.y) < 0.1) {
+			// 				dimension.axis = "y";
+			// 				dimension.distance = sub2.x;
+			// 			} else {
+			// 				console.warn("invalid defpoints", t);
+			// 				continue;
+			// 			}
+			// 		}
+			// 		const set = (e: CadLine) => {
+			// 			if (!e) {
+			// 				return;
+			// 			}
+			// 			const start = new Point(e.start);
+			// 			const end = new Point(e.end);
+			// 			if (p1.equalsAppr(start, accuracy)) {
+			// 				dimension.entity1 = {id: e.id, location: "start"};
+			// 			}
+			// 			if (p1.equalsAppr(end, accuracy)) {
+			// 				dimension.entity1 = {id: e.id, location: "end"};
+			// 			}
+			// 			if (p2.equalsAppr(start, accuracy)) {
+			// 				dimension.entity2 = {id: e.id, location: "start"};
+			// 			}
+			// 			if (p2.equalsAppr(end, accuracy)) {
+			// 				dimension.entity2 = {id: e.id, location: "end"};
+			// 			}
+			// 		};
+			// 		if (length === 2 || length === 4) {
+			// 			t.text.to.forEach((id) => set(find(id)));
+			// 			if (dimension.entity1 || dimension.entity2) {
+			// 				if (dimension.entity1) {
+			// 					dimension.cad1 = f.id;
+			// 				}
+			// 				if (dimension.entity2) {
+			// 					dimension.cad2 = f.id;
+			// 				}
+			// 				f.dimensions.push(dimension);
+			// 			}
+			// 		}
+			// 		if (length === 3) {
+			// 			for (const id of t.text.to) {
+			// 				const line = find(id);
+			// 				if (line) {
+			// 					const start = new Point(line.start);
+			// 					const end = new Point(line.end);
+			// 					if (
+			// 						(p1.equalsAppr(start, accuracy) && p2.equalsAppr(end, accuracy)) ||
+			// 						(p2.equalsAppr(start, accuracy) && p1.equalsAppr(end, accuracy))
+			// 					) {
+			// 						if (!line.mingzi) {
+			// 							line.mingzi = t.text.mingzi;
+			// 						}
+			// 						if (!line.qujian) {
+			// 							line.qujian = t.text.qujian;
+			// 						}
+			// 						if (!line.gongshi) {
+			// 							line.gongshi = t.text.gongshi;
+			// 						}
+			// 					}
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+			// }
 			// console.log(f.dimensions);
 			if (idx > -1) {
 				fragmentsData[idx] = f;

@@ -1,7 +1,7 @@
 import {Component, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {CadDataService} from "../cad-data.service";
-import {CadData, CadViewer, Events, CadEntity, CadTypes, CadLine, CadArc, Dimension} from "@lucilor/cad-viewer";
+import {CadData, CadViewer, Events, CadEntity, CadTypes, CadLine, CadArc, CadDimension} from "@lucilor/cad-viewer";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {AlertComponent} from "../alert/alert.component";
 import {Line, Point, Angle, Arc, getColorLightness, RSAEncrypt} from "@lucilor/utils";
@@ -9,6 +9,7 @@ import {MatSelectChange} from "@angular/material/select";
 import {DimFormComponent} from "./dim-form.component";
 import {cloneDeep} from "lodash";
 import {ListCadComponent} from "../list-cad/list-cad.component";
+import {CadEntities} from "@lucilor/cad-viewer/lib/src/cad-data";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension1" | "dimension2" | "jointPoint";
@@ -34,11 +35,11 @@ export class EditCadComponent implements AfterViewInit {
 	get cad() {
 		return this.cads[this.status.cadIdx];
 	}
-	status: {entity: CadLine; mode: Mode; line: Line; dimension: Dimension; cadIdx: number};
+	status: {entity: CadLine; mode: Mode; line: Line; dimension: string; cadIdx: number};
 	pointsMap: LinesAtPoint[];
 	rotateAngle = 0;
 	partners: {id: string; name: string; img: string}[];
-	drag: {button: number; pointer: Point; entities: CadEntity[]};
+	drag: {button: number; pointer: Point; entities: CadEntities};
 	dimNameFocus = -1;
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
@@ -110,23 +111,23 @@ export class EditCadComponent implements AfterViewInit {
 							this.setPoints();
 						}
 						if (event.shiftKey && button === 0) {
-							if (!this.drag.entities) {
-								let start = this.getVIdx("entities");
-								let end = start + cad.data.entities.length;
-								this.drag.entities = vCad.data.entities.slice(start, end);
-								start = 0;
-								for (let i = 0; i < status.cadIdx; i++) {
-									start += cads[i].data.components.data.length;
-								}
-								end = start + cad.data.components.data.length;
-								vCad.data.components.data.slice(start, end).forEach((component) => {
-									this.drag.entities = this.drag.entities.concat(component.entities);
-								});
-							}
+							// if (!this.drag.entities) {
+							// 	let start = this.getVIdx("entities");
+							// 	let end = start + cad.flatEntities().length;
+							// 	this.drag.entities = cad.data.entities;
+							// 	start = 0;
+							// 	for (let i = 0; i < status.cadIdx; i++) {
+							// 		start += cads[i].data.components.data.length;
+							// 	}
+							// 	end = start + cad.data.components.data.length;
+							// 	vCad.data.components.data.slice(start, end).forEach((component) => {
+							// 		this.drag.entities = this.drag.entities.concat(vCad.flatEntities(component));
+							// 	});
+							// }
 							status.line.start.add(translate);
 							status.line.end.add(translate);
 							translate.divide(scale, -scale);
-							vCad.transformEntities(this.drag.entities, {translate}).render();
+							vCad.transformEntities(cad.data.entities, {translate}).render();
 						}
 					}
 				},
@@ -164,22 +165,22 @@ export class EditCadComponent implements AfterViewInit {
 					}
 					cad.calculateBaseLines(index);
 					const baseLine = cad.data.baseLines[index];
-					vCad.data.entities.forEach((e) => (e.selected = [baseLine.idX, baseLine.idY].includes(e.id)));
+					vCad.data.entities.line.forEach((e) => (e.selected = [baseLine.idX, baseLine.idY].includes(e.id)));
 				}
 				if (status.mode.type.includes("dimension")) {
 					const currCad = this.cad;
 					status.cadIdx = prevCadIdx;
 					const vIdx = this.getVIdx("dimensions");
 					const prevCad = this.cad;
-					const dimension = prevCad.data.dimensions[index];
+					const dimension = prevCad.data.entities.dimension[index];
 					if (status.mode.type === "dimension1") {
 						dimension.entity1.id = entity.id;
-						vCad.data.dimensions[vIdx + index].entity1.id = entity.id;
+						vCad.data.entities.dimension[vIdx + index].entity1.id = entity.id;
 						dimension.cad1 = currCad.data.name;
 					}
 					if (status.mode.type === "dimension2") {
 						dimension.entity2.id = entity.id;
-						vCad.data.dimensions[vIdx + index].entity2.id = entity.id;
+						vCad.data.entities.dimension[vIdx + index].entity2.id = entity.id;
 						dimension.cad2 = currCad.data.name;
 					}
 				}
@@ -222,9 +223,6 @@ export class EditCadComponent implements AfterViewInit {
 			if (d.jointPoints.length < 1) {
 				this.addItem(0, "jointPoints", d);
 			}
-			if (d.dimensions.length < 1) {
-				this.addItem(0, "dimensions", d);
-			}
 		};
 		vCad.reset({});
 		cads.forEach((v) => {
@@ -242,13 +240,14 @@ export class EditCadComponent implements AfterViewInit {
 				p.valueY += offset.y;
 			});
 
-			vCad.data.entities = vCad.data.entities.concat(newData.entities);
+			for (const key in newData.entities) {
+				vCad.data.entities[key] = vCad.data.entities[key].concat(newData.entities[key]);
+			}
 			// vCad.data.partners = vCad.data.partners.concat(newData.partners);
 			vCad.data.options = vCad.data.options.concat(newData.options);
 			vCad.data.conditions = vCad.data.conditions.concat(newData.conditions);
 			vCad.data.baseLines = vCad.data.baseLines.concat(newData.baseLines);
 			vCad.data.jointPoints = vCad.data.jointPoints.concat(newData.jointPoints);
-			vCad.data.dimensions = vCad.data.dimensions.concat(newData.dimensions);
 			vCad.data.components.data = vCad.data.components.data.concat(newData.components.data);
 			vCad.data.components.connections = vCad.data.components.connections.concat(newData.components.connections);
 			document.body.append(v.render(true).view);
@@ -275,18 +274,18 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
-		this.cad?.flip(vertical, horizontal).render(true);
+		this.vCad.flip(vertical, horizontal).render(true);
 	}
 
 	rotate(clockwise?: boolean) {
 		if (clockwise === true) {
-			this.cad?.rotate(-Math.PI / 2);
+			this.vCad.rotate(-Math.PI / 2);
 		} else if (clockwise === false) {
-			this.cad?.rotate(Math.PI / 2);
+			this.vCad.rotate(Math.PI / 2);
 		} else {
-			this.cad?.rotate(new Angle(this.rotateAngle, "deg").rad);
+			this.vCad.rotate(new Angle(this.rotateAngle, "deg").rad);
 		}
-		this.cad?.render(true);
+		this.vCad.render(true);
 	}
 
 	addItem(i: number, field: string, data?: any) {
@@ -317,7 +316,7 @@ export class EditCadComponent implements AfterViewInit {
 			this.selectLineEnd();
 		} else {
 			const {idX, idY} = vCad.data.baseLines[this.getVIdx("baseLines")];
-			vCad.data.entities.forEach((e) => (e.selected = [idX, idY].includes(e.id)));
+			vCad.flatEntities().forEach((e) => (e.selected = [idX, idY].includes(e.id)));
 			this.selectLineBegin("baseLine", i);
 		}
 	}
@@ -367,13 +366,14 @@ export class EditCadComponent implements AfterViewInit {
 
 	selectLineBegin(type: Mode["type"], index: number) {
 		const vCad = this.vCad;
-		const ids = this.cad.data.entities.map((e) => e.id);
-		vCad.data.entities.forEach((e) => {
+		const entities = this.cad.flatEntities();
+		const ids = entities.map((e) => e.id);
+		entities.forEach((e) => {
 			if (e.container) {
 				if (e.type === CadTypes.Line) {
 					const le = e as CadLine;
 					const slope = new Line(new Point(le.start), new Point(le.end)).slope;
-					const flag = type.includes("dimension") ? true : (slope === 0 || !isFinite(slope));
+					const flag = type.includes("dimension") ? true : slope === 0 || !isFinite(slope);
 					if ((type.includes("dimension") || ids.includes(e.id)) && flag) {
 						e.container.alpha = 1;
 						e.selectable = true;
@@ -395,17 +395,17 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	selectLineEnd() {
-		const {vCad: cad} = this;
-		cad.data.entities.forEach((e) => {
+		const {vCad} = this;
+		vCad.flatEntities().forEach((e) => {
 			if (e.container) {
 				e.container.alpha = 1;
 				e.selected = false;
 				e.selectable = true;
 			}
 		});
-		cad.config.selectedColor = null;
-		cad.config.hoverColor = null;
-		cad.render();
+		vCad.config.selectedColor = null;
+		vCad.config.hoverColor = null;
+		vCad.render();
 		this.status.mode.type = "normal";
 	}
 
@@ -453,7 +453,8 @@ export class EditCadComponent implements AfterViewInit {
 			}
 			this.generatePointsMap();
 			const lines = this.findAllAdjacentLines(entity, line.end);
-			vCad.transformEntities(lines, {translate: offset}).render();
+			console.log(offset);
+			vCad.transformEntities({lines}, {translate: offset}).render();
 			this.setPoints();
 		}
 	}
@@ -495,7 +496,7 @@ export class EditCadComponent implements AfterViewInit {
 			}
 		};
 		const vIdx = this.getVIdx("entities");
-		const entities = vCad.data.entities.slice(vIdx, vIdx + cad.data.entities.length);
+		const entities = vCad.flatEntities().slice(vIdx, vIdx + cad.flatEntities().length);
 		entities.forEach((entity) => {
 			if (entity.type === CadTypes.Line) {
 				const lineEntity = entity as CadLine;
@@ -605,13 +606,13 @@ export class EditCadComponent implements AfterViewInit {
 		if (status.mode.type === "dimension" + line && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
-			const {entity1, entity2} = vCad.data.dimensions[this.getVIdx("dimensions") + i];
+			const {entity1, entity2} = vCad.data.entities.dimension[this.getVIdx("dimensions") + i];
 			if (line === 1) {
-				vCad.data.entities.forEach((e) => (e.selected = e.id === entity1.id));
+				vCad.data.entities.line.forEach((e) => (e.selected = e.id === entity1.id));
 				this.selectLineBegin("dimension1", i);
 			}
 			if (line === 2) {
-				vCad.data.entities.forEach((e) => (e.selected = e.id === entity2.id));
+				vCad.data.entities.line.forEach((e) => (e.selected = e.id === entity2.id));
 				this.selectLineBegin("dimension2", i);
 			}
 		}
@@ -619,14 +620,14 @@ export class EditCadComponent implements AfterViewInit {
 
 	editDimension(i: number) {
 		const {vCad, status, cad} = this;
-		status.dimension = cad.data.dimensions[i];
-		const ref: MatDialogRef<DimFormComponent, Dimension> = this.dialog.open(DimFormComponent, {
+		status.dimension = cad.data.entities.dimension[i].id;
+		const ref: MatDialogRef<DimFormComponent, CadDimension> = this.dialog.open(DimFormComponent, {
 			data: {cad: this.cad, index: i},
 			disableClose: true
 		});
 		ref.afterClosed().subscribe((dimension) => {
 			if (dimension) {
-				vCad.data.dimensions[this.getVIdx("dimensions") + i] = dimension;
+				vCad.data.entities.dimension[this.getVIdx("dimensions") + i] = dimension;
 				vCad.render();
 			}
 		});
@@ -658,7 +659,7 @@ export class EditCadComponent implements AfterViewInit {
 		});
 	}
 
-	getDimensionName(dimension: Dimension, index: number) {
+	getDimensionName(dimension: CadDimension, index: number) {
 		if (this.dimNameFocus === index) {
 			return dimension.mingzi || "";
 		} else {

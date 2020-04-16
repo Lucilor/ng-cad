@@ -1,5 +1,5 @@
 import {Component, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef} from "@angular/core";
-import {CadViewer, CadData, Events, CadEntity, ComponentPosition, CadTypes, CadLine, Dimension} from "@lucilor/cad-viewer";
+import {CadViewer, CadData, Events, CadEntity, ComponentPosition, CadTypes, CadLine, CadDimension} from "@lucilor/cad-viewer";
 import {ActivatedRoute} from "@angular/router";
 import {CadDataService} from "../cad-data.service";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
@@ -24,7 +24,7 @@ export class AssembleCadComponent implements AfterViewInit {
 	rotateAngle: number;
 	components: {name: string; img: string}[];
 	options: {space: string; position: ComponentPosition};
-	status: {names: string[]; lines: string[]; mode: Mode; activeComponent: string; dimension?: Dimension};
+	status: {names: string[]; lines: string[]; mode: Mode; activeComponent: string; dimension?: CadDimension};
 	dimNameFocus = -1;
 	private initVals = {
 		options: {name: "", value: ""},
@@ -82,7 +82,8 @@ export class AssembleCadComponent implements AfterViewInit {
 			if (status.mode.type === "assemble") {
 				for (const component of cad.data.components.data) {
 					const {names, lines} = this.status;
-					const found = component.entities.find((e) => e.id === entity.id);
+					const entities = Object.values(cad.data.entities).flat();
+					const found = entities.find((e) => e.id === entity.id);
 					if (found) {
 						const prev = names.findIndex((n) => n === component.name);
 						const {space, position} = this.options;
@@ -146,7 +147,7 @@ export class AssembleCadComponent implements AfterViewInit {
 				}
 			}
 			if (status.mode.type.includes("dimension")) {
-				const dimension = cad.data.dimensions[index];
+				const dimension = cad.data.entities.dimension[index];
 				if (status.mode.type === "dimension1") {
 					dimension.entity1.id = entity.id;
 					dimension.cad1 = cad.data.name;
@@ -175,9 +176,6 @@ export class AssembleCadComponent implements AfterViewInit {
 			}
 			if (d.jointPoints.length < 1) {
 				this.addItem(0, "jointPoints", d);
-			}
-			if (d.dimensions.length < 1) {
-				this.addItem(0, "dimensions", d);
 			}
 		};
 		const cad = this.cad;
@@ -244,7 +242,7 @@ export class AssembleCadComponent implements AfterViewInit {
 		const btn = event.target as HTMLButtonElement;
 		if (btn.textContent === "开始装配") {
 			cad.data.components.data.forEach((c) => {
-				c.entities.forEach((e) => (e.selectable = true));
+				cad.flatEntities(c).forEach((e) => (e.selectable = true));
 			});
 			btn.textContent = "结束装配";
 			status.mode.type = "assemble";
@@ -252,7 +250,7 @@ export class AssembleCadComponent implements AfterViewInit {
 			this.blur();
 		} else {
 			cad.data.components.data.forEach((c) => {
-				c.entities.forEach((e) => {
+				cad.flatEntities(c).forEach((e) => {
 					e.selectable = false;
 					e.selected = false;
 				});
@@ -291,7 +289,7 @@ export class AssembleCadComponent implements AfterViewInit {
 			return;
 		}
 		cad.data.components.data.forEach((component) => {
-			component.entities.forEach((e) => {
+			cad.flatEntities(component).forEach((e) => {
 				if (e.container) {
 					if (component.name === name) {
 						e.container.alpha = 2;
@@ -309,7 +307,7 @@ export class AssembleCadComponent implements AfterViewInit {
 		cad.currentComponent = null;
 		cad.containers.inner.alpha = 1;
 		cad.data.components.data.forEach((component) => {
-			component.entities.forEach((e) => {
+			cad.flatEntities(component).forEach((e) => {
 				if (e.container) {
 					e.container.alpha = 1;
 				}
@@ -342,8 +340,7 @@ export class AssembleCadComponent implements AfterViewInit {
 
 	selectLineBegin(type: Mode["type"], index: number) {
 		const {cad, status} = this;
-		let entities = cad.data.entities;
-		cad.data.components.data.forEach((d) => (entities = entities.concat(d.entities)));
+		const entities = cad.flatEntities();
 		const ids = entities.map((e) => e.id);
 		entities.forEach((e) => {
 			if (e.container) {
@@ -374,8 +371,7 @@ export class AssembleCadComponent implements AfterViewInit {
 
 	selectLineEnd() {
 		const {cad, status} = this;
-		let entities = cad.data.entities;
-		cad.data.components.data.forEach((d) => (entities = entities.concat(d.entities)));
+		const entities = cad.flatEntities();
 		entities.forEach((e) => {
 			if (e.container) {
 				e.container.alpha = 1;
@@ -395,13 +391,13 @@ export class AssembleCadComponent implements AfterViewInit {
 		if (status.mode.type === "dimension" + line && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
-			const {entity1, entity2} = cad.data.dimensions[i];
+			const {entity1, entity2} = cad.data.entities.dimension[i];
 			if (line === 1) {
-				cad.data.entities.forEach((e) => (e.selected = e.id === entity1.id));
+				cad.flatEntities().forEach((e) => (e.selected = e.id === entity1.id));
 				this.selectLineBegin("dimension1", i);
 			}
 			if (line === 2) {
-				cad.data.entities.forEach((e) => (e.selected = e.id === entity2.id));
+				cad.flatEntities().forEach((e) => (e.selected = e.id === entity2.id));
 				this.selectLineBegin("dimension2", i);
 			}
 		}
@@ -409,21 +405,21 @@ export class AssembleCadComponent implements AfterViewInit {
 
 	editDimension(i: number) {
 		const {cad, status} = this;
-		status.dimension = this.cad.data.dimensions[i];
+		status.dimension = this.cad.data.entities.dimension[i];
 		status.mode.type = "normal";
-		const ref: MatDialogRef<DimFormComponent, Dimension> = this.dialog.open(DimFormComponent, {
+		const ref: MatDialogRef<DimFormComponent, CadDimension> = this.dialog.open(DimFormComponent, {
 			data: {cad, index: i},
 			disableClose: true
 		});
 		ref.afterClosed().subscribe((dimension) => {
 			if (dimension) {
-				cad.data.dimensions[i] = dimension;
+				cad.data.entities.dimension[i] = dimension;
 				cad.render();
 			}
 		});
 	}
 
-	getDimensionName(dimension: Dimension, index: number) {
+	getDimensionName(dimension: CadDimension, index: number) {
 		if (this.dimNameFocus === index) {
 			return dimension.mingzi || "";
 		} else {
