@@ -205,7 +205,7 @@
 							(focus)="dimNameFocus = i"
 							(blur)="dimNameFocus = -1"
 							(change)="d.mingzi = $event.target.value;cad.render()"
-							placeholder="标注内容"
+							placeholder="标注名字"
 						/>
 						<mat-icon matSuffix color="primary" (click)="addItem(i, 'dimensions')">add_circle</mat-icon>
 						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'dimensions'); vCad.render()">remove_circle</mat-icon>

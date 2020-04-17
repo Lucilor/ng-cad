@@ -229,21 +229,23 @@ export class EditCadComponent implements AfterViewInit {
 			setData(v.data);
 			const newData = v.exportData();
 			setData(newData);
-			const rect1 = vCad.getBounds();
-			const rect2 = v.getBounds();
-			const offset = new Point(rect1.x - rect2.x, rect1.y - rect2.y);
-			offset.x += rect1.width + 15;
-			offset.y += (rect1.height - rect2.height) / 2;
-			vCad.transformEntities(newData.entities, {translate: offset});
-			newData.jointPoints.forEach((p) => {
-				p.valueX += offset.x;
-				p.valueY += offset.y;
-			});
+			// const rect1 = vCad.getBounds();
+			// const rect2 = v.getBounds();
+			// const offset = new Point(rect1.x - rect2.x, rect1.y - rect2.y);
+			// offset.x += rect1.width + 15;
+			// offset.y += (rect1.height - rect2.height) / 2;
+			// vCad.transformEntities(newData.entities, {translate: offset});
+			// newData.jointPoints.forEach((p) => {
+			// 	p.valueX += offset.x;
+			// 	p.valueY += offset.y;
+			// });
 
 			for (const key in newData.entities) {
 				vCad.data.entities[key] = vCad.data.entities[key].concat(newData.entities[key]);
 			}
-			// vCad.data.partners = vCad.data.partners.concat(newData.partners);
+			if (this.route.snapshot.queryParams.join) {
+				vCad.data.partners = vCad.data.partners.concat(newData.partners);
+			}
 			vCad.data.options = vCad.data.options.concat(newData.options);
 			vCad.data.conditions = vCad.data.conditions.concat(newData.conditions);
 			vCad.data.baseLines = vCad.data.baseLines.concat(newData.baseLines);
@@ -452,9 +454,8 @@ export class EditCadComponent implements AfterViewInit {
 				e1.end[1] += offset.y;
 			}
 			this.generatePointsMap();
-			const lines = this.findAllAdjacentLines(entity, line.end);
-			console.log(offset);
-			vCad.transformEntities({lines}, {translate: offset}).render();
+			const entities = this.findAllAdjacentLines(entity, line.end);
+			vCad.transformEntities(entities, {translate: offset}).render();
 			this.setPoints();
 		}
 	}
@@ -539,12 +540,12 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	private findAllAdjacentLines(entity: CadEntity, point: Point) {
-		const lines: CadEntity[] = [];
+		const entities: CadEntities = {line: [], arc: []};
 		while (entity && point) {
 			entity = this.findAdjacentLines(entity, point)[0];
 			if (entity) {
 				if (entity.type === CadTypes.Line) {
-					lines.push(entity);
+					entities.line.push(entity as CadLine);
 					const start = new Point((entity as CadLine).start);
 					const end = new Point((entity as CadLine).end);
 					if (start.equalsAppr(point, this.accuracy)) {
@@ -556,7 +557,7 @@ export class EditCadComponent implements AfterViewInit {
 					}
 				}
 				if (entity.type === CadTypes.Arc) {
-					lines.push(entity);
+					entities.arc.push(entity as CadArc);
 					const arcEntity = entity as CadArc;
 					const starta = new Angle(arcEntity.start_angle, "deg");
 					const enda = new Angle(arcEntity.end_angle, "deg");
@@ -573,7 +574,7 @@ export class EditCadComponent implements AfterViewInit {
 				}
 			}
 		}
-		return lines;
+		return entities;
 	}
 
 	setEntityText(event: Event, field: string) {
