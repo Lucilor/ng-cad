@@ -17,11 +17,13 @@ import {
 	BufferGeometry,
 	BufferAttribute,
 	DynamicDrawUsage,
-	Float32BufferAttribute
+	Float32BufferAttribute,
+	Matrix4,
+	Frustum
 } from "three";
-import OrbitControls from "orbit-controls-es6";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {EventEmitter} from "events";
-import Stats from "stats.js";
+import Stats from "three/examples/jsm/libs/stats.module";
 
 export interface LineStyle {
 	color?: number;
@@ -66,7 +68,6 @@ export class CadViewer {
 	};
 	private _emitter = new EventEmitter();
 	private _multiSelector: Line;
-	private _cameraZ = 0;
 
 	constructor(data: CadData, width = 300, height = 150, config: Config = {}) {
 		transformData(data, "array");
@@ -113,9 +114,8 @@ export class CadViewer {
 		controls.enabled = false;
 		controls.maxDistance = 15000;
 		controls.minDistance = 0;
-		console.log(controls);
 
-		const stats = new Stats();
+		const stats = Stats();
 		document.body.appendChild(stats.dom);
 
 		const view = renderer.domElement;
@@ -147,21 +147,35 @@ export class CadViewer {
 			}
 		});
 		["pointercancel", "pointerleave", "pointerout", "pointerup"].forEach((v) => {
-			view.addEventListener(v, (event: PointerEvent) => this._events.onDragEnd(event));
+			view.addEventListener(v, (event: PointerEvent) => {
+				this._events.onDragEnd(event);
+				const p = new Vector2(event.clientX, event.clientY);
+				const {pTo} = this._status;
+				const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
+				if (Math.abs(offset.x) < 5 && Math.abs(offset.y) < 5) {
+					const object = this._getInterSection(p);
+					if (object) {
+						if (object.userData.selected === true) {
+							if (object instanceof Line) {
+								if (object.material instanceof LineBasicMaterial) {
+									object.userData.selected = false;
+									object.material.color.set(this.findEntity(object.name)?.colorRGB);
+								}
+							}
+						} else if (object.userData.selectable !== false) {
+							if (object instanceof Line) {
+								if (object.material instanceof LineBasicMaterial) {
+									object.userData.selected = true;
+									object.material.color.set(this.config.selectedColor);
+								}
+							}
+						}
+					}
+				}
+			});
 		});
 		view.addEventListener("wheel", (event) => this._events.onWheel(event));
 		view.addEventListener("keydown", (event) => this._events.onKeyDown(event));
-
-		// multiSelector
-		(() => {
-			const geometry = new BufferGeometry();
-			const material = new LineBasicMaterial({color: this._correctColor(0xffffff)});
-			const line = new Line(geometry, material);
-			scene.add(line);
-			line.name = "multiSelector";
-			line.renderOrder = 1;
-			this._multiSelector = line;
-		})();
 
 		const animate = () => {
 			requestAnimationFrame(animate.bind(this));
@@ -171,12 +185,18 @@ export class CadViewer {
 			stats.update();
 		};
 		animate();
+		this.render(true);
+
 		// this.drawLine({id: "awew", layer: "", color: 1, type: "LINE", start: [0, -innerHeight / 2, 0], end: [0, innerHeight / 2, 0]});
 	}
 
-	private _getNDC(position: Vector2) {
+	private _getNDC(point: Vector2) {
 		const rect = this.view.getBoundingClientRect();
-		return new Vector3(((position.x - rect.left) / rect.width) * 2 - 1, (-(position.y - rect.top) / rect.height) * 2 + 1, 0.5);
+		return new Vector3(((point.x - rect.left) / rect.width) * 2 - 1, (-(point.y - rect.top) / rect.height) * 2 + 1, 0.5);
+	}
+
+	private _getWorldPostion(point: Vector2) {
+		return this._getNDC(point).unproject(this.camera);
 	}
 
 	private _getScreenPosition(position: Vector3) {
@@ -200,24 +220,24 @@ export class CadViewer {
 		const flags = [true, true, true];
 		if (typeof onDragStart !== "function") {
 			onDragStart = (event) => {
-				const {clientX: x, clientY: y} = event instanceof TouchEvent ? event.targetTouches[0] : event;
+				const {clientX: x, clientY: y} = event;
 				this._status.pFrom.set(x, y);
 				this._status.pTo.set(x, y);
 				this._status.dragging = true;
 				this._emitter.emit(Events.dragstart, event);
-				this._status.button = (event as MouseEvent).button;
+				this._status.button = event.button;
 			};
 			flags[0] = false;
 		}
 		if (typeof onDrag !== "function") {
 			onDrag = (event) => {
 				const p = new Vector2(event.clientX, event.clientY);
-				if (this._status.dragging) {
+				const {button, dragging} = this._status;
+				if (dragging) {
 					const {pFrom, pTo, componentName} = this._status;
-					if (this._status.button === 1 || (event.shiftKey && this._status.button === 0)) {
+					if (button === 1 || (event.shiftKey && button === 0)) {
 						const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
-						const scale = this.position.z / this._cameraZ;
-						offset.multiplyScalar(scale);
+						offset.divideScalar(this.scale);
 						if (componentName) {
 							const component = this.data.components.data.find((v) => v.name === componentName);
 							if (component) {
@@ -233,25 +253,30 @@ export class CadViewer {
 							}
 							this.position.sub(new Vector3(offset.x, offset.y, 0));
 						}
-					} else {
+					} else if (button === 0) {
 						if (this.config.selectMode === "multiple") {
-							const {x: x1, y: y1} = pFrom;
-							const {x: x2, y: y2} = pTo;
-							const box = new Box3(new Vector3(x1, y1, -10), new Vector3(x2, y2, this.position.z + 10));
-							// const points = [pFrom, new Vector2(pFrom.x, pTo.y), pTo, new Vector2(pTo.x, pFrom.y), pFrom].map((p) =>
-							// 	this._getNDC(p).unproject(this.camera).toArray()
-							// );
-							const arr = [x1, y1, 0, x1, y2, 0, x2, y2, 0, x2, y1, 0, x1, y1, 0];
-							const line = this._multiSelector as Line;
-							line.visible = true;
-							const geometry = line.geometry as BufferGeometry;
-							const position = new Float32BufferAttribute(arr, 3);
-							position.needsUpdate = true;
-							geometry.setAttribute("position", position);
-							// geometry.
-							// (geometry.getAttribute("position") as Float32BufferAttribute).setUsage(DynamicDrawUsage);
-							// (geometry.getAttribute("position") as Float32BufferAttribute).needsUpdate = true;
-							// console.log(geometry.getAttribute("position"));
+							const {x: x1, y: y1, z: z1} = this._getWorldPostion(pFrom);
+							const {x: x2, y: y2, z: z2} = this._getWorldPostion(pTo);
+							const points = [
+								new Vector3(x1, y1, z1),
+								new Vector3(x1, y2, z1),
+								new Vector3(x2, y2, z2),
+								new Vector3(x2, y1, z2),
+								new Vector3(x1, y1, z1)
+							];
+							if (this._multiSelector) {
+								const line = this._multiSelector as Line;
+								const geometry = line.geometry as BufferGeometry;
+								geometry.setFromPoints(points);
+							} else {
+								const geometry = new BufferGeometry().setFromPoints(points);
+								const material = new LineBasicMaterial({color: this._correctColor(0xffffff)});
+								const line = new Line(geometry, material);
+								this.scene.add(line);
+								line.name = "multiSelector";
+								line.renderOrder = 1;
+								this._multiSelector = line;
+							}
 						}
 					}
 				}
@@ -263,9 +288,41 @@ export class CadViewer {
 		if (typeof onDragEnd !== "function") {
 			onDragEnd = (event) => {
 				const p = new Vector2(event.clientX, event.clientY);
-				const {pFrom, pTo, dragging} = this._status;
+				const {_status, camera, scene} = this;
+				const {pFrom, pTo, dragging} = _status;
 				if (dragging) {
-					this._multiSelector.visible = false;
+					if (this._multiSelector) {
+						scene.remove(this._multiSelector);
+						this._multiSelector = null;
+						if (pFrom.x > pTo.x) {
+							[pFrom.x, pTo.x] = [pTo.x, pFrom.x];
+						}
+						if (pFrom.y > pTo.y) {
+							[pFrom.y, pTo.y] = [pTo.y, pFrom.y];
+						}
+						const {x: x1, y: y1} = this._getNDC(pFrom);
+						const {x: x2, y: y2} = this._getNDC(pTo);
+						const projectionMatrix = new Matrix4();
+						projectionMatrix.makePerspective(x1, x2, y1, y2, camera.near, camera.far);
+						camera.updateMatrixWorld();
+						camera.matrixWorldInverse.getInverse(camera.matrixWorld);
+						const viewProjectionMatrix = new Matrix4();
+						viewProjectionMatrix.multiplyMatrices(projectionMatrix, camera.matrixWorldInverse);
+						const frustum = new Frustum().setFromProjectionMatrix(viewProjectionMatrix);
+						// console.log(pFrom, pTo);
+						// // const box = new Box3(this._getWorldPostion(pFrom).setZ(-10), this._getWorldPostion(pFrom));
+						// const box = new Box3(new Vector3(x1, y1, -10), new Vector3(x2, y2, this.position.z + 10));
+						// console.log(box);
+						// let v = new Vector3();
+						// v = box.getSize(v);
+						// console.log(v);
+						for (const key in this.objects) {
+							const object = this.objects[key];
+							if (frustum.intersectsObject(object)) {
+								console.log(1);
+							}
+						}
+					}
 					// if (this.config.selectMode === "multiple" && event instanceof MouseEvent && event.button === 0) {
 					// 	const box = new Box3(new Vector3(pFrom.x, pFrom.y, -10), new Vector3(pTo.x, pTo.y, this.position.z + 10));
 					// 	const toBeSelected: CadEntity[] = [];
@@ -304,27 +361,6 @@ export class CadViewer {
 					// 	this.render(false, null, toBeSelected);
 					// }
 					this._emitter.emit(Events.dragend, event);
-				}
-				const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
-				if (Math.abs(offset.x) < 5 && Math.abs(offset.y) < 5) {
-					const object = this._getInterSection(p);
-					if (object) {
-						if (object.userData.selected === true) {
-							if (object instanceof Line) {
-								if (object.material instanceof LineBasicMaterial) {
-									object.userData.selected = false;
-									object.material.color.set(this.findEntity(object.name)?.colorRGB);
-								}
-							}
-						} else {
-							if (object instanceof Line) {
-								if (object.material instanceof LineBasicMaterial) {
-									object.userData.selected = true;
-									object.material.color.set(this.config.selectedColor);
-								}
-							}
-						}
-					}
 				}
 				this._status.dragging = false;
 			};
@@ -405,9 +441,6 @@ export class CadViewer {
 			const {color, layer} = entity;
 			const lineWidth = 1;
 			const localStyle = {...style};
-			if (entity.selectable !== false) {
-				entity.selectable = true;
-			}
 			if (typeof entity.colorRGB !== "number") {
 				if (color === 256) {
 					const cadLayer = this.findLayerByName(layer);
@@ -505,7 +538,6 @@ export class CadViewer {
 		const z = width / (2 * Math.tan(fov / 2) * aspect);
 		this.camera.position.set(rect.x, rect.y, z);
 		this.camera.lookAt(rect.x, rect.y, 0);
-		this._cameraZ = z;
 		return this;
 	}
 
@@ -648,10 +680,10 @@ export class CadViewer {
 	}
 
 	get scale() {
-		return this.camera.position.z / this._cameraZ;
+		return 800 / this.camera.position.z;
 	}
 	set scale(value) {
-		this.camera.position.z = this._cameraZ * value;
+		this.camera.position.z = 800 / value;
 	}
 
 	private _correctColor(color: number, threshold = 5) {
