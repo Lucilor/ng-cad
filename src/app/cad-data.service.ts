@@ -287,7 +287,7 @@ export class CadDataService {
 			const ids2 = entities.map((e) => e.id);
 			rawData.entities.dimension.forEach((d) => {
 				if (ids2.includes(d.entity1?.id) && ids2.includes(d.entity2?.id)) {
-					const d2 = cloneDeep(d);
+					const d2 = {...d};
 					delete d2.container;
 					delete d2.selectable;
 					delete d2.selected;

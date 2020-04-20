@@ -48,15 +48,16 @@ export class DrawCadComponent implements AfterViewInit {
 		const {cad} = this;
 		const data: CadData = fragment || {entities: cad.getSelectedEntities(), layers: this.cad.data.layers};
 		const lines = data.entities.line;
+		console.log(data);
 		if (Object.keys(lines).length < 1) {
 			this.dialog.open(AlertComponent, {data: {title: "", content: "至少选择一条线"}});
 			return;
 		}
-		for (const line of lines) {
-			line.selected = false;
-			line.selectable = false;
-			line.container = null;
-		}
+		// for (const line of lines) {
+		// 	line.selected = false;
+		// 	line.selectable = false;
+		// 	line.container = null;
+		// }
 		if (!data.id || !data.name) {
 			this.dataService.updateFragments([data]);
 		}
