@@ -51,10 +51,12 @@ export class EditCadComponent implements AfterViewInit {
 		jointPoints: {name: "", valueX: null, valueY: null},
 		dimensions: {
 			axis: "x",
+			color: 7,
+			type: "DIMENSION",
 			entity1: {id: "", location: "start"},
 			entity2: {id: "", location: "end"},
 			distance: 16,
-			fontSize: 16,
+			font_size: 16,
 			dimstyle: ""
 		}
 	};
@@ -223,6 +225,9 @@ export class EditCadComponent implements AfterViewInit {
 			if (d.jointPoints.length < 1) {
 				this.addItem(0, "jointPoints", d);
 			}
+			if (d.entities.dimension.length < 1) {
+				this.addItem(0, "dimensions", d);
+			}
 		};
 		vCad.reset({});
 		cads.forEach((v) => {
@@ -290,23 +295,41 @@ export class EditCadComponent implements AfterViewInit {
 		this.vCad.render(true);
 	}
 
-	addItem(i: number, field: string, data?: any) {
+	addItem(i: number, field: string, data?: CadData) {
 		const initVal = cloneDeep(this.initVals[field]);
-		(data || this.cad.data)[field].splice(i + 1, 0, initVal);
-		this.vCad.data[field].splice(this.getVIdx(field) + 1, 0, initVal);
+		let arr1: any;
+		let arr2: any;
+		if (field === "dimensions") {
+			arr1 = this.cad.data.entities.dimension;
+			arr2 = this.vCad.data.entities.dimension;
+		} else {
+			arr1 = this.cad.data[field];
+			arr2 = this.vCad.data[field];
+		}
+		arr1.splice(i + 1, 0, initVal);
+		arr2.splice(this.getVIdx(field) + 1, 0, initVal);
 	}
 
 	removeItem(i: number, field: string) {
 		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
+		let arr1: any;
+		let arr2: any;
+		if (field === "dimensions") {
+			arr1 = this.cad.data.entities.dimension;
+			arr2 = this.vCad.data.entities.dimension;
+		} else {
+			arr1 = this.cad.data[field];
+			arr2 = this.vCad.data[field];
+		}
 		ref.afterClosed().subscribe((res) => {
 			if (res === true) {
 				const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
-				if (this.cad.data[field].length === 1) {
-					this.cad.data[field][0] = initVal;
-					this.vCad.data[field][this.getVIdx(field)] = initVal;
+				if (arr1.length === 1) {
+					arr1[0] = initVal;
+					arr2[this.getVIdx(field)] = initVal;
 				} else {
-					this.cad.data[field].splice(i, 1);
-					this.vCad.data[field].splice(this.getVIdx(field), 1);
+					arr1.splice(i, 1);
+					arr2.splice(this.getVIdx(field), 1);
 				}
 			}
 		});
@@ -595,10 +618,17 @@ export class EditCadComponent implements AfterViewInit {
 
 	getVIdx(field: string) {
 		let index = 0;
-		for (let i = 0; i < this.status.cadIdx; i++) {
-			index += this.cads[i].data[field].length;
+		if (field === "dimensions") {
+			for (let i = 0; i < this.status.cadIdx; i++) {
+				index += this.cads[i].data.entities.dimension.length;
+			}
+			// index += Math.max(0, this.status.mode.index);
+		} else {
+			for (let i = 0; i < this.status.cadIdx; i++) {
+				index += this.cads[i].data[field].length;
+			}
+			// index += Math.max(0, this.status.mode.index);
 		}
-		index += Math.max(0, this.status.mode.index);
 		return index;
 	}
 
@@ -628,7 +658,8 @@ export class EditCadComponent implements AfterViewInit {
 		});
 		ref.afterClosed().subscribe((dimension) => {
 			if (dimension) {
-				vCad.data.entities.dimension[this.getVIdx("dimensions") + i] = dimension;
+				const index = this.getVIdx("dimensions") + i;
+				Object.assign(vCad.data.entities.dimension[index], dimension);
 				vCad.render();
 			}
 		});
@@ -666,5 +697,13 @@ export class EditCadComponent implements AfterViewInit {
 		} else {
 			return `${dimension.mingzi || ""} ${dimension.qujian || ""}`;
 		}
+	}
+
+	setDimensionName(event: Event, index: number) {
+		const vIndex = this.getVIdx("dimension") + index;
+		const str = (event.target as HTMLInputElement).value;
+		this.cad.data.entities.dimension[index].mingzi = str;
+		this.vCad.data.entities.dimension[vIndex].mingzi = str;
+		this.vCad.render();
 	}
 }

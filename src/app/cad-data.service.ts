@@ -53,7 +53,7 @@ export class CadDataService {
 	private alert(msg: any) {
 		if (msg instanceof Error) {
 			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: msg.message}});
-		} else {
+		} else if (msg) {
 			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: JSON.stringify(msg)}});
 		}
 	}

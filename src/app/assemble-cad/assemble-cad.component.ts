@@ -33,10 +33,12 @@ export class AssembleCadComponent implements AfterViewInit {
 		jointPoints: {name: "", valueX: null, valueY: null},
 		dimensions: {
 			axis: "x",
+			color: 7,
+			type: "DIMENSION",
 			entity1: {id: "", location: "start"},
 			entity2: {id: "", location: "end"},
 			distance: 16,
-			fontSize: 16,
+			font_size: 16,
 			dimstyle: ""
 		}
 	};
@@ -82,7 +84,7 @@ export class AssembleCadComponent implements AfterViewInit {
 			if (status.mode.type === "assemble") {
 				for (const component of cad.data.components.data) {
 					const {names, lines} = this.status;
-					const entities = Object.values(cad.data.entities).flat();
+					const entities = cad.flatEntities(component, 0b100);
 					const found = entities.find((e) => e.id === entity.id);
 					if (found) {
 						const prev = names.findIndex((n) => n === component.name);
@@ -118,7 +120,7 @@ export class AssembleCadComponent implements AfterViewInit {
 								try {
 									cad.assembleComponents({names, lines, space, position});
 								} catch (error) {
-									this.dialog.open(AlertComponent, {data: {contnet: error.message}});
+									this.dialog.open(AlertComponent, {data: {content: error.message}});
 								} finally {
 									names.length = 0;
 									lines.length = 0;
@@ -176,6 +178,9 @@ export class AssembleCadComponent implements AfterViewInit {
 			}
 			if (d.jointPoints.length < 1) {
 				this.addItem(0, "jointPoints", d);
+			}
+			if (d.entities.dimension.length < 1) {
+				this.addItem(0, "dimensions", d);
 			}
 		};
 		const cad = this.cad;
@@ -263,20 +268,32 @@ export class AssembleCadComponent implements AfterViewInit {
 		}
 	}
 
-	addItem(i: number, field: string, data?: any) {
+	addItem(i: number, field: string, data?: CadData) {
 		const initVal = cloneDeep(this.initVals[field]);
-		(data || this.cad.data)[field].splice(i + 1, 0, initVal);
+		let arr1: any;
+		if (field === "dimensions") {
+			arr1 = this.cad.data.entities.dimension;
+		} else {
+			arr1 = this.cad.data[field];
+		}
+		arr1.splice(i + 1, 0, initVal);
 	}
 
 	removeItem(i: number, field: string) {
 		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
+		let arr1: any;
+		if (field === "dimensions") {
+			arr1 = this.cad.data.entities.dimension;
+		} else {
+			arr1 = this.cad.data[field];
+		}
 		ref.afterClosed().subscribe((res) => {
 			if (res === true) {
 				const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
-				if (this.cad.data[field].length === 1) {
-					this.cad.data[field][0] = initVal;
+				if (arr1.length === 1) {
+					arr1[0] = initVal;
 				} else {
-					this.cad.data[field].splice(i, 1);
+					arr1.splice(i, 1);
 				}
 			}
 		});
@@ -347,7 +364,7 @@ export class AssembleCadComponent implements AfterViewInit {
 				if (e.type === CadTypes.Line) {
 					const le = e as CadLine;
 					const slope = new Line(new Point(le.start), new Point(le.end)).slope;
-					const flag = type.includes("dimension") ? true : (slope === 0 || !isFinite(slope));
+					const flag = type.includes("dimension") ? true : slope === 0 || !isFinite(slope);
 					if ((type.includes("dimension") || ids.includes(e.id)) && flag) {
 						e.container.alpha = 1;
 						e.selectable = true;
@@ -425,5 +442,11 @@ export class AssembleCadComponent implements AfterViewInit {
 		} else {
 			return `${dimension.mingzi || ""} ${dimension.qujian || ""}`;
 		}
+	}
+
+	setDimensionName(event: Event, index: number) {
+		const str = (event.target as HTMLInputElement).value;
+		this.cad.data.entities.dimension[index].mingzi = str;
+		this.cad.render();
 	}
 }

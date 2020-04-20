@@ -62,7 +62,7 @@
 				<mat-expansion-panel-header>
 					<mat-panel-title>标注信息</mat-panel-title>
 				</mat-expansion-panel-header>
-				<div class="dimension-info" *ngFor="let d of cad?.data.dimensions; let i = index">
+				<div class="dimension-info" *ngFor="let d of cad?.data.entities.dimension; let i = index">
 					<button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
 					<mat-form-field>
 						<mat-label></mat-label>
@@ -73,7 +73,7 @@
 							(focus)="dimNameFocus = i"
 							(blur)="dimNameFocus = -1"
 							(change)="d.mingzi = $event.target.value;cad.render()"
-							placeholder="标注内容"
+							placeholder="标注名字"
 						/>
 						<mat-icon matSuffix color="primary" (click)="addItem(i, 'dimensions')">add_circle</mat-icon>
 						<mat-icon matSuffix color="primary" (click)="removeItem(i, 'dimensions'); cad.render()">remove_circle</mat-icon>
