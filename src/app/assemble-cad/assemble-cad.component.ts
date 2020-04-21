@@ -184,6 +184,10 @@ export class AssembleCadComponent implements AfterViewInit {
 			}
 		};
 		const cad = this.cad;
+		cad.data.components.data.forEach((c) => {
+			cad.data.entities.dimension = cad.data.entities.dimension.concat(c.entities.dimension);
+			c.entities.dimension = [];
+		});
 		setData(cad.data);
 		if (data) {
 			cad.reset(data);

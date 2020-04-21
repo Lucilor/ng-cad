@@ -41,6 +41,7 @@ export class EditCadComponent implements AfterViewInit {
 	partners: {id: string; name: string; img: string}[];
 	drag: {button: number; pointer: Point; entities: CadEntities};
 	dimNameFocus = -1;
+	cadLength = 0;
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
 
@@ -233,7 +234,7 @@ export class EditCadComponent implements AfterViewInit {
 		cads.forEach((v) => {
 			setData(v.data);
 			const newData = v.exportData();
-			setData(newData);
+			// setData(newData);
 			// const rect1 = vCad.getBounds();
 			// const rect2 = v.getBounds();
 			// const offset = new Point(rect1.x - rect2.x, rect1.y - rect2.y);
@@ -278,21 +279,25 @@ export class EditCadComponent implements AfterViewInit {
 			vCad.joinPartners();
 		}
 		vCad.reassembleComponents().render(true);
+		this.updateCadLength();
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
 		this.vCad.flip(vertical, horizontal).render(true);
+		this.cad.flip(vertical, horizontal);
 	}
 
 	rotate(clockwise?: boolean) {
+		let angle = 0;
 		if (clockwise === true) {
-			this.vCad.rotate(-Math.PI / 2);
+			angle = -Math.PI / 2;
 		} else if (clockwise === false) {
-			this.vCad.rotate(Math.PI / 2);
+			angle = Math.PI / 2;
 		} else {
-			this.vCad.rotate(new Angle(this.rotateAngle, "deg").rad);
+			angle = new Angle(this.rotateAngle, "deg").rad;
 		}
-		this.vCad.render(true);
+		this.vCad.rotate(angle).render(true);
+		this.cad.rotate(angle);
 	}
 
 	addItem(i: number, field: string, data?: CadData) {
@@ -480,6 +485,7 @@ export class EditCadComponent implements AfterViewInit {
 			const entities = this.findAllAdjacentLines(entity, line.end);
 			vCad.transformEntities(entities, {translate: offset}).render();
 			this.setPoints();
+			this.updateCadLength();
 		}
 	}
 
@@ -705,5 +711,23 @@ export class EditCadComponent implements AfterViewInit {
 		this.cad.data.entities.dimension[index].mingzi = str;
 		this.vCad.data.entities.dimension[vIndex].mingzi = str;
 		this.vCad.render();
+	}
+
+	updateCadLength() {
+		this.cadLength = 0;
+		if (this.cad) {
+			const entities = this.cad.data.entities;
+			entities.line.forEach((e) => {
+				const {start, end} = e;
+				const l = Math.sqrt((start[0] - end[0]) ** 2 + (start[1] - end[1]) ** 2);
+				this.cadLength += l;
+			});
+			entities.arc.forEach((e) => {
+				const {radius, start_angle, end_angle} = e;
+				const l = ((Math.abs(start_angle - end_angle) % 360) * Math.PI * radius) / 180;
+				this.cadLength += l;
+			});
+		}
+		this.cadLength = Number(this.cadLength.toFixed(2));
 	}
 }

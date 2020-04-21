@@ -1,6 +1,6 @@
 import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
 import data from "../../cad.json";
-import {CadViewer} from "../cad-viewer";
+import {CadViewer} from "../cad-viewer/cad-viewer";
 
 @Component({
 	selector: "app-playground",
@@ -12,9 +12,9 @@ export class PlaygroundComponent implements AfterViewInit {
 	constructor() {}
 
 	ngAfterViewInit() {
-		const cad = new CadViewer(data as any, innerWidth, innerHeight, {selectMode: "multiple"});
-		cad.enableDragging().enableWheeling();
-		this.cadEl.nativeElement.append(cad.view);
+		const cad = new CadViewer(data as any, innerWidth, innerHeight);
+		// cad.setControls({selectMode: "multiple"});
+		this.cadEl.nativeElement.append(cad.dom);
 		// tslint:disable-next-line: no-string-literal
 		window["cad"] = cad;
 	}
