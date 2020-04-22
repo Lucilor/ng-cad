@@ -13,18 +13,17 @@ export const enum CadTypes {
 }
 
 export const cadTypes = {
-	Line: "LINE",
-	MText: "MTEXT",
-	Dimension: "DIMENSION",
-	Arc: "ARC",
-	Circle: "CIRCLE",
-	LWPolyline: "LWPOLYLINE",
-	Hatch: "HATCH"
+	line: "LINE",
+	mtext: "MTEXT",
+	dimension: "DIMENSION",
+	arc: "ARC",
+	circle: "CIRCLE",
+	hatch: "HATCH"
 };
 
 export class CadData {
-	entities?: CadEntities;
-	layers?: CadLayer[];
+	entities: CadEntities;
+	layers: CadLayer[];
 	id: string;
 	name: string;
 	type: string;
@@ -40,13 +39,15 @@ export class CadData {
 			throw new Error("Invalid data.");
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
+		this.name = typeof data.name === "string" ? data.name : "";
+		this.type = typeof data.type === "string" ? data.type : "";
 		this.layers = [];
 		if (typeof data.layers === "object") {
 			for (const id in data.layers) {
 				this.layers.push(new CadLayer(data.layers[id]));
 			}
 		}
-		this.entities = new CadEntities(data.entities || {});
+		this.entities = new CadEntities(data.entities || {}, this.layers);
 		this.conditions = Array.isArray(data.conditions) ? data.conditions : [];
 		this.options = [];
 		if (typeof data.options === "object") {
@@ -66,7 +67,7 @@ export class CadData {
 				this.jointPoints.push(new CadJointPoint(v));
 			});
 		}
-		this.parent = data.parent || null;
+		this.parent = data.parent || "";
 		this.partners = [];
 		if (Array.isArray(data.partners)) {
 			data.partners.forEach((v) => this.partners.push(new CadData(v)));
@@ -96,16 +97,43 @@ export class CadData {
 		return result;
 	}
 
-	getAllEntities(partners = true, components = true) {
+	/**
+	 * 100: this.entities
+	 * 010: this.partners entities
+	 * 001: components.partners entities
+	 */
+	getAllEntities(mode = 0b111) {
 		const result = new CadEntities();
-		result.merge(this.entities);
-		if (partners) {
+		if (mode & 0b100) {
+			result.merge(this.entities);
+		}
+		if (mode & 0b010) {
 			this.partners.forEach((p) => result.merge(p.entities));
 		}
-		if (components) {
+		if (mode & 0b001) {
 			this.components.data.forEach((c) => result.merge(c.entities));
 		}
 		return result;
+	}
+
+	findEntity(id: string) {
+		let result: CadEntity = null;
+		result = this.entities.find(id);
+		if (result) {
+			return result;
+		}
+		for (const p of this.partners) {
+			result = p.entities.find(id);
+			if (result) {
+				return result;
+			}
+		}
+		for (const c of this.components.data) {
+			result = c.entities.find(id);
+			if (result) {
+				return result;
+			}
+		}
 	}
 }
 
@@ -116,54 +144,72 @@ export class CadEntities {
 	mtext: CadMtext[] = [];
 	dimension: CadDimension[] = [];
 	hatch: CadHatch[] = [];
-	constructor(data: any = {}) {
+	constructor(data: any = {}, layers: CadLayer[] = []) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
 		}
 		if (typeof data.line === "object") {
 			for (const id in data.line) {
-				this.line.push(new CadLine(data.line[id]));
+				this.line.push(new CadLine(data.line[id], layers));
 			}
 		}
 		if (typeof data.circle === "object") {
 			for (const id in data.circle) {
-				this.circle.push(new CadCircle(data.circle[id]));
+				this.circle.push(new CadCircle(data.circle[id], layers));
 			}
 		}
 		if (typeof data.arc === "object") {
 			for (const id in data.arc) {
-				this.arc.push(new CadArc(data.arc[id]));
+				this.arc.push(new CadArc(data.arc[id], layers));
 			}
 		}
 		if (typeof data.mtext === "object") {
 			for (const id in data.mtext) {
-				this.mtext.push(new CadMtext(data.mtext[id]));
+				this.mtext.push(new CadMtext(data.mtext[id], layers));
 			}
 		}
 		if (typeof data.dimension === "object") {
 			for (const id in data.dimension) {
-				this.dimension.push(new CadDimension(data.dimension[id]));
+				this.dimension.push(new CadDimension(data.dimension[id], layers));
 			}
 		}
 		if (typeof data.hatch === "object") {
 			for (const id in data.hatch) {
-				this.hatch.push(new CadHatch(data.hatch[id]));
+				this.hatch.push(new CadHatch(data.hatch[id], layers));
 			}
 		}
 	}
 
 	merge(entities: CadEntities) {
-		Object.keys(this).forEach((type) => {
+		Object.keys(cadTypes).forEach((type) => {
 			this[type] = this[type].concat(entities[type]);
 		});
 	}
 
+	find(id: string) {
+		for (const type of Object.keys(cadTypes)) {
+			const result = (this[type] as CadEntity[]).find((e) => e.id === id);
+			if (result) {
+				return result;
+			}
+		}
+		return null;
+	}
+
+	filter(fn: (value: CadEntity, index: number, array: CadEntity[]) => boolean) {
+		const result = new CadEntities();
+		for (const type of Object.keys(cadTypes)) {
+			result[type] = (this[type] as CadEntity[]).filter(fn);
+		}
+		return result;
+	}
+
 	export() {
 		const result = {line: {}, circle: {}, arc: {}, mtext: {}, dimension: {}, hatch: {}};
-		Object.values(cadTypes).forEach((type) => {
+		Object.keys(cadTypes).forEach((type) => {
 			this[type].forEach((e) => (result[type][e.id] = e));
 		});
-		return cloneDeep(result);
+		return JSON.parse(JSON.stringify(result));
 	}
 }
 
@@ -174,7 +220,7 @@ export class CadEntity {
 	color: number;
 	// colorRGB?: number;
 	// lineWidth?: number;
-	constructor(data: any = {},layers:CadLayer[] = []) {
+	constructor(data: any = {}, layers: CadLayer[] = []) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
 		}
@@ -185,14 +231,17 @@ export class CadEntity {
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
 		this.layer = typeof data.layer === "string" ? data.layer : "0";
+		this.color = 0;
 		if (typeof data.color === "number") {
 			if (data.color === 256) {
-				// layers.
+				const layer = layers.find((layer) => layer.name === this.layer);
+				if (layer) {
+					this.color = layer.color;
+				}
 			} else {
+				this.color = index2RGB(data.color, "number");
 			}
-		} else {
 		}
-		this.color = typeof data.color === "number" ? index2RGB(data.color, "number") : 0;
 	}
 }
 
@@ -202,8 +251,8 @@ export class CadLine extends CadEntity {
 	mingzi?: string;
 	qujian?: string;
 	gongshi?: string;
-	constructor(data?: any) {
-		super(data);
+	constructor(data?: any, layers: CadLayer[] = []) {
+		super(data, layers);
 		this.start = Array.isArray(data.start) ? data.start.slice(0, 3) : [0, 0, 0];
 		this.end = Array.isArray(data.end) ? data.end.slice(0, 3) : [0, 0, 0];
 		this.mingzi = data.mingzi || "";
@@ -215,8 +264,8 @@ export class CadLine extends CadEntity {
 export class CadCircle extends CadEntity {
 	center: number[];
 	radius: number;
-	constructor(data?: any) {
-		super(data);
+	constructor(data?: any, layers: CadLayer[] = []) {
+		super(data, layers);
 		this.center = Array.isArray(data.center) ? data.center.slice(0, 3) : [0, 0, 0];
 		this.radius = data.radius || 0;
 	}
@@ -228,8 +277,8 @@ export class CadArc extends CadEntity {
 	start_angle: number;
 	end_angle: number;
 	clockwise?: boolean;
-	constructor(data?: any) {
-		super(data);
+	constructor(data?: any, layers: CadLayer[] = []) {
+		super(data, layers);
 		this.center = Array.isArray(data.center) ? data.center.slice(0, 3) : [0, 0, 0];
 		this.radius = data.radius || 0;
 		this.start_angle = data.start_angle || 0;
@@ -241,10 +290,12 @@ export class CadArc extends CadEntity {
 export class CadMtext extends CadEntity {
 	insert: number[];
 	font_size: number;
-	constructor(data?: any) {
-		super(data);
+	text: string;
+	constructor(data?: any, layers: CadLayer[] = []) {
+		super(data, layers);
 		this.insert = Array.isArray(data.insert) ? data.insert.slice(0, 3) : [0, 0, 0];
 		this.font_size = data.font_size || 16;
+		this.text = data.text || "";
 	}
 }
 
@@ -265,8 +316,8 @@ export class CadDimension extends CadEntity {
 	cad2?: string;
 	mingzi?: string;
 	qujian?: string;
-	constructor(data?: any) {
-		super(data);
+	constructor(data?: any, layers: CadLayer[] = []) {
+		super(data, layers);
 		this.font_size = data.font_size || 16;
 		this.dimstyle = data.dimstyle || "";
 		["entity1", "entity2"].forEach((field) => {
@@ -282,6 +333,8 @@ export class CadDimension extends CadEntity {
 				this[field] = null;
 			}
 		});
+		this.axis = data.axis || "";
+		this.distance = data.distance || 16;
 		this.cad1 = data.cad1 || "";
 		this.cad2 = data.cad2 || "";
 		this.mingzi = data.mingzi || "";
@@ -297,8 +350,8 @@ export class CadHatch extends CadEntity {
 		}[];
 		vertices?: number[][];
 	}[];
-	constructor(data?: any) {
-		super(data);
+	constructor(data?: any, layers: CadLayer[] = []) {
+		super(data, layers);
 		if (data.paths) {
 			this.paths = data.paths;
 		} else {
@@ -381,5 +434,6 @@ export class Components {
 	export() {
 		const result = {data: [], connections: this.connections};
 		this.data.forEach((v) => result.data.push(v.export()));
+		return result;
 	}
 }

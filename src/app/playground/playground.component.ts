@@ -13,7 +13,7 @@ export class PlaygroundComponent implements AfterViewInit {
 
 	ngAfterViewInit() {
 		const cad = new CadViewer(data as any, innerWidth, innerHeight);
-		// cad.setControls({selectMode: "multiple"});
+		cad.setControls({selectMode: "multiple"});
 		this.cadEl.nativeElement.append(cad.dom);
 		// tslint:disable-next-line: no-string-literal
 		window["cad"] = cad;

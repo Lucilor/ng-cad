@@ -1,4 +1,4 @@
-import {Config, defaultConfig, transformData} from "@lucilor/cad-viewer";
+import {Config, defaultConfig, CadDimension} from "@lucilor/cad-viewer";
 import {
 	Scene,
 	PerspectiveCamera,
@@ -12,21 +12,33 @@ import {
 	MathUtils,
 	Raycaster,
 	Geometry,
-	BufferGeometry,
-	Box2
+	EllipseCurve,
+	TextGeometry,
+	FontLoader,
+	Font,
+	Color,
+	ShapeGeometry,
+	Shape,
+	Mesh,
+	MeshBasicMaterial
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
-import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities} from "./cad-data";
+import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities, CadMtext} from "./cad-data";
+import TextSprite from "@seregpie/three.text-sprite";
 
-export interface LineStyle {
+export class CadStyle {
 	color?: number;
 	lineWidth?: number;
-}
-
-export interface TextStyle {
-	color?: number;
 	fontSize?: number;
+	constructor(cad: CadViewer, params: {color?: number; lineWidth?: number; fontSize?: number} = {}) {
+		this.color = params.color || null;
+		if (cad.config.reverseSimilarColor) {
+			this.color = cad.correctColor(this.color);
+		}
+		this.lineWidth = params.lineWidth || null;
+		this.fontSize = params.fontSize || null;
+	}
 }
 
 export class CadViewer {
@@ -114,7 +126,7 @@ export class CadViewer {
 		return this;
 	}
 
-	render(center = false, entities?: CadEntities, style: LineStyle = {}) {
+	render(center = false, entities?: CadEntities, style?: CadStyle) {
 		const now = new Date().getTime();
 		const then = this._renderTimer.time + (1 / this.config.fps) * 1000;
 		if (now < then) {
@@ -123,75 +135,18 @@ export class CadViewer {
 			return this;
 		}
 		this._renderTimer.time = now;
-		const draw = (entity: CadEntity) => {
-			if (!entity) {
-				return;
-			}
-			const {color, layer} = entity;
-			const lineWidth = 1;
-			const localStyle = {...style};
-			const object = this.objects[entity.id];
-			if (object && object.userData.selected === true && localStyle.color === undefined) {
-				localStyle.color = this.correctColor(this.config.selectedColor);
-			} else {
-				localStyle.color = this.correctColor(entity.color);
-			}
-			switch (entity.type) {
-				case CadTypes.Line:
-					this.drawLine(entity as CadLine, localStyle);
-					break;
-				// case CadTypes.Arc:
-				// 	entity.lineWidth = lineWidth;
-				// 	this.drawArc(entity as CadArc, localStyle, container);
-				// 	break;
-				// case CadTypes.Circle:
-				// 	entity.lineWidth = lineWidth;
-				// 	this.drawCircle(entity as CadCircle, localStyle, container);
-				// 	break;
-				// case CadTypes.MText:
-				// 	if (this.config.drawMTexts) {
-				// 		this.drawText(entity as CadMText, localStyle, container);
-				// 	}
-				// 	break;
-				// case CadTypes.Dimension:
-				// 	if (this.config.drawMTexts && this._status.dimensions.length < 1) {
-				// 		this.drawText(entity as CadDimension, localStyle, container);
-				// 	} else if (entity.container) {
-				// 		entity.container.destroy();
-				// 		entity.container = null;
-				// 	}
-				// 	break;
-				// case CadTypes.LWPolyline:
-				// 	entity.lineWidth = lineWidth;
-				// 	if (this.config.drawPolyline) {
-				// 		this.drawPolyline(entity as CadLWPolyline, localStyle, container);
-				// 	}
-				// 	break;
-				// case CadTypes.Hatch:
-				// 	this.drawHatch(entity as CadHatch, {color: this.correctColor(0)}, container);
-				// 	break;
-				default:
-			}
-		};
 		if (!entities) {
 			entities = this.data.getAllEntities();
 		}
-		entities.line.forEach((e) => {
-			this.drawLine(e);
-		});
-		// this._status.dimensions.forEach(d => d?.destroy());
-		// this._status.dimensions.length = 0;
-		// if (this.config.drawDimensions) {
-		// 	this._drawDimensions();
-		// 	if (center) {
-		// 		this.center();
-		// 	}
-		// }
-		// const {x, y} = this.containers.inner.position;
-		// this.containers.inner.setTransform(x, y, 1, -1, 0, 0, 0, 0, this.height);
 		if (center) {
 			this.center();
 		}
+		style = new CadStyle(this, style);
+		entities.line.forEach((e) => this.drawLine(e, style));
+		entities.arc.forEach((e) => this.drawArc(e, style));
+		entities.circle.forEach((e) => this.drawCircle(e, style));
+		entities.mtext.forEach((e) => this.drawMtext(e, style));
+		entities.dimension.forEach((e) => this.drawDimension(e, style));
 		return this;
 	}
 
@@ -257,22 +212,6 @@ export class CadViewer {
 				calc(new Vector2(...center).subScalar(radius));
 			}
 		}
-		// let rect: PIXI.Rectangle;
-		// this._status.dimensions.forEach(c => {
-		// 	if (c) {
-		// 		if (rect) {
-		// 			rect.enlarge(c.getLocalBounds());
-		// 		} else {
-		// 			rect = c.getLocalBounds();
-		// 		}
-		// 	}
-		// });
-		// if (rect) {
-		// 	maxX = Math.max(rect.right, maxX);
-		// 	maxY = Math.max(rect.bottom, maxY);
-		// 	minX = Math.min(rect.left, minX);
-		// 	minY = Math.min(rect.top, minY);
-		// }
 		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
 	}
 
@@ -294,17 +233,12 @@ export class CadViewer {
 		return result;
 	}
 
-	drawLine(entity: CadLine, style?: LineStyle) {
+	drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const start = new Vector3(...entity.start);
 		const end = new Vector3(...entity.end);
-
-		const lineWidth = style && style.lineWidth ? style.lineWidth : 1;
-		let color = entity.color;
-		if (style && style.color) {
-			color = style.color;
-		}
-
+		const lineWidth = style.lineWidth ? style.lineWidth : 1;
+		const color = style.color ? style.color : entity.color;
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints([start, end]);
@@ -317,6 +251,209 @@ export class CadViewer {
 			objects[entity.id] = line;
 			scene.add(line);
 		}
+	}
+
+	drawCircle(entity: CadCircle, style: CadStyle = {}) {
+		const {scene, objects} = this;
+		const {radius} = entity;
+		const center = new Vector3(...entity.center);
+		const curve = new EllipseCurve(center.x, center.y, radius, radius, 0, Math.PI * 2, true, 0);
+		const points = curve.getPoints(50);
+		const lineWidth = style.lineWidth ? style.lineWidth : 1;
+		const color = style.color ? style.color : entity.color;
+		if (objects[entity.id]) {
+			const line = objects[entity.id] as Line;
+			line.geometry.setFromPoints(points);
+		} else {
+			const geometry = new Geometry().setFromPoints(points);
+			const material = new LineBasicMaterial({color, linewidth: lineWidth});
+			const line = new Line(geometry, material);
+			line.userData.selectable = true;
+			line.name = entity.id;
+			objects[entity.id] = line;
+			scene.add(line);
+		}
+	}
+
+	drawArc(entity: CadArc, style: CadStyle = {}) {
+		const {scene, objects} = this;
+		const {radius, start_angle, end_angle, clockwise} = entity;
+		const center = new Vector3(...entity.center);
+		const curve = new EllipseCurve(
+			center.x,
+			center.y,
+			radius,
+			radius,
+			MathUtils.degToRad(start_angle),
+			MathUtils.degToRad(end_angle),
+			clockwise,
+			0
+		);
+		const points = curve.getPoints(50);
+		const lineWidth = style.lineWidth ? style.lineWidth : 1;
+		const color = style.color ? style.color : entity.color;
+		if (objects[entity.id]) {
+			const line = objects[entity.id] as Line;
+			line.geometry.setFromPoints(points);
+		} else {
+			const geometry = new Geometry().setFromPoints(points);
+			const material = new LineBasicMaterial({color, linewidth: lineWidth});
+			const line = new Line(geometry, material);
+			line.userData.selectable = true;
+			line.name = entity.id;
+			objects[entity.id] = line;
+			scene.add(line);
+		}
+	}
+
+	drawMtext(entity: CadMtext, style: CadStyle = {}) {
+		const {scene, objects} = this;
+		const color = style.color ? style.color : entity.color;
+		const colorStr = "#" + new Color(color).getHexString();
+		const fontSize = style.fontSize ? style.fontSize : entity.font_size;
+		const text = entity.text || "";
+		if (objects[entity.id]) {
+			// const sprite = objects[entity.id] as TextSprite;
+		} else {
+			const sprite = new TextSprite({fontSize, fillStyle: colorStr, text});
+			sprite.userData.selectable = true;
+			sprite.name = entity.id;
+			sprite.position.set(...entity.insert);
+			objects[entity.id] = sprite;
+			scene.add(sprite);
+		}
+	}
+
+	drawDimension(entity: CadDimension, style: CadStyle = {}) {
+		const {scene, objects} = this;
+		const {mingzi, qujian, axis, distance} = entity;
+		const color = style.color ? style.color : entity.color;
+		const colorStr = "#" + new Color(color).getHexString();
+		const fontSize = style.fontSize ? style.fontSize : entity.font_size;
+		const lineWidth = style.lineWidth ? style.lineWidth : 1;
+		if (!entity.entity1 || !entity.entity2 || !entity.entity1.id || !entity.entity2.id) {
+			return;
+		}
+		const entity1 = this.findEntity(entity.entity1.id) as CadLine;
+		const entity2 = this.findEntity(entity.entity2.id) as CadLine;
+		if (!entity1) {
+			console.warn(`线段${entity1.id}没找到`);
+			return null;
+		}
+		if (!entity2) {
+			console.warn(`线段${entity2.id}没找到`);
+			return null;
+		}
+		if (entity1.type !== CadTypes.Line) {
+			console.warn(`实体${entity1.id}不是线段`);
+			return null;
+		}
+		if (entity2.type !== CadTypes.Line) {
+			console.warn(`实体${entity2.id}不是线段`);
+			return null;
+		}
+
+		const getPoint = (e: CadLine, location: string) => {
+			if (location === "start") {
+				return new Vector3(...e.start);
+			}
+			if (location === "end") {
+				return new Vector3(...e.start);
+			}
+			if (location === "center") {
+				return new Vector3(...e.start).add(new Vector3(...e.end)).divideScalar(2);
+			}
+		};
+		let p1 = getPoint(entity1, entity.entity1.location);
+		let p2 = getPoint(entity2, entity.entity2.location);
+		let p3 = p1.clone();
+		let p4 = p2.clone();
+		const arrow1: Vector3[] = [];
+		const arrow2: Vector3[] = [];
+		const arrowSize = 1;
+		const arrowLength = arrowSize * Math.sqrt(3);
+		if (axis === "x") {
+			const y = Math.max(p3.y, p4.y);
+			p3.y = y + distance;
+			p4.y = y + distance;
+			if (p3.x > p4.x) {
+				[p3, p4] = [p4, p3];
+				[p1, p2] = [p2, p1];
+			}
+			arrow1[0] = p3.clone();
+			arrow1[1] = arrow1[0].clone().add(new Vector3(arrowLength, -arrowSize));
+			arrow1[2] = arrow1[0].clone().add(new Vector3(arrowLength, arrowSize));
+			arrow2[0] = p4.clone();
+			arrow2[1] = arrow2[0].clone().add(new Vector3(-arrowLength, -arrowSize));
+			arrow2[2] = arrow2[0].clone().add(new Vector3(-arrowLength, arrowSize));
+		}
+		if (axis === "y") {
+			const x = Math.max(p3.x, p4.x);
+			p3.x = x + distance;
+			p4.x = x + distance;
+			if (p3.y < p4.y) {
+				[p3, p4] = [p4, p3];
+				[p1, p2] = [p2, p1];
+			}
+			arrow1[0] = p3.clone();
+			arrow1[1] = arrow1[0].clone().add(new Vector3(-arrowSize, -arrowLength));
+			arrow1[2] = arrow1[0].clone().add(new Vector3(arrowSize, -arrowLength));
+			arrow2[0] = p4.clone();
+			arrow2[1] = arrow2[0].clone().add(new Vector3(-arrowSize, arrowLength));
+			arrow2[2] = arrow2[0].clone().add(new Vector3(arrowSize, arrowLength));
+		}
+
+		let line: Line;
+		if (objects[entity.id]) {
+			// const sprite = objects[entity.id] as TextSprite;
+			line = objects[entity.id] as Line;
+			line.children.forEach((o) => o.remove());
+		} else {
+			const geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
+			const material = new LineBasicMaterial({color, linewidth: lineWidth});
+			line = new Line(geometry, material);
+			line.renderOrder = -1;
+			line.userData.selectable = true;
+			line.name = entity.id;
+			objects[entity.id] = line;
+			scene.add(line);
+		}
+		const arrowShape1 = new Shape();
+		arrowShape1.moveTo(arrow1[0].x, arrow1[0].y);
+		arrowShape1.lineTo(arrow1[1].x, arrow1[1].y);
+		arrowShape1.lineTo(arrow1[2].x, arrow1[2].y);
+		arrowShape1.closePath();
+		const arrowShape2 = new Shape();
+		arrowShape2.moveTo(arrow2[0].x, arrow2[0].y);
+		arrowShape2.lineTo(arrow2[1].x, arrow2[1].y);
+		arrowShape2.lineTo(arrow2[2].x, arrow2[2].y);
+		arrowShape2.closePath();
+		line.add(new Mesh(new ShapeGeometry(arrowShape1), new MeshBasicMaterial({color})));
+		line.add(new Mesh(new ShapeGeometry(arrowShape2), new MeshBasicMaterial({color})));
+		let text = "";
+		if (mingzi) {
+			text = mingzi;
+		}
+		if (qujian) {
+			text = qujian;
+		}
+		if (text === "") {
+			text = "<>";
+		}
+		text = text.replace("<>", p3.distanceTo(p4).toFixed(2));
+		if (axis === "y") {
+			text.split("").join("\n");
+		}
+		const sprite = new TextSprite({fontSize, fillStyle: colorStr, text});
+		// const sprite = new TextSprite({fontSize:200, fillStyle: "#ffffff", text: "AWEgw"});
+		const midPoint = new Vector3().add(p3).add(p4).divideScalar(2);
+		sprite.position.copy(midPoint);
+		sprite.center.set(0.5, 1);
+		if (axis === "y") {
+			sprite.lineGap = 0;
+		}
+		line.add(sprite);
+		console.log(sprite);
 	}
 
 	findLayerByName(layerName: string) {
@@ -354,16 +491,22 @@ export class CadViewer {
 	}
 
 	correctColor(color: number, threshold = 5) {
-		if (typeof color === "number" && Math.abs(color - this.config.backgroundColor) <= threshold && this.config.reverseSimilarColor) {
+		if (typeof color === "number" && Math.abs(color - this.config.backgroundColor) <= threshold) {
 			return 0xfffffff - color;
 		}
 		return color;
 	}
 
 	get selectedEntities() {
-		const result = {};
-		return {};
+		const result = this.data.getAllEntities().filter((e) => {
+			const object = this.objects[e.id];
+			return object && object.userData.selected;
+		});
+		return result;
 	}
 
-	unselectAll() {}
+	unselectAll() {
+		Object.values(this.objects).forEach((o) => (o.userData.selected = false));
+		this.render();
+	}
 }
