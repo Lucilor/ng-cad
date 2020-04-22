@@ -110,11 +110,11 @@ export class CadDataService {
 		}
 	}
 
-	async getCadDataPage(encode: string, page: number, limit: number) {
+	async getCadDataPage(encode: string, page: number, limit: number, search?: string) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
 		encode = encodeURIComponent(encode);
 		try {
-			const data = RSAEncrypt({page, limit});
+			const data = RSAEncrypt({page, limit, search});
 			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
 			if (response.code === 0 && response.data) {
 				const result: CadData[] = [];

@@ -185,9 +185,9 @@
 				<mat-expansion-panel-header>
 					<mat-panel-title>关联CAD</mat-panel-title>
 				</mat-expansion-panel-header>
-				<div class="cad-image" *ngFor="let p of partners">
-					<span class="title">{{ p.name }}</span>
-					<img [src]="p.img" (click)="editPartner(p.id)" />
+				<div class="cad-image" *ngFor="let p of partners" [class.active]="p.id === status.partner">
+					<div class="title">{{ p.name }}</div>
+					<img [src]="p.img" (click)="choosePartner(p.id)" />
 				</div>
 			</mat-expansion-panel>
 			<mat-expansion-panel expanded>

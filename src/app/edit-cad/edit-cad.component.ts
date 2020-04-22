@@ -35,7 +35,7 @@ export class EditCadComponent implements AfterViewInit {
 	get cad() {
 		return this.cads[this.status.cadIdx];
 	}
-	status: {entity: CadLine; mode: Mode; line: Line; dimension: string; cadIdx: number};
+	status: {entity: CadLine; mode: Mode; line: Line; dimension: string; cadIdx: number; partner: string};
 	pointsMap: LinesAtPoint[];
 	rotateAngle = 0;
 	partners: {id: string; name: string; img: string}[];
@@ -67,7 +67,14 @@ export class EditCadComponent implements AfterViewInit {
 		private dialog: MatDialog,
 		private cd: ChangeDetectorRef
 	) {
-		this.status = {entity: null, mode: {type: "normal", index: -1}, line: new Line(new Point()), dimension: null, cadIdx: 0};
+		this.status = {
+			entity: null,
+			mode: {type: "normal", index: -1},
+			line: new Line(new Point()),
+			dimension: null,
+			cadIdx: 0,
+			partner: null
+		};
 		this.partners = [];
 		this.cads = [];
 		// tslint:disable-next-line
@@ -283,8 +290,14 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
-		this.vCad.flip(vertical, horizontal).render(true);
-		this.cad.flip(vertical, horizontal);
+		const partner = this.status.partner;
+		if (partner) {
+			this.vCad.flipPartner(partner, vertical, horizontal).render(true);
+			this.cad.flipPartner(partner, vertical, horizontal);
+		} else {
+			this.vCad.flip(vertical, horizontal).render(true);
+			this.cad.flip(vertical, horizontal);
+		}
 	}
 
 	rotate(clockwise?: boolean) {
@@ -296,8 +309,37 @@ export class EditCadComponent implements AfterViewInit {
 		} else {
 			angle = new Angle(this.rotateAngle, "deg").rad;
 		}
-		this.vCad.rotate(angle).render(true);
-		this.cad.rotate(angle);
+		if (typeof clockwise === "boolean") {
+			const reverseAxis = (d: CadDimension) => {
+				if (d.axis === "x") {
+					d.axis = "y";
+				} else {
+					d.axis = "x";
+				}
+			};
+			this.vCad.data.entities.dimension.forEach((d) => reverseAxis(d));
+			this.vCad.data.partners.forEach((p) => {
+				p.entities.dimension.forEach((d) => reverseAxis(d));
+			});
+			this.vCad.data.components.data.forEach((c) => {
+				c.entities.dimension.forEach((d) => reverseAxis(d));
+			});
+			this.cad.data.entities.dimension.forEach((d) => reverseAxis(d));
+			this.cad.data.partners.forEach((p) => {
+				p.entities.dimension.forEach((d) => reverseAxis(d));
+			});
+			this.cad.data.components.data.forEach((c) => {
+				c.entities.dimension.forEach((d) => reverseAxis(d));
+			});
+		}
+		const partner = this.status.partner;
+		if (partner) {
+			this.vCad.rotatePartner(partner, angle).render(true);
+			this.cad.rotatePartner(partner, angle);
+		} else {
+			this.vCad.rotate(angle).render(true);
+			this.cad.rotate(angle);
+		}
 	}
 
 	addItem(i: number, field: string, data?: CadData) {
@@ -617,9 +659,12 @@ export class EditCadComponent implements AfterViewInit {
 		this.vCad.render();
 	}
 
-	editPartner(id: string) {
-		const params = this.route.snapshot.queryParams;
-		window.open(`edit-cad?encode=${params.encode}&data=${RSAEncrypt({id})}`);
+	choosePartner(id: string) {
+		if (this.status.partner === id) {
+			this.status.partner = null;
+		} else {
+			this.status.partner = id;
+		}
 	}
 
 	getVIdx(field: string) {
@@ -688,12 +733,16 @@ export class EditCadComponent implements AfterViewInit {
 	}
 
 	replaceData() {
-		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}});
-		ref.afterClosed().subscribe((id) => {
-			if (typeof id === "string") {
-				this.cad.data.id = id;
-				this.submit();
-			}
+		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}, width: "80vw"});
+		ref.afterClosed().subscribe((data) => {
+			const oldData = this.cad.exportData();
+			this.cad.data = data;
+			this.cad.data.id = oldData.id;
+			this.cad.data.name = oldData.name;
+			this.cad.data.type = oldData.type;
+			this.cad.data.conditions = oldData.conditions;
+			this.cad.data.options = oldData.options;
+			this.submit();
 		});
 	}
 

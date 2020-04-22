@@ -52,7 +52,7 @@ export class CadViewerControls {
 						const component = cad.data.components.data.find((v) => v.name === componentName);
 						if (component) {
 							cad.moveComponent(component, offset);
-							cad.render(false, 0b001);
+							cad.render();
 						}
 					} else {
 						if (!this.config.dragAxis.includes("x")) {

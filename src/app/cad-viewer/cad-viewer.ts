@@ -17,7 +17,7 @@ import {
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
-import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle} from "./cad-data";
+import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities} from "./cad-data";
 
 export interface LineStyle {
 	color?: number;
@@ -61,7 +61,6 @@ export class CadViewer {
 		} else if (padding.length === 3) {
 			this.config.padding = [padding[0], padding[1], padding[0], padding[2]];
 		}
-		return;
 
 		const scene = new Scene();
 		const camera = new PerspectiveCamera(60, width / height, 0.1, 15000);
@@ -115,12 +114,12 @@ export class CadViewer {
 		return this;
 	}
 
-	render(center = false, mode: number = 0b111, entities?: CadEntity[], style: LineStyle = {}) {
+	render(center = false, entities?: CadEntities, style: LineStyle = {}) {
 		const now = new Date().getTime();
 		const then = this._renderTimer.time + (1 / this.config.fps) * 1000;
 		if (now < then) {
 			window.clearTimeout(this._renderTimer.id);
-			this._renderTimer.id = setTimeout(() => this.render(center, mode, entities, style), then - now);
+			this._renderTimer.id = setTimeout(() => this.render(center, entities, style), then - now);
 			return this;
 		}
 		this._renderTimer.time = now;
@@ -174,24 +173,12 @@ export class CadViewer {
 				default:
 			}
 		};
-		if (entities) {
-			entities.forEach((entity) => draw(entity));
-		} else {
-			if (mode & 0b100) {
-				this.flatEntities().forEach((entity) => draw(entity));
-			}
-			// if (mode & 0b010) {
-			// 	this._status.partners.forEach(i => {
-			// 		this.data.partners[i].entities.forEach(entity => draw(entity));
-			// 	});
-			// }
-			// if (mode & 0b001) {
-			// 	this.data.components.data.forEach((component, i) => {
-			// 		component.entities.forEach(entity => draw(entity));
-			// 	});
-			// }
+		if (!entities) {
+			entities = this.data.getAllEntities();
 		}
-
+		entities.line.forEach((e) => {
+			this.drawLine(e);
+		});
 		// this._status.dimensions.forEach(d => d?.destroy());
 		// this._status.dimensions.length = 0;
 		// if (this.config.drawDimensions) {

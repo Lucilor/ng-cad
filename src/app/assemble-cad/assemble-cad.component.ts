@@ -231,6 +231,22 @@ export class AssembleCadComponent implements AfterViewInit {
 		} else {
 			this.cad.rotate(angle);
 		}
+		if (typeof clockwise === "boolean") {
+			const reverseAxis = (d: CadDimension) => {
+				if (d.axis === "x") {
+					d.axis = "y";
+				} else {
+					d.axis = "x";
+				}
+			};
+			this.cad.data.entities.dimension.forEach((d) => reverseAxis(d));
+			this.cad.data.partners.forEach((p) => {
+				p.entities.dimension.forEach((d) => reverseAxis(d));
+			});
+			this.cad.data.components.data.forEach((c) => {
+				c.entities.dimension.forEach((d) => reverseAxis(d));
+			});
+		}
 		this.cad.render(true);
 	}
 

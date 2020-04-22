@@ -1,5 +1,6 @@
 import {MathUtils} from "three";
 import {index2RGB} from "@lucilor/utils";
+import {cloneDeep} from "lodash";
 
 export const enum CadTypes {
 	Line = "LINE",
@@ -24,17 +25,17 @@ export const cadTypes = {
 export class CadData {
 	entities?: CadEntities;
 	layers?: CadLayer[];
-	id?: string;
-	name?: string;
-	type?: string;
-	conditions?: string[];
-	baseLines?: CadBaseLine[];
-	jointPoints?: CadJointPoint[];
-	options?: CadOption[];
-	parent?: string;
-	partners?: CadData[];
-	components?: Components;
-	constructor(data?: any) {
+	id: string;
+	name: string;
+	type: string;
+	conditions: string[];
+	options: CadOption[];
+	baseLines: CadBaseLine[];
+	jointPoints: CadJointPoint[];
+	parent: string;
+	partners: CadData[];
+	components: Components;
+	constructor(data: any = {}) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
 		}
@@ -65,23 +66,46 @@ export class CadData {
 				this.jointPoints.push(new CadJointPoint(v));
 			});
 		}
+		this.parent = data.parent || null;
+		this.partners = [];
+		if (Array.isArray(data.partners)) {
+			data.partners.forEach((v) => this.partners.push(new CadData(v)));
+		}
+		this.components = new Components(data.components || {});
 	}
 
 	export() {
 		const result = {
-			entities: this.entities.export()
+			entities: this.entities.export(),
 			// layers?: CadLayer[];
-			// id?: string;
-			// name?: string;
-			// type?: string;
-			// conditions?: string[];
-			// baseLines?: CadBaseLine[];
-			// jointPoints?: CadJointPoint[];
-			// options?: CadOption[];
-			// parent?: string;
-			// partners?: CadData[];
-			// components?: Components;
+			id: this.id,
+			name: this.name,
+			type: this.type,
+			conditions: this.conditions.slice(),
+			options: this.options.map((v) => {
+				const result = {};
+				result[v.name] = v.value;
+				return result;
+			}),
+			baseLines: cloneDeep(this.baseLines),
+			jointPoints: cloneDeep(this.jointPoints),
+			parent: this.parent,
+			partners: this.partners.map((v) => v.export()),
+			components: this.components.export()
 		};
+		return result;
+	}
+
+	getAllEntities(partners = true, components = true) {
+		const result = new CadEntities();
+		result.merge(this.entities);
+		if (partners) {
+			this.partners.forEach((p) => result.merge(p.entities));
+		}
+		if (components) {
+			this.components.data.forEach((c) => result.merge(c.entities));
+		}
+		return result;
 	}
 }
 
@@ -92,7 +116,7 @@ export class CadEntities {
 	mtext: CadMtext[] = [];
 	dimension: CadDimension[] = [];
 	hatch: CadHatch[] = [];
-	constructor(data?: any) {
+	constructor(data: any = {}) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
 		}
@@ -134,7 +158,13 @@ export class CadEntities {
 		});
 	}
 
-	export() {}
+	export() {
+		const result = {line: {}, circle: {}, arc: {}, mtext: {}, dimension: {}, hatch: {}};
+		Object.values(cadTypes).forEach((type) => {
+			this[type].forEach((e) => (result[type][e.id] = e));
+		});
+		return cloneDeep(result);
+	}
 }
 
 export class CadEntity {
@@ -144,7 +174,7 @@ export class CadEntity {
 	color: number;
 	// colorRGB?: number;
 	// lineWidth?: number;
-	constructor(data?: any) {
+	constructor(data: any = {},layers:CadLayer[] = []) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
 		}
@@ -155,6 +185,13 @@ export class CadEntity {
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
 		this.layer = typeof data.layer === "string" ? data.layer : "0";
+		if (typeof data.color === "number") {
+			if (data.color === 256) {
+				// layers.
+			} else {
+			}
+		} else {
+		}
 		this.color = typeof data.color === "number" ? index2RGB(data.color, "number") : 0;
 	}
 }
@@ -274,11 +311,9 @@ export class CadLayer {
 	color: number;
 	name: string;
 	constructor(data?: any) {
-		this.color = data.color || 0;
+		this.color = index2RGB(data.color, "number") || 0;
 		this.name = data.name || "";
 	}
-
-	export() {}
 }
 
 export class CadBaseLine {
@@ -330,7 +365,7 @@ export interface Connection {
 export class Components {
 	data: CadData[];
 	connections: Connection[];
-	constructor(data?: any) {
+	constructor(data: any = {}) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
 		}
@@ -341,5 +376,10 @@ export class Components {
 			});
 		}
 		this.connections = data.connections || [];
+	}
+
+	export() {
+		const result = {data: [], connections: this.connections};
+		this.data.forEach((v) => result.data.push(v.export()));
 	}
 }
