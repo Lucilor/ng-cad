@@ -1,4 +1,4 @@
-import {Config, defaultConfig, CadDimension} from "@lucilor/cad-viewer";
+import {Config, defaultConfig} from "@lucilor/cad-viewer";
 import {
 	Scene,
 	PerspectiveCamera,
@@ -13,9 +13,6 @@ import {
 	Raycaster,
 	Geometry,
 	EllipseCurve,
-	TextGeometry,
-	FontLoader,
-	Font,
 	Color,
 	ShapeGeometry,
 	Shape,
@@ -24,20 +21,28 @@ import {
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
-import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities, CadMtext} from "./cad-data";
+import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities, CadMtext, CadDimension} from "./cad-data";
 import TextSprite from "@seregpie/three.text-sprite";
 
 export class CadStyle {
 	color?: number;
 	lineWidth?: number;
 	fontSize?: number;
-	constructor(cad: CadViewer, params: {color?: number; lineWidth?: number; fontSize?: number} = {}) {
-		this.color = params.color || null;
+	constructor(params: {color?: number; lineWidth?: number; fontSize?: number} = {}, cad?: CadViewer, entity?: CadEntity) {
+		const selected = cad.objects[entity?.id]?.userData.selected;
+		this.color = params.color || entity?.color || 0;
+		if (selected) {
+			this.color = cad.config.selectedColor;
+		}
 		if (cad.config.reverseSimilarColor) {
 			this.color = cad.correctColor(this.color);
 		}
-		this.lineWidth = params.lineWidth || null;
-		this.fontSize = params.fontSize || null;
+		this.lineWidth = params.lineWidth || 1;
+		let eFontSize: number = null;
+		if (entity instanceof CadMtext || entity instanceof CadDimension) {
+			eFontSize = entity.font_size;
+		}
+		this.fontSize = params.fontSize || eFontSize || 16;
 	}
 }
 
@@ -109,8 +114,6 @@ export class CadViewer {
 		};
 		animate();
 		this.render(true);
-
-		// this.drawLine({id: "awew", layer: "", color: 1, type: "LINE", start: [0, -innerHeight / 2, 0], end: [0, innerHeight / 2, 0]});
 	}
 
 	setControls(config: CadViewerControlsConfig) {
@@ -141,7 +144,6 @@ export class CadViewer {
 		if (center) {
 			this.center();
 		}
-		style = new CadStyle(this, style);
 		entities.line.forEach((e) => this.drawLine(e, style));
 		entities.arc.forEach((e) => this.drawArc(e, style));
 		entities.circle.forEach((e) => this.drawCircle(e, style));
@@ -150,7 +152,7 @@ export class CadViewer {
 		return this;
 	}
 
-	center(entities?: CadEntity[]) {
+	center(entities?: CadEntities) {
 		const rect = this.getBounds(entities);
 		const fov = MathUtils.degToRad(this.camera.fov);
 		const aspect = this.camera.aspect;
@@ -162,7 +164,7 @@ export class CadViewer {
 		return this;
 	}
 
-	getBounds(entities?: CadEntity[]) {
+	getBounds(entities?: CadEntities) {
 		let maxX = -Infinity;
 		let minX = Infinity;
 		let maxY = -Infinity;
@@ -174,74 +176,47 @@ export class CadViewer {
 			minY = Math.min(point.y, minY);
 		};
 		if (!entities) {
-			entities = this.flatEntities();
-			// this._status.partners.forEach(i => {
-			// 	entities = entities.concat(this.data.partners[i].entities);
-			// });
-			// this.data.components.data.forEach(v => (entities = entities.concat(v.entities)));
+			entities = this.data.getAllEntities();
 		}
-		if (entities.length < 1) {
+		entities.line.forEach((entity) => {
+			const {start, end} = entity;
+			calc(new Vector2(...start));
+			calc(new Vector2(...end));
+		});
+		entities.arc.forEach((entity) => {
+			const arcEntity = entity;
+			const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
+			const arc = new ArcCurve(
+				center[0],
+				center[1],
+				radius,
+				MathUtils.degToRad(start_angle),
+				MathUtils.degToRad(end_angle),
+				clockwise
+			);
+			calc(arc.getPoint(0));
+			calc(arc.getPoint(1));
+		});
+		entities.circle.forEach((entity) => {
+			const {center, radius} = entity;
+			calc(new Vector2(...center).addScalar(radius));
+			calc(new Vector2(...center).subScalar(radius));
+		});
+		if (!isFinite(maxX + minX) || !isFinite(maxY + minY)) {
 			return {x: 0, y: 0, width: 0, height: 0};
 		}
-		for (const entity of entities) {
-			if (entity.type === CadTypes.Line) {
-				const {start, end} = entity as CadLine;
-				calc(new Vector2(...start));
-				calc(new Vector2(...end));
-			}
-			if (entity.type === CadTypes.Arc) {
-				const arcEntity = entity as CadArc;
-				const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
-				const arc = new ArcCurve(
-					center[0],
-					center[1],
-					radius,
-					MathUtils.degToRad(start_angle),
-					MathUtils.degToRad(end_angle),
-					clockwise
-				);
-				// const start = new Angle(arcEntity.start_angle, "deg");
-				// const end = new Angle(arcEntity.end_angle, "deg");
-				// const arc = new Arc(new Point(arcEntity.center), arcEntity.radius, start, end);
-				calc(arc.getPoint(0));
-				calc(arc.getPoint(1));
-			}
-			if (entity.type === CadTypes.Circle) {
-				const {center, radius} = entity as CadCircle;
-				calc(new Vector2(...center).addScalar(radius));
-				calc(new Vector2(...center).subScalar(radius));
-			}
-		}
 		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
-	}
-
-	flatEntities(from = this.data, mode = 0b111) {
-		let result: CadEntity[] = [];
-		if (mode & 0b100) {
-			result = result.concat(Object.values(from.entities).flat());
-		}
-		if (mode & 0b010) {
-			from.partners.forEach((partner) => {
-				result = result.concat(Object.values(partner.entities).flat());
-			});
-		}
-		if (mode & 0b001) {
-			from.components.data.forEach((component) => {
-				result = result.concat(Object.values(component.entities).flat());
-			});
-		}
-		return result;
 	}
 
 	drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const start = new Vector3(...entity.start);
 		const end = new Vector3(...entity.end);
-		const lineWidth = style.lineWidth ? style.lineWidth : 1;
-		const color = style.color ? style.color : entity.color;
+		const {lineWidth, color} = new CadStyle(style, this, entity);
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints([start, end]);
+			(line.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 		} else {
 			const geometry = new Geometry().setFromPoints([start, end]);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
@@ -259,8 +234,7 @@ export class CadViewer {
 		const center = new Vector3(...entity.center);
 		const curve = new EllipseCurve(center.x, center.y, radius, radius, 0, Math.PI * 2, true, 0);
 		const points = curve.getPoints(50);
-		const lineWidth = style.lineWidth ? style.lineWidth : 1;
-		const color = style.color ? style.color : entity.color;
+		const {lineWidth, color} = new CadStyle(style, this, entity);
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints(points);
@@ -290,8 +264,7 @@ export class CadViewer {
 			0
 		);
 		const points = curve.getPoints(50);
-		const lineWidth = style.lineWidth ? style.lineWidth : 1;
-		const color = style.color ? style.color : entity.color;
+		const {lineWidth, color} = new CadStyle(style, this, entity);
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints(points);
@@ -308,9 +281,8 @@ export class CadViewer {
 
 	drawMtext(entity: CadMtext, style: CadStyle = {}) {
 		const {scene, objects} = this;
-		const color = style.color ? style.color : entity.color;
+		const {fontSize, color} = new CadStyle(style, this, entity);
 		const colorStr = "#" + new Color(color).getHexString();
-		const fontSize = style.fontSize ? style.fontSize : entity.font_size;
 		const text = entity.text || "";
 		if (objects[entity.id]) {
 			// const sprite = objects[entity.id] as TextSprite;
@@ -327,15 +299,13 @@ export class CadViewer {
 	drawDimension(entity: CadDimension, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {mingzi, qujian, axis, distance} = entity;
-		const color = style.color ? style.color : entity.color;
+		const {lineWidth, color, fontSize} = new CadStyle(style, this, entity);
 		const colorStr = "#" + new Color(color).getHexString();
-		const fontSize = style.fontSize ? style.fontSize : entity.font_size;
-		const lineWidth = style.lineWidth ? style.lineWidth : 1;
 		if (!entity.entity1 || !entity.entity2 || !entity.entity1.id || !entity.entity2.id) {
 			return;
 		}
-		const entity1 = this.findEntity(entity.entity1.id) as CadLine;
-		const entity2 = this.findEntity(entity.entity2.id) as CadLine;
+		const entity1 = this.data.findEntity(entity.entity1.id) as CadLine;
+		const entity2 = this.data.findEntity(entity.entity2.id) as CadLine;
 		if (!entity1) {
 			console.warn(`线段${entity1.id}没找到`);
 			return null;
@@ -407,13 +377,13 @@ export class CadViewer {
 		if (objects[entity.id]) {
 			// const sprite = objects[entity.id] as TextSprite;
 			line = objects[entity.id] as Line;
-			line.children.forEach((o) => o.remove());
+			line.remove(...line.children);
 		} else {
 			const geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
 			line = new Line(geometry, material);
 			line.renderOrder = -1;
-			line.userData.selectable = true;
+			line.userData.selectable = false;
 			line.name = entity.id;
 			objects[entity.id] = line;
 			scene.add(line);
@@ -453,28 +423,6 @@ export class CadViewer {
 			sprite.lineGap = 0;
 		}
 		line.add(sprite);
-		console.log(sprite);
-	}
-
-	findLayerByName(layerName: string) {
-		for (const layer of this.data.layers) {
-			if (layer.name === layerName) {
-				return layer;
-			}
-		}
-		return null;
-	}
-
-	findEntity(id: string, entities: CadEntity[] | number = 0b111) {
-		if (typeof entities === "number") {
-			entities = this.flatEntities(this.data, entities);
-		}
-		for (const entity of entities) {
-			if (entity.id === id) {
-				return entity;
-			}
-		}
-		return null;
 	}
 
 	moveComponent(curr: CadData, translate: Vector2, prev?: CadData) {}
@@ -507,6 +455,23 @@ export class CadViewer {
 
 	unselectAll() {
 		Object.values(this.objects).forEach((o) => (o.userData.selected = false));
-		this.render();
+		return this.render();
+	}
+
+	exportImage() {
+		const image = new Image();
+		return image;
+	}
+
+	destroy() {
+		this.scene.dispose();
+		this.renderer.dispose();
+	}
+
+	reset(data: CadData) {
+		this.scene.remove(...Object.values(this.objects));
+		this.objects = {};
+		this.data = data;
+		return this.render();
 	}
 }

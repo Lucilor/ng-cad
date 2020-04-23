@@ -102,7 +102,7 @@ export class CadViewerControls {
 				object = this.currentObject;
 				if (object instanceof Line) {
 					if (object.material instanceof LineBasicMaterial) {
-						object.material.color.set(cad.findEntity(object.name)?.color);
+						object.material.color.set(cad.data.findEntity(object.name)?.color);
 					}
 				}
 			}
@@ -143,7 +143,6 @@ export class CadViewerControls {
 								toSelect.push(object);
 							}
 						}
-						console.log(toSelect);
 						if (toSelect.every((o) => o.userData.selected)) {
 							toSelect.forEach((o) => (o.userData.selected = false));
 						} else {
@@ -153,43 +152,6 @@ export class CadViewerControls {
 							});
 						}
 					}
-					// if (this.config.selectMode === "multiple" && event instanceof MouseEvent && event.button === 0) {
-					// 	const box = new Box3(new Vector3(pFrom.x, pFrom.y, -10), new Vector3(pTo.x, pTo.y, this.position.z + 10));
-					// 	const toBeSelected: CadEntity[] = [];
-					// 	for (const entity of this.data.entities) {
-					// 		if (!entity.selectable) {
-					// 			continue;
-					// 		}
-					// 		if (entity.type === CadTypes.Line) {
-					// 			const lineEntity = entity as CadLine;
-					// 			const start = this.translatePoint(new Point(lineEntity.start));
-					// 			const end = this.translatePoint(new Point(lineEntity.end));
-					// 			if (box.containsLine(new Line(start, end))) {
-					// 				toBeSelected.push(entity);
-					// 			}
-					// 		} else if (entity.type === CadTypes.Arc) {
-					// 			const arcEntity = entity as CadArc;
-					// 			const start = new Angle(arcEntity.start_angle, "deg");
-					// 			const end = new Angle(arcEntity.end_angle, "deg");
-					// 			const arc = new Arc(new Point(arcEntity.center), arcEntity.radius, start, end);
-					// 			if (
-					// 				box.containsPoint(this.translatePoint(arc.startPoint)) &&
-					// 				box.containsPoint(this.translatePoint(arc.endPoint))
-					// 			) {
-					// 				toBeSelected.push(entity);
-					// 			}
-					// 		} else if (entity.type === CadTypes.Circle) {
-					// 			const circleEntity = entity as CadCircle;
-					// 			const center = this.translatePoint(new Point(circleEntity.center));
-					// 			if (box.containsPoint(center)) {
-					// 				toBeSelected.push(entity);
-					// 			}
-					// 		}
-					// 	}
-					// 	const allSelected = toBeSelected.every((e) => e.selected);
-					// 	toBeSelected.forEach((entity) => (entity.selected = !allSelected));
-					// 	this.render(false, null, toBeSelected);
-					// }
 				}
 				this._status.dragging = false;
 				const p = new Vector2(event.clientX, event.clientY);
@@ -201,7 +163,7 @@ export class CadViewerControls {
 							if (object instanceof Line) {
 								if (object.material instanceof LineBasicMaterial) {
 									object.userData.selected = false;
-									object.material.color.set(cad.findEntity(object.name)?.color);
+									object.material.color.set(cad.data.findEntity(object.name)?.color);
 								}
 							}
 						} else if (object.userData.selectable !== false) {

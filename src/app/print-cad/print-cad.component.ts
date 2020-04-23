@@ -8,7 +8,7 @@ import {AlertComponent} from "../alert/alert.component";
 @Component({
 	selector: "app-print-cad",
 	templateUrl: "./print-cad.component.html",
-	styleUrls: ["./print-cad.component.scss"],
+	styleUrls: ["./print-cad.component.scss"]
 })
 export class PrintCadComponent implements AfterViewInit {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
@@ -51,7 +51,7 @@ export class PrintCadComponent implements AfterViewInit {
 			drawMTexts: true,
 			drawPolyline: true,
 			drawDimensions: true,
-			fontSize: 26,
+			fontSize: 26
 		}).render();
 		cad.enableDragging().enableKeyboard().enableWheeling();
 		this.cad = cad;
