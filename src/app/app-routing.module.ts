@@ -2,13 +2,13 @@ import {NgModule} from "@angular/core";
 import {Routes, RouterModule} from "@angular/router";
 import {paths} from "./app.common";
 import {DrawCadComponent} from "./draw-cad/draw-cad.component";
-import {PageNotFoundComponent} from "./page-not-found/page-not-found.component";
-import {PathResolveService} from "./path-resolve.service";
+import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
+import {PathResolveService} from "./services/path-resolve.service";
 import {IndexComponent} from "./index/index.component";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 import {PrintCadComponent} from "./print-cad/print-cad.component";
-import {PlaygroundComponent} from "./playground/playground.component";
+import {PlaygroundComponent} from "./components/playground/playground.component";
 
 const routes: Routes = [
 	{path: "", component: IndexComponent},

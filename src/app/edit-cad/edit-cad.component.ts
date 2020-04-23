@@ -3,12 +3,12 @@ import {ActivatedRoute} from "@angular/router";
 import {CadDataService} from "../cad-data.service";
 import {CadData, CadViewer, Events, CadEntity, CadTypes, CadLine, CadArc, CadDimension} from "@lucilor/cad-viewer";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
-import {AlertComponent} from "../alert/alert.component";
+import {AlertComponent} from "../components/alert/alert.component";
 import {Line, Point, Angle, Arc, getColorLightness, RSAEncrypt} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
 import {DimFormComponent} from "./dim-form.component";
 import {cloneDeep} from "lodash";
-import {ListCadComponent} from "../list-cad/list-cad.component";
+import {ListCadComponent} from "../components/list-cad/list-cad.component";
 import {CadEntities} from "@lucilor/cad-viewer/lib/src/cad-data";
 
 interface Mode {

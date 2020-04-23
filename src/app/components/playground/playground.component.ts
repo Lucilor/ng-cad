@@ -1,6 +1,6 @@
 import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
-import data from "../../cad.json";
-import {CadViewer} from "../cad-viewer/cad-viewer";
+import data from "@src/cad.json";
+import {CadViewer} from "@app/cad-viewer/cad-viewer";
 
 @Component({
 	selector: "app-playground",

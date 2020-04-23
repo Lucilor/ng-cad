@@ -3,7 +3,7 @@ import {CadDataService} from "../cad-data.service";
 import {ActivatedRoute} from "@angular/router";
 import {CadViewer, CadData} from "@lucilor/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
-import {AlertComponent} from "../alert/alert.component";
+import {AlertComponent} from "../components/alert/alert.component";
 
 @Component({
 	selector: "app-draw-cad",
@@ -50,7 +50,6 @@ export class DrawCadComponent implements AfterViewInit {
 		const {cad} = this;
 		const data: CadData = fragment || {entities: cad.getSelectedEntities(), layers: this.cad.data.layers};
 		const lines = data.entities.line;
-		console.log(data);
 		if (Object.keys(lines).length < 1) {
 			this.dialog.open(AlertComponent, {data: {title: "", content: "至少选择一条线"}});
 			return;

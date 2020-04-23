@@ -14,7 +14,13 @@
 		"lib": ["es2019", "dom"],
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"paths": {
+			"@src/*": ["src/*"],
+			"@app/*": ["src/app/*"],
+			"@components/*": ["src/app/components"],
+			"@services/*": ["src/app/services"]
+		}
 	},
 	"angularCompilerOptions": {
 		"fullTemplateTypeCheck": true,

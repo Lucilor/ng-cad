@@ -3,7 +3,7 @@ import {CadViewer, CadData, CadRawData} from "@lucilor/cad-viewer";
 import {CadDataService} from "../cad-data.service";
 import {Point} from "@lucilor/utils";
 import {MatDialog} from "@angular/material/dialog";
-import {AlertComponent} from "../alert/alert.component";
+import {AlertComponent} from "../components/alert/alert.component";
 
 @Component({
 	selector: "app-print-cad",

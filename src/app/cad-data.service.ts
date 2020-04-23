@@ -6,7 +6,7 @@ import {HttpClient} from "@angular/common/http";
 import {apiBasePath, Response} from "./app.common";
 import {CadData, CadRawData, CadLine, CadTypes, CadMText, CadDimension, CadViewer} from "@lucilor/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
-import {AlertComponent} from "./alert/alert.component";
+import {AlertComponent} from "./components/alert/alert.component";
 import {SessionStorage, Point, Line, RSAEncrypt} from "@lucilor/utils";
 import * as UUID from "uuid";
 import {MatSnackBar} from "@angular/material/snack-bar";

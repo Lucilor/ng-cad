@@ -1,5 +1,5 @@
 import {Component, OnInit, Inject, ViewChild} from "@angular/core";
-import {CadDataService} from "../cad-data.service";
+import {CadDataService} from "../../cad-data.service";
 import {ActivatedRoute} from "@angular/router";
 import {PageEvent, MatPaginator} from "@angular/material/paginator";
 import {CadViewer, CadData} from "@lucilor/cad-viewer";

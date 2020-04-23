@@ -5,13 +5,13 @@ import {AppRoutingModule} from "./app-routing.module";
 import {AppComponent} from "./app.component";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {DrawCadComponent} from "./draw-cad/draw-cad.component";
-import {LoadingComponent} from "./loading/loading.component";
+import {LoadingComponent} from "./components/loading/loading.component";
 import {StoreModule} from "@ngrx/store";
 import {reducers, metaReducers} from "./store/reducers";
 import {HttpClientModule} from "@angular/common/http";
-import {PageNotFoundComponent} from "./page-not-found/page-not-found.component";
+import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
 import {IndexComponent} from "./index/index.component";
-import {AlertComponent} from "./alert/alert.component";
+import {AlertComponent} from "./components/alert/alert.component";
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatButtonModule} from "@angular/material/button";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
@@ -29,9 +29,9 @@ import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
 import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 import {PrintCadComponent} from "./print-cad/print-cad.component";
-import {ListCadComponent} from "./list-cad/list-cad.component";
+import {ListCadComponent} from "./components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
-import {PlaygroundComponent} from "./playground/playground.component";
+import {PlaygroundComponent} from "./components/playground/playground.component";
 
 @NgModule({
 	declarations: [

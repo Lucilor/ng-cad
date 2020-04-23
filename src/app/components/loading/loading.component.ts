@@ -1,8 +1,8 @@
 import {Component, OnInit} from "@angular/core";
 import {Store} from "@ngrx/store";
-import {showHide} from "../animations";
-import {getLoading} from "../store/selectors";
-import {State} from "../store/state";
+import {showHide} from "@app/animations";
+import {getLoading} from "@app/store/selectors";
+import {State} from "@app/store/state";
 
 export const maxLoadingTime = 10000;
 

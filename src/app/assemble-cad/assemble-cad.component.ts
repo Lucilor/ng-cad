@@ -3,7 +3,7 @@ import {CadViewer, CadData, Events, CadEntity, ComponentPosition, CadTypes, CadL
 import {ActivatedRoute} from "@angular/router";
 import {CadDataService} from "../cad-data.service";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
-import {AlertComponent} from "../alert/alert.component";
+import {AlertComponent} from "../components/alert/alert.component";
 import {Angle, Line, Point} from "@lucilor/utils";
 import {cloneDeep} from "lodash";
 import {DimFormComponent} from "../edit-cad/dim-form.component";

@@ -207,9 +207,14 @@ export class CadEntities {
 	export() {
 		const result = {line: {}, circle: {}, arc: {}, mtext: {}, dimension: {}, hatch: {}};
 		Object.keys(cadTypes).forEach((type) => {
-			this[type].forEach((e) => (result[type][e.id] = e));
+			(this[type] as CadEntity[]).forEach((e) => {
+				const ee = JSON.parse(JSON.stringify(e));
+				ee.color = ee._indexColor;
+				delete ee._indexColor;
+				result[type][e.id] = ee;
+			});
 		});
-		return JSON.parse(JSON.stringify(result));
+		return result;
 	}
 }
 
@@ -218,8 +223,7 @@ export class CadEntity {
 	type: string;
 	layer: string;
 	color: number;
-	// colorRGB?: number;
-	// lineWidth?: number;
+	_indexColor: number;
 	constructor(data: any = {}, layers: CadLayer[] = []) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
@@ -232,6 +236,7 @@ export class CadEntity {
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
 		this.layer = typeof data.layer === "string" ? data.layer : "0";
 		this.color = 0;
+		this._indexColor = data.color;
 		if (typeof data.color === "number") {
 			if (data.color === 256) {
 				const layer = layers.find((layer) => layer.name === this.layer);
