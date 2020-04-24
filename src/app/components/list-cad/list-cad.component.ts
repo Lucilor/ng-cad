@@ -43,9 +43,17 @@ export class ListCadComponent implements OnInit {
 		this.length = data.count;
 		this.pageData.length = 0;
 		data.data.forEach((d) => {
-			const cad = new CadViewer(d, this.width, this.height, {drawDimensions: false, drawMTexts: false}).render(true);
-			this.pageData.push({data: cad.data, img: cad.exportImage().src, checked: false});
-			cad.destroy();
+			try {
+				const cad = new CadViewer(d, this.width, this.height, {drawDimensions: false, drawMTexts: false}).render(true);
+				this.pageData.push({data: cad.data, img: cad.exportImage().src, checked: false});
+				cad.destroy();
+			} catch (e) {
+				this.pageData.push({
+					data: {id: d.id, name: d.name, entities: {line: [], arc: [], circle: [], mtext: [], dimension: [], hatch: []}},
+					img: "",
+					checked: false
+				});
+			}
 		});
 		return data;
 	}

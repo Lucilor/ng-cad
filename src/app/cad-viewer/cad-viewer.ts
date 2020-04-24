@@ -1,4 +1,3 @@
-import {Config, defaultConfig} from "@lucilor/cad-viewer";
 import {
 	Scene,
 	PerspectiveCamera,
@@ -24,6 +23,8 @@ import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls"
 import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities, CadMtext, CadDimension} from "./cad-data";
 import TextSprite from "@seregpie/three.text-sprite";
 
+export const CAMERA_Z = 800;
+
 export class CadStyle {
 	color?: number;
 	lineWidth?: number;
@@ -46,9 +47,44 @@ export class CadStyle {
 	}
 }
 
+export interface CadViewerConfig {
+	backgroundColor?: number;
+	selectedColor?: number;
+	hoverColor?: number;
+	showLineLength?: number;
+	maxScale?: number;
+	minScale?: number;
+	padding?: number[] | number;
+	selectMode?: "none" | "single" | "multiple";
+	fontSize?: number;
+	dragAxis?: "x" | "y" | "xy" | "";
+	transparent?: boolean;
+	fps?: number;
+	drawMTexts?: boolean;
+	drawDimensions?: boolean;
+	drawPolyline?: boolean;
+	reverseSimilarColor?: true;
+}
 export class CadViewer {
 	data: CadData;
-	config: Config;
+	config: CadViewerConfig = {
+		backgroundColor: 0,
+		selectedColor: 0xffff00,
+		hoverColor: 0x00ffff,
+		showLineLength: 0,
+		maxScale: 5,
+		minScale: 0.1,
+		padding: [0],
+		selectMode: "none",
+		fontSize: 17,
+		dragAxis: "xy",
+		transparent: false,
+		fps: 60,
+		drawMTexts: false,
+		drawDimensions: false,
+		drawPolyline: false,
+		reverseSimilarColor: true
+	};
 	width: number;
 	height: number;
 	dom: HTMLDivElement;
@@ -61,9 +97,13 @@ export class CadViewer {
 	controls: CadViewerControls;
 	private _renderTimer = {id: null, time: 0};
 
-	constructor(data: any, width = 300, height = 150, config: Config = {}) {
-		this.data = new CadData(data);
-		this.config = {...defaultConfig, ...config};
+	constructor(data: CadData, width = 300, height = 150, config: CadViewerConfig = {}) {
+		if (data instanceof CadData) {
+			this.data = data;
+		} else {
+			this.data = new CadData(data);
+		}
+		this.config = {...this.config, ...config};
 		const padding = this.config.padding;
 		if (typeof padding === "number") {
 			this.config.padding = [padding, padding, padding, padding];
@@ -81,7 +121,7 @@ export class CadViewer {
 
 		const scene = new Scene();
 		const camera = new PerspectiveCamera(60, width / height, 0.1, 15000);
-		const renderer = new WebGLRenderer();
+		const renderer = new WebGLRenderer({preserveDrawingBuffer: true});
 		renderer.setSize(width, height);
 
 		camera.position.set(0, 0, 0);
@@ -287,11 +327,12 @@ export class CadViewer {
 		if (objects[entity.id]) {
 			// const sprite = objects[entity.id] as TextSprite;
 		} else {
-			const sprite = new TextSprite({fontSize, fillStyle: colorStr, text});
+			const sprite = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text});
 			sprite.userData.selectable = true;
 			sprite.name = entity.id;
 			sprite.position.set(...entity.insert);
 			objects[entity.id] = sprite;
+			console.log(sprite);
 			scene.add(sprite);
 		}
 	}
@@ -432,10 +473,12 @@ export class CadViewer {
 	}
 
 	get scale() {
-		return 800 / this.camera.position.z;
+		return CAMERA_Z / this.camera.position.z;
 	}
 	set scale(value) {
-		this.camera.position.z = 800 / value;
+		const {maxScale, minScale} = this.config;
+		value = Math.max(minScale, Math.min(maxScale, value));
+		this.camera.position.z = CAMERA_Z / value;
 	}
 
 	correctColor(color: number, threshold = 5) {
@@ -460,6 +503,7 @@ export class CadViewer {
 
 	exportImage() {
 		const image = new Image();
+		image.src = this.renderer.domElement.toDataURL();
 		return image;
 	}
 

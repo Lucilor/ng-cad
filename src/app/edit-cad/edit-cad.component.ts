@@ -735,14 +735,9 @@ export class EditCadComponent implements AfterViewInit {
 	replaceData() {
 		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}, width: "80vw"});
 		ref.afterClosed().subscribe((data) => {
-			const oldData = this.cad.exportData();
-			this.cad.data = data;
-			this.cad.data.id = oldData.id;
-			this.cad.data.name = oldData.name;
-			this.cad.data.type = oldData.type;
-			this.cad.data.conditions = oldData.conditions;
-			this.cad.data.options = oldData.options;
-			this.submit();
+			if (data) {
+				this.dataService.replaceData(this.route.snapshot.queryParams.encode, this.cad.exportData(), data.id);
+			}
 		});
 	}
 

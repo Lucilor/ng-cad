@@ -6,6 +6,9 @@ import {MatDialog} from "@angular/material/dialog";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {AlertComponent} from "../components/alert/alert.component";
 import {ActivatedRoute} from "@angular/router";
+import {LoadingAction, ActionTypes} from "../store/actions";
+import {Response} from "../app.common";
+import {CadData} from "../cad-viewer/cad-data";
 
 @Injectable({
 	providedIn: "root"
@@ -13,15 +16,18 @@ import {ActivatedRoute} from "@angular/router";
 export class CadDataService {
 	baseURL: string;
 	encode: string;
+	data: string;
 	constructor(
 		private store: Store<State>,
 		private http: HttpClient,
 		private dialog: MatDialog,
 		private snackBar: MatSnackBar,
-		private route: ActivatedRoute
+		route: ActivatedRoute
 	) {
 		this.baseURL = localStorage.getItem("baseURL");
-		this.encode = encodeURIComponent(route.snapshot.params.encode);
+		const params = route.snapshot.queryParams;
+		this.encode = encodeURIComponent(params.encode);
+		this.data = encodeURIComponent(params.data);
 	}
 
 	private alert(msg: any) {
@@ -32,5 +38,28 @@ export class CadDataService {
 		}
 	}
 
-	async getData() {}
+	async getCadData() {
+		const {baseURL, encode, data} = this;
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadData"});
+		try {
+			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
+			if (response.code === 0 && response.data) {
+				if (!Array.isArray(response.data)) {
+					response.data = [response.data];
+				}
+				const result: CadData[] = [];
+				response.data.forEach((d) => {
+					result.push(new CadData(d));
+				});
+				return result;
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alert(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadData"});
+		}
+	}
 }

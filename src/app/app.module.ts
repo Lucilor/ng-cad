@@ -10,7 +10,6 @@ import {StoreModule} from "@ngrx/store";
 import {reducers, metaReducers} from "./store/reducers";
 import {HttpClientModule} from "@angular/common/http";
 import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
-import {IndexComponent} from "./index/index.component";
 import {AlertComponent} from "./components/alert/alert.component";
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatButtonModule} from "@angular/material/button";
@@ -39,7 +38,6 @@ import {PlaygroundComponent} from "./components/playground/playground.component"
 		DrawCadComponent,
 		LoadingComponent,
 		PageNotFoundComponent,
-		IndexComponent,
 		AlertComponent,
 		EditCadComponent,
 		DimFormComponent,

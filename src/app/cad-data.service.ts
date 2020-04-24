@@ -65,8 +65,8 @@ export class CadDataService {
 			data = encodeURIComponent(data);
 			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/read_dxf_file/${encode}?data=${data}`).toPromise();
 			if (response.code === 0) {
-				this.rawData = response.data;
-				return response.data as CadData;
+				this.rawData = response.data[0];
+				return response.data[0] as CadData;
 			} else {
 				throw new Error(response.msg);
 			}
@@ -90,13 +90,7 @@ export class CadDataService {
 				}
 				const result: CadData[] = [];
 				response.data.forEach((d) => {
-					const {分类, 名字, 条件, 选项} = d;
-					const json = d.json as CadData;
-					json.name = 名字;
-					json.type = 分类;
-					json.options = 选项;
-					json.conditions = 条件;
-					result.push(json);
+					result.push(d);
 				});
 				return result;
 			} else {
@@ -114,18 +108,22 @@ export class CadDataService {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
 		encode = encodeURIComponent(encode);
 		try {
-			const data = RSAEncrypt({page, limit, search});
+			const data = RSAEncrypt({page, limit, search, xiaodaohang: "CAD"});
 			const response = await this.http.get<Response>(`${apiBasePath}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
 			if (response.code === 0 && response.data) {
 				const result: CadData[] = [];
 				response.data.forEach((d) => {
-					const {分类, 名字, 条件, 选项} = d;
-					const json = d.json as CadData;
-					json.name = 名字;
-					json.type = 分类;
-					json.options = 选项;
-					json.conditions = 条件;
-					result.push(json);
+					const {_id, 分类, 名字, 条件, 选项} = d;
+					if (d.json && typeof d.json === "object") {
+						const json = d.json as CadData;
+						json.name = 名字;
+						json.type = 分类;
+						json.options = 选项;
+						json.conditions = 条件;
+						result.push(json);
+					} else {
+						result.push({id: _id, name: 名字, type: 分类, options: 选项, conditions: 条件});
+					}
 				});
 				return {data: result, count: response.count};
 			} else {
@@ -463,6 +461,27 @@ export class CadDataService {
 			return status;
 		} else {
 			return null;
+		}
+	}
+
+	async replaceData(encode: string, source: CadData, target: string) {
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
+		encode = encodeURIComponent(encode);
+		try {
+			const data = new FormData();
+			data.append("data", RSAEncrypt({source, target}));
+			const response = await this.http.post<Response>(`${apiBasePath}/peijian/cad/replaceCad/${encode}`, data).toPromise();
+			if (response.code === 0 && response.data) {
+				this.snackBar.open(response.msg);
+				return response.data as CadData;
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alert(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
 		}
 	}
 }
