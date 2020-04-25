@@ -102,7 +102,6 @@ export class EditCadComponent implements AfterViewInit {
 			drawDimensions: true,
 			drawMTexts: true
 		});
-		this.vCad = vCad;
 		vCad.enableDragging(
 			(event) => {
 				this.drag = {button: event.button, pointer: new Point(event.screenX, event.screenY), entities: null};
@@ -212,11 +211,13 @@ export class EditCadComponent implements AfterViewInit {
 		vCad.on(Events.wheel, () => {
 			this.setPoints();
 		});
+		this.vCad = vCad;
 		this.cd.detectChanges();
 		this.cadContainer.nativeElement.append(vCad.view);
-		data.forEach((d) => this.cads.push(new CadViewer(d)));
-		this.refresh();
 		this.cd.detectChanges();
+		data.forEach((d) => this.cads.push(new CadViewer(d)));
+		this.cd.detectChanges();
+		this.refresh();
 
 		document.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
@@ -268,6 +269,10 @@ export class EditCadComponent implements AfterViewInit {
 			if (this.route.snapshot.queryParams.join) {
 				vCad.data.partners = vCad.data.partners.concat(newData.partners);
 			}
+			if (!vCad.data.layers) {
+				vCad.data.layers = [];
+			}
+			vCad.data.layers = vCad.data.layers.concat(newData.layers);
 			vCad.data.options = vCad.data.options.concat(newData.options);
 			vCad.data.conditions = vCad.data.conditions.concat(newData.conditions);
 			vCad.data.baseLines = vCad.data.baseLines.concat(newData.baseLines);
@@ -296,6 +301,7 @@ export class EditCadComponent implements AfterViewInit {
 		}
 		vCad.reassembleComponents().render(true);
 		this.updateCadLength();
+		this.cd.detectChanges();
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {

@@ -254,11 +254,11 @@ export class CadDataService {
 	}
 
 	get currentFragment() {
-		return session.load("currentFragmentData", true) as CadData;
+		return session.load("currentCad", true) as CadData;
 	}
 
 	set currentFragment(value) {
-		session.save("currentFragmentData", value);
+		session.save("currentCad", value);
 	}
 
 	updateFragments(fragments: CadData[]) {

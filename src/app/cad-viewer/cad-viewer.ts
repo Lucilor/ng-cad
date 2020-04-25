@@ -16,15 +16,12 @@ import {
 	ShapeGeometry,
 	Shape,
 	Mesh,
-	MeshBasicMaterial,
-	Group
+	MeshBasicMaterial
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
 import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities, CadMtext, CadDimension} from "./cad-data";
 import TextSprite from "@seregpie/three.text-sprite";
-
-export const CAMERA_Z = 800;
 
 export class CadStyle {
 	color?: number;
@@ -49,47 +46,39 @@ export class CadStyle {
 }
 
 export interface CadViewerConfig {
+	width?: number;
+	height?: number;
 	backgroundColor?: number;
 	selectedColor?: number;
 	hoverColor?: number;
 	showLineLength?: number;
-	maxScale?: number;
-	minScale?: number;
 	padding?: number[] | number;
 	selectMode?: "none" | "single" | "multiple";
-	fontSize?: number;
-	dragAxis?: "x" | "y" | "xy" | "";
-	transparent?: boolean;
 	fps?: number;
 	drawMTexts?: boolean;
 	drawDimensions?: boolean;
-	drawPolyline?: boolean;
+	showStats?: boolean;
 	reverseSimilarColor?: true;
 }
 export class CadViewer {
+	private _renderTimer = {id: null, time: 0};
+	private _destroyed = false;
 	data: CadData;
 	config: CadViewerConfig = {
+		width: 300,
+		height: 150,
 		backgroundColor: 0,
 		selectedColor: 0xffff00,
 		hoverColor: 0x00ffff,
 		showLineLength: 0,
-		maxScale: 5,
-		minScale: 0.1,
 		padding: [0],
-		selectMode: "none",
-		fontSize: 17,
-		dragAxis: "xy",
-		transparent: false,
 		fps: 60,
 		drawMTexts: false,
 		drawDimensions: false,
-		drawPolyline: false,
+		showStats: false,
 		reverseSimilarColor: true
 	};
-	width: number;
-	height: number;
 	dom: HTMLDivElement;
-	container = new Group();
 	scene: Scene;
 	camera: PerspectiveCamera;
 	renderer: WebGLRenderer;
@@ -97,17 +86,44 @@ export class CadViewer {
 	raycaster = new Raycaster();
 	currentObject: Object3D;
 	controls: CadViewerControls;
-	private _renderTimer = {id: null, time: 0};
-	private _destroyed = false;
+	stats: Stats;
+	get width() {
+		return parseInt(this.dom.style.width, 10);
+	}
+	get height() {
+		return parseInt(this.dom.style.height, 10);
+	}
+	get position() {
+		return this.camera.position;
+	}
+	get scale() {
+		const camera = this.camera;
+		const fov = MathUtils.degToRad(camera.fov);
+		const height = Math.tan(fov / 2) * camera.position.z * 2;
+		return this.height / height;
+	}
+	set scale(value) {
+		const camera = this.camera;
+		const fov = MathUtils.degToRad(camera.fov);
+		const z = this.height / value / 2 / Math.tan(fov / 2);
+		camera.position.setZ(z);
+	}
+	get selectedEntities() {
+		const result = this.data.getAllEntities().filter((e) => {
+			const object = this.objects[e.id];
+			return object && object.userData.selected;
+		});
+		return result;
+	}
 
-	constructor(data: CadData, width = 300, height = 150, config: CadViewerConfig = {}) {
+	constructor(data: CadData, config: CadViewerConfig = {}) {
 		if (data instanceof CadData) {
 			this.data = data;
 		} else {
 			this.data = new CadData(data);
 		}
 		this.config = {...this.config, ...config};
-		const padding = this.config.padding;
+		const {width, height, padding} = this.config;
 		if (typeof padding === "number") {
 			this.config.padding = [padding, padding, padding, padding];
 		} else if (!Array.isArray(padding) || padding.length === 0) {
@@ -129,12 +145,6 @@ export class CadViewer {
 
 		camera.position.set(0, 0, 0);
 		camera.lookAt(0, 0, 0);
-		// camera.up.set(0, 0, 1);
-		const l = new Vector3();
-		l.applyQuaternion(camera.quaternion);
-
-		const stats = Stats();
-		document.body.appendChild(stats.dom);
 
 		const dom = document.createElement("div");
 		dom.appendChild(renderer.domElement);
@@ -145,17 +155,23 @@ export class CadViewer {
 		this.scene = scene;
 		this.camera = camera;
 		this.renderer = renderer;
-		this.width = width;
-		this.height = height;
+		this.scale = 1;
+
+		if (this.config.showStats) {
+			this.stats = Stats();
+			dom.appendChild(this.stats.dom);
+		}
 
 		const animate = () => {
-			requestAnimationFrame(animate.bind(this));
-			const {renderer, camera, scene} = this;
-			renderer.render(scene, camera);
-			stats.update();
+			if (!this._destroyed) {
+				requestAnimationFrame(animate.bind(this));
+				const {renderer, camera, scene} = this;
+				renderer.render(scene, camera);
+				this.stats?.update();
+			}
 		};
 		animate();
-		this.render(true);
+		this.resize().render(true);
 	}
 
 	setControls(config: CadViewerControlsConfig) {
@@ -168,6 +184,27 @@ export class CadViewer {
 		} else {
 			this.controls = new CadViewerControls(this, config);
 		}
+		return this;
+	}
+
+	resize(width?: number, height?: number) {
+		if (width > 0) {
+			this.config.width = width;
+		} else {
+			width = this.config.width;
+		}
+		if (height > 0) {
+			this.config.height = height;
+		} else {
+			height = this.config.height;
+		}
+		const {dom, renderer, camera} = this;
+		dom.style.width = width + "px";
+		dom.style.height = height + "px";
+		dom.style.backgroundColor = new Color(this.config.backgroundColor).getStyle();
+		renderer.setSize(width, height);
+		camera.aspect = width / height;
+		camera.updateProjectionMatrix();
 		return this;
 	}
 
@@ -196,13 +233,16 @@ export class CadViewer {
 
 	center(entities?: CadEntities) {
 		const rect = this.getBounds(entities);
-		const fov = MathUtils.degToRad(this.camera.fov);
-		const aspect = this.camera.aspect;
-		const aspectRect = rect.width / rect.height;
-		const width = aspect > aspectRect ? rect.height * aspect : rect.width;
-		const z = width / (2 * Math.tan(fov / 2) * aspect);
-		this.camera.position.set(rect.x, rect.y, z);
-		this.camera.lookAt(rect.x, rect.y, 0);
+		const {width, height} = this;
+		const padding = this.config.padding;
+		const scaleX = (width - padding[1] - padding[3]) / rect.width;
+		const scaleY = (height - padding[0] - padding[2]) / rect.height;
+		const scale = Math.min(scaleX, scaleY);
+		const positionX = rect.x + (padding[1] - padding[3]) / scale / 2;
+		const positionY = rect.y + (padding[0] - padding[2]) / scale / 2;
+		this.scale = scale;
+		this.position.setX(positionX);
+		this.position.setY(positionY);
 		return this;
 	}
 
@@ -248,18 +288,6 @@ export class CadViewer {
 			return {x: 0, y: 0, width: 0, height: 0};
 		}
 		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
-	}
-
-	private _getZ(rect: {x: number; y: number; width: number; height: number}) {
-		const fov = MathUtils.degToRad(this.camera.fov);
-		const aspect = this.camera.aspect;
-		const aspectRect = rect.width / rect.height;
-		const width = aspect > aspectRect ? rect.height * aspect : rect.width;
-		const z = width / (2 * Math.tan(fov / 2) * aspect);
-		const h = Math.tan(fov / 2) * z * 2;
-		const w = h * aspect;
-		console.log(w / this.width, h / this.height);
-		return z;
 	}
 
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
@@ -486,32 +514,11 @@ export class CadViewer {
 
 	moveComponent(curr: CadData, translate: Vector2, prev?: CadData) {}
 
-	get position() {
-		return this.camera.position;
-	}
-
-	get scale() {
-		return CAMERA_Z / this.camera.position.z;
-	}
-	set scale(value) {
-		const {maxScale, minScale} = this.config;
-		value = Math.max(minScale, Math.min(maxScale, value));
-		this.camera.position.z = CAMERA_Z / value;
-	}
-
 	correctColor(color: number, threshold = 5) {
 		if (typeof color === "number" && Math.abs(color - this.config.backgroundColor) <= threshold) {
 			return 0xfffffff - color;
 		}
 		return color;
-	}
-
-	get selectedEntities() {
-		const result = this.data.getAllEntities().filter((e) => {
-			const object = this.objects[e.id];
-			return object && object.userData.selected;
-		});
-		return result;
 	}
 
 	unselectAll() {
@@ -521,7 +528,9 @@ export class CadViewer {
 
 	exportImage() {
 		const image = new Image();
-		image.src = this.renderer.domElement.toDataURL();
+		const {renderer, scene, camera} = this;
+		renderer.render(scene, camera);
+		image.src = renderer.domElement.toDataURL();
 		return image;
 	}
 

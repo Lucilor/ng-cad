@@ -20,7 +20,7 @@ export class CadViewerControls {
 		button: NaN,
 		componentName: ""
 	};
-	private _multiSelector: Line;
+	private _multiSelector: HTMLDivElement;
 	constructor(cad: CadViewer, config?: CadViewerControlsConfig) {
 		this.cad = cad;
 		const dom = cad.dom;
@@ -31,6 +31,14 @@ export class CadViewerControls {
 				}
 			}
 		}
+
+		this._multiSelector = document.createElement("div");
+		this._multiSelector.classList.add("cad-multi-selector");
+		this._multiSelector.style.position = "absolute";
+		this._multiSelector.style.backgroundColor = "rgba(29, 149, 234, 0.3)";
+		this._multiSelector.style.border = "white solid 1px";
+		this._multiSelector.hidden = true;
+		dom.appendChild(this._multiSelector);
 
 		dom.addEventListener("pointerdown", (event) => {
 			const {clientX: x, clientY: y} = event;
@@ -65,28 +73,11 @@ export class CadViewerControls {
 					}
 				} else if (button === 0) {
 					if (this.config.selectMode === "multiple") {
-						const {x: x1, y: y1, z: z1} = this._getWorldPostion(pFrom);
-						const {x: x2, y: y2, z: z2} = this._getWorldPostion(pTo);
-						const points = [
-							new Vector3(x1, y1, z1),
-							new Vector3(x1, y2, z1),
-							new Vector3(x2, y2, z2),
-							new Vector3(x2, y1, z2),
-							new Vector3(x1, y1, z1)
-						];
-						if (this._multiSelector) {
-							const line = this._multiSelector as Line;
-							const geometry = line.geometry as BufferGeometry;
-							geometry.setFromPoints(points);
-						} else {
-							const geometry = new BufferGeometry().setFromPoints(points);
-							const material = new LineBasicMaterial({color: this.cad.correctColor(0xffffff)});
-							const line = new Line(geometry, material);
-							cad.scene.add(line);
-							line.name = "multiSelector";
-							line.renderOrder = 1;
-							this._multiSelector = line;
-						}
+						this._multiSelector.hidden = false;
+						this._multiSelector.style.left = Math.min(pFrom.x, pTo.x) + "px";
+						this._multiSelector.style.top = Math.min(pFrom.y, pTo.y) + "px";
+						this._multiSelector.style.width = Math.abs(pFrom.x - pTo.x) + "px";
+						this._multiSelector.style.height = Math.abs(pFrom.y - pTo.y) + "px";
 					}
 				}
 			}
@@ -111,14 +102,13 @@ export class CadViewerControls {
 				this.currentObject = object;
 			}
 		});
-		["pointercancel", "pointerleave", "pointerout", "pointerup"].forEach((v) => {
+		["pointerup"].forEach((v) => {
 			dom.addEventListener(v, (event: PointerEvent) => {
-				const {camera, scene, objects, config} = this.cad;
+				const {camera, objects, config} = this.cad;
 				const {pFrom, pTo, dragging} = this._status;
 				if (dragging) {
-					if (this._multiSelector) {
-						scene.remove(this._multiSelector);
-						this._multiSelector = null;
+					if (this._multiSelector.hidden === false) {
+						this._multiSelector.hidden = true;
 						const from = this._getNDC(pFrom);
 						const to = this._getNDC(pTo);
 						if (from.x > to.x) {
@@ -143,7 +133,6 @@ export class CadViewerControls {
 							const {min, max} = object.geometry.boundingBox;
 							const objBox = new Box2(new Vector2(min.x, min.y), new Vector2(max.x, max.y));
 							if (box.containsBox(objBox) && object.userData.selectable) {
-								// object.userData.selected = true;
 								toSelect.push(object);
 							}
 						}
@@ -157,7 +146,6 @@ export class CadViewerControls {
 						}
 					}
 				}
-				this._status.dragging = false;
 				const p = new Vector2(event.clientX, event.clientY);
 				const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
 				if (Math.abs(offset.x) < 5 && Math.abs(offset.y) < 5) {
@@ -180,6 +168,7 @@ export class CadViewerControls {
 						}
 					}
 				}
+				this._status.dragging = false;
 			});
 		});
 		dom.addEventListener("wheel", (event) => {

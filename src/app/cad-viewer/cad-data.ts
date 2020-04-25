@@ -76,9 +76,13 @@ export class CadData {
 	}
 
 	export() {
+		const exLayers = {};
+		this.layers.forEach((v) => {
+			exLayers[v.id] = {id: v.id, color: v._indexColor, name: v.name};
+		});
 		const result = {
+			layers: exLayers,
 			entities: this.entities.export(),
-			// layers?: CadLayer[];
 			id: this.id,
 			name: this.name,
 			type: this.type,
@@ -236,15 +240,20 @@ export class CadEntity {
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
 		this.layer = typeof data.layer === "string" ? data.layer : "0";
 		this.color = 0;
-		this._indexColor = data.color;
-		if (typeof data.color === "number") {
-			if (data.color === 256) {
-				const layer = layers.find((layer) => layer.name === this.layer);
-				if (layer) {
-					this.color = layer.color;
+		if (data._indexColor && typeof data.color === "number") {
+			this._indexColor = data._indexColor;
+			this.color = data.color;
+		} else {
+			this._indexColor = data.color;
+			if (typeof data.color === "number") {
+				if (data.color === 256) {
+					const layer = layers.find((layer) => layer.name === this.layer);
+					if (layer) {
+						this.color = layer.color;
+					}
+				} else {
+					this.color = index2RGB(data.color, "number");
 				}
-			} else {
-				this.color = index2RGB(data.color, "number");
 			}
 		}
 	}
@@ -368,11 +377,26 @@ export class CadHatch extends CadEntity {
 }
 
 export class CadLayer {
+	id: string;
 	color: number;
 	name: string;
+	_indexColor: number;
 	constructor(data?: any) {
 		this.color = index2RGB(data.color, "number") || 0;
 		this.name = data.name || "";
+		this.id = data.id || "";
+		this.color = 0;
+		if (data._indexColor && typeof data.color === "number") {
+			this._indexColor = data._indexColor;
+			this.color = data.color;
+		} else {
+			this._indexColor = data.color;
+			this.color = index2RGB(data.color, "number");
+		}
+	}
+
+	export() {
+		return {id: this.id, color: this._indexColor, name: this.name};
 	}
 }
 

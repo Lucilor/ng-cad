@@ -9,6 +9,10 @@ import {ActivatedRoute} from "@angular/router";
 import {LoadingAction, ActionTypes} from "../store/actions";
 import {Response} from "../app.common";
 import {CadData} from "../cad-viewer/cad-data";
+import {CadViewer} from "../cad-viewer/cad-viewer";
+import {SessionStorage} from "@lucilor/utils";
+
+const session = new SessionStorage("cad-data");
 
 @Injectable({
 	providedIn: "root"
@@ -61,5 +65,32 @@ export class CadDataService {
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadData"});
 		}
+	}
+
+	saveCadStatus(cad: CadViewer, field: string) {
+		const status = {id: cad.data.id, position: cad.position.toArray()};
+		session.save(field, status);
+		return status;
+	}
+
+	loadCadStatus(cad: CadViewer, field: string) {
+		const status = session.load(field, true);
+		if (status && status.id === cad.data.id) {
+			if (Array.isArray(status.position)) {
+				cad.position.set(status.position[0], status.position[1], status.position[2]);
+			}
+			return status;
+		} else {
+			return null;
+		}
+	}
+
+	saveCurrentCad(data: CadData) {
+		console.log(data.export());
+		session.save("currentCad", data.export());
+	}
+
+	loadCurrentCad() {
+		return session.load("currentCad", true);
 	}
 }
