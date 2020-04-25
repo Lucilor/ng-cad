@@ -30,8 +30,8 @@ export class CadDataService {
 	) {
 		this.baseURL = localStorage.getItem("baseURL");
 		const params = route.snapshot.queryParams;
-		this.encode = encodeURIComponent(params.encode);
-		this.data = encodeURIComponent(params.data);
+		this.encode = params.encode ? encodeURIComponent(params.encode) : "";
+		this.data = params.encode ? encodeURIComponent(params.data) : "";
 	}
 
 	private alert(msg: any) {
@@ -44,6 +44,9 @@ export class CadDataService {
 
 	async getCadData() {
 		const {baseURL, encode, data} = this;
+		if (!data) {
+			return [new CadData(this.loadCurrentCad())];
+		}
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadData"});
 		try {
 			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();

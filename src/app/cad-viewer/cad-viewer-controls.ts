@@ -4,13 +4,15 @@ import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, Bu
 export interface CadViewerControlsConfig {
 	dragAxis?: "x" | "y" | "xy";
 	selectMode?: "none" | "single" | "multiple";
+	selectable?: boolean;
 }
 
 export class CadViewerControls {
 	cad: CadViewer;
 	config: CadViewerControlsConfig = {
 		dragAxis: "xy",
-		selectMode: "none"
+		selectMode: "none",
+		selectable: true
 	};
 	currentObject: Object3D;
 	private _status = {
@@ -82,24 +84,26 @@ export class CadViewerControls {
 				}
 			}
 			this._status.pTo.set(p.x, p.y);
-			if (currentObject && currentObject.userData.selected !== true) {
-				cad.dom.style.cursor = "default";
-				if (currentObject instanceof Line) {
-					if (currentObject.material instanceof LineBasicMaterial) {
-						currentObject.material.color.set(cad.data.findEntity(currentObject.name)?.color);
+			if (this.config.selectMode !== "none") {
+				if (currentObject && currentObject.userData.selected !== true) {
+					cad.dom.style.cursor = "default";
+					if (currentObject instanceof Line) {
+						if (currentObject.material instanceof LineBasicMaterial) {
+							currentObject.material.color.set(cad.data.findEntity(currentObject.name)?.color);
+						}
 					}
+					this.currentObject = null;
 				}
-				this.currentObject = null;
-			}
-			const object = this._getInterSection(new Vector2(event.clientX, event.clientY));
-			if (object && object.userData.selected !== true) {
-				cad.dom.style.cursor = "pointer";
-				if (object instanceof Line) {
-					if (object.material instanceof LineBasicMaterial) {
-						object.material.color.set(cad.config.hoverColor);
+				const object = this._getInterSection(new Vector2(event.clientX, event.clientY));
+				if (object && object.userData.selected !== true) {
+					cad.dom.style.cursor = "pointer";
+					if (object instanceof Line) {
+						if (object.material instanceof LineBasicMaterial) {
+							object.material.color.set(cad.config.hoverColor);
+						}
 					}
+					this.currentObject = object;
 				}
-				this.currentObject = object;
 			}
 		});
 		["pointerup"].forEach((v) => {

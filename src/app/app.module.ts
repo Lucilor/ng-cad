@@ -27,10 +27,10 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
 import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
-import {PrintCadComponent} from "./components/print-cad/print-cad.component";
-import {ListCadComponent} from "./components/list-cad/list-cad.component";
+import {PrintCadComponent} from "@components/print-cad/print-cad.component";
+import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
-import {PlaygroundComponent} from "./components/playground/playground.component";
+import {PlaygroundComponent} from "@components/playground/playground.component";
 
 @NgModule({
 	declarations: [

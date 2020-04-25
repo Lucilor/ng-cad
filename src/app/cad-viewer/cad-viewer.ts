@@ -49,6 +49,7 @@ export interface CadViewerConfig {
 	width?: number;
 	height?: number;
 	backgroundColor?: number;
+	backgroundAlpha?: number;
 	selectedColor?: number;
 	hoverColor?: number;
 	showLineLength?: number;
@@ -68,6 +69,7 @@ export class CadViewer {
 		width: 300,
 		height: 150,
 		backgroundColor: 0,
+		backgroundAlpha: 1,
 		selectedColor: 0xffff00,
 		hoverColor: 0x00ffff,
 		showLineLength: 0,
@@ -123,7 +125,7 @@ export class CadViewer {
 			this.data = new CadData(data);
 		}
 		this.config = {...this.config, ...config};
-		const {width, height, padding} = this.config;
+		const {width, height, padding, backgroundColor, backgroundAlpha} = this.config;
 		if (typeof padding === "number") {
 			this.config.padding = [padding, padding, padding, padding];
 		} else if (!Array.isArray(padding) || padding.length === 0) {
@@ -141,6 +143,7 @@ export class CadViewer {
 		const scene = new Scene();
 		const camera = new PerspectiveCamera(60, width / height, 0.1, 15000);
 		const renderer = new WebGLRenderer({preserveDrawingBuffer: true});
+		renderer.setClearColor(backgroundColor, backgroundAlpha);
 		renderer.setSize(width, height);
 
 		camera.position.set(0, 0, 0);

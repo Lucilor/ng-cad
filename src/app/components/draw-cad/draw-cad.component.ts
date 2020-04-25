@@ -18,6 +18,7 @@ export class DrawCadComponent implements AfterViewInit {
 	constructor(private dataService: CadDataService, private route: ActivatedRoute) {}
 
 	async ngAfterViewInit() {
+		document.title = title;
 		const data = (await this.dataService.getCadData())[0];
 		this.cad = new CadViewer(data, {
 			width: innerWidth,

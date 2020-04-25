@@ -1,9 +1,10 @@
 import {Component, AfterViewInit, ViewChild, ElementRef} from "@angular/core";
-import {CadViewer, CadData, CadRawData} from "@lucilor/cad-viewer";
-import {CadDataService} from "../../cad-data.service";
-import {Point} from "@lucilor/utils";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../alert/alert.component";
+import {CadViewer} from "@app/cad-viewer/cad-viewer";
+import {CadData} from "@app/cad-viewer/cad-data";
+import {CadDataService} from "@services/cad-data.service";
+import {environment} from "@src/environments/environment";
 
 @Component({
 	selector: "app-print-cad",
@@ -33,44 +34,41 @@ export class PrintCadComponent implements AfterViewInit {
 			console.warn(error);
 		}
 		if (!data) {
-			data = dataService.currentFragment;
+			data = dataService.getCadData()[0];
 		}
 		if (!data) {
 			this.dialog.open(AlertComponent, {data: {content: "没有CAD数据"}});
 			return;
 		}
-		data = new CadViewer(data).exportData();
-		dataService.rawData = data as CadRawData;
-		dataService.removeFragments(dataService.fragmentsData);
-		dataService.updateFragments([data]);
-		dataService.currentFragment = dataService.fragmentsData[0];
-		const cad = new CadViewer(dataService.currentFragment, innerWidth, innerHeight, {
+		data = new CadData(data);
+		this.dataService.saveCurrentCad(data);
+		const cad = new CadViewer(data, {
+			width: innerWidth,
+			height: innerHeight,
+			showStats: !environment.production,
 			showLineLength: 0,
 			backgroundColor: 0xffffff,
 			drawMTexts: true,
-			drawPolyline: true,
-			drawDimensions: true,
-			dragAxis: "y"
+			drawDimensions: true
 		}).render();
-		cad.enableDragging();
+		cad.setControls({dragAxis: "y", selectMode: "none"});
 		this.cad = cad;
-		this.cadContainer.nativeElement.append(cad.view);
+		this.cadContainer.nativeElement.append(cad.dom);
 
-		const rect = cad.getBounds();
-		const paddingX = 110;
-		const paddingY = 40;
-		const scale = (innerWidth - paddingX * 2) / rect.width;
-		const x = (innerWidth - rect.width) / 2 - rect.x;
-		const y = (innerHeight - rect.height) / 2 - rect.y - ((rect.height * scale - innerHeight) / 2 + paddingY) / scale;
-		cad.scale = scale;
-		cad.position = new Point(x, y);
-		cad.render();
+		// const rect = cad.getBounds();
+		// const paddingX = 110;
+		// const paddingY = 40;
+		// const scale = (innerWidth - paddingX * 2) / rect.width;
+		// const x = (innerWidth - rect.width) / 2 - rect.x;
+		// const y = (innerHeight - rect.height) / 2 - rect.y - ((rect.height * scale - innerHeight) / 2 + paddingY) / scale;
+		// cad.scale = scale;
+		// cad.position = new Point(x, y);
 
-		const h = rect.height * scale + paddingY * 2;
-		cad.resize(null, h);
-		cad.view.style.height = innerHeight + "px";
-		cad.view.style.overflowX = "hidden";
-		cad.view.style.overflowY = "auto";
+		// const h = rect.height * scale + paddingY * 2;
+		// cad.resize(null, h);
+		// cad.view.style.height = innerHeight + "px";
+		// cad.view.style.overflowX = "hidden";
+		// cad.view.style.overflowY = "auto";
 	}
 
 	print() {
@@ -79,7 +77,7 @@ export class PrintCadComponent implements AfterViewInit {
 		const scale = Math.max(1, this.scale);
 		const width = 210 * scale;
 		const height = 297 * scale;
-		const newViewer = new CadViewer(cad.exportData(), width, height, cad.config).render(true);
+		const newViewer = new CadViewer(cad.data.export(), {...cad.config, width, height});
 		this.img = newViewer.exportImage().src;
 		newViewer.destroy();
 		setTimeout(() => {
