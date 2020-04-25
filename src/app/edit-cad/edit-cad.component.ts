@@ -12,7 +12,7 @@ import {ListCadComponent} from "../components/list-cad/list-cad.component";
 import {CadEntities} from "@lucilor/cad-viewer/lib/src/cad-data";
 
 interface Mode {
-	type: "normal" | "baseLine" | "dimension1" | "dimension2" | "jointPoint";
+	type: "normal" | "baseLine" | "dimension" | "jointPoint";
 	index: number;
 }
 
@@ -101,53 +101,53 @@ export class EditCadComponent implements AfterViewInit {
 			backgroundColor: 0,
 			drawDimensions: true,
 			drawMTexts: true
-		})
-			.enableDragging(
-				(event) => {
-					this.drag = {button: event.button, pointer: new Point(event.screenX, event.screenY), entities: null};
-				},
-				(event) => {
-					const {cad, status, cads} = this;
-					const {button, pointer} = this.drag || {};
-					if (this.drag && cad) {
-						const currPointer = new Point(event.screenX, event.screenY);
-						const translate = currPointer.clone().sub(pointer);
-						this.drag.pointer = currPointer;
-						const scale = vCad.scale;
-						if (button === 1) {
-							translate.divide(scale, -scale);
-							const pos = vCad.position.add(translate);
-							this.vCad.position = pos;
-							this.setPoints();
-						}
-						if (event.shiftKey && button === 0) {
-							// if (!this.drag.entities) {
-							// 	let start = this.getVIdx("entities");
-							// 	let end = start + cad.flatEntities().length;
-							// 	this.drag.entities = cad.data.entities;
-							// 	start = 0;
-							// 	for (let i = 0; i < status.cadIdx; i++) {
-							// 		start += cads[i].data.components.data.length;
-							// 	}
-							// 	end = start + cad.data.components.data.length;
-							// 	vCad.data.components.data.slice(start, end).forEach((component) => {
-							// 		this.drag.entities = this.drag.entities.concat(vCad.flatEntities(component));
-							// 	});
-							// }
-							status.line.start.add(translate);
-							status.line.end.add(translate);
-							translate.divide(scale, -scale);
-							vCad.transformEntities(cad.data.entities, {translate}).render();
-						}
+		});
+		this.vCad = vCad;
+		vCad.enableDragging(
+			(event) => {
+				this.drag = {button: event.button, pointer: new Point(event.screenX, event.screenY), entities: null};
+			},
+			(event) => {
+				const {cad, status, cads} = this;
+				const {button, pointer} = this.drag || {};
+				if (this.drag && cad) {
+					const currPointer = new Point(event.screenX, event.screenY);
+					const translate = currPointer.clone().sub(pointer);
+					this.drag.pointer = currPointer;
+					const scale = vCad.scale;
+					if (button === 1) {
+						translate.divide(scale, -scale);
+						const pos = vCad.position.add(translate);
+						this.vCad.position = pos;
+						this.setPoints();
 					}
-				},
-				(event) => {
-					this.drag = {button: null, pointer: null, entities: null};
+					if (event.shiftKey && button === 0) {
+						// if (!this.drag.entities) {
+						// 	let start = this.getVIdx("entities");
+						// 	let end = start + cad.flatEntities().length;
+						// 	this.drag.entities = cad.data.entities;
+						// 	start = 0;
+						// 	for (let i = 0; i < status.cadIdx; i++) {
+						// 		start += cads[i].data.components.data.length;
+						// 	}
+						// 	end = start + cad.data.components.data.length;
+						// 	vCad.data.components.data.slice(start, end).forEach((component) => {
+						// 		this.drag.entities = this.drag.entities.concat(vCad.flatEntities(component));
+						// 	});
+						// }
+						status.line.start.add(translate);
+						status.line.end.add(translate);
+						translate.divide(scale, -scale);
+						vCad.transformEntities(cad.data.entities, {translate}).render();
+					}
 				}
-			)
+			},
+			(event) => {
+				this.drag = {button: null, pointer: null, entities: null};
+			}
+		)
 			.enableWheeling()
 			.enableKeyboard();
-		this.vCad = vCad;
 		vCad.on(Events.entityclick, (event: PIXI.interaction.InteractionEvent, entity: CadEntity) => {
 			const {status, cads, cad} = this;
 			status.entity = entity as CadLine;
@@ -177,21 +177,30 @@ export class EditCadComponent implements AfterViewInit {
 					const baseLine = cad.data.baseLines[index];
 					vCad.data.entities.line.forEach((e) => (e.selected = [baseLine.idX, baseLine.idY].includes(e.id)));
 				}
-				if (status.mode.type.includes("dimension")) {
+				if (status.mode.type === "dimension") {
 					const currCad = this.cad;
 					status.cadIdx = prevCadIdx;
 					const vIdx = this.getVIdx("dimensions");
 					const prevCad = this.cad;
 					const dimension = prevCad.data.entities.dimension[index];
-					if (status.mode.type === "dimension1") {
-						dimension.entity1.id = entity.id;
-						vCad.data.entities.dimension[vIdx + index].entity1.id = entity.id;
+					const vDimension = vCad.data.entities.dimension[vIdx + index];
+					if (!dimension.entity1) {
+						dimension.entity1 = {id: entity.id, location: "start"};
 						dimension.cad1 = currCad.data.name;
-					}
-					if (status.mode.type === "dimension2") {
-						dimension.entity2.id = entity.id;
-						vCad.data.entities.dimension[vIdx + index].entity2.id = entity.id;
+						vDimension.entity1 = {id: entity.id, location: "start"};
+						vDimension.cad1 = currCad.data.name;
+					} else if (!dimension.entity2) {
+						dimension.entity2 = {id: entity.id, location: "end"};
 						dimension.cad2 = currCad.data.name;
+						vDimension.entity2 = {id: entity.id, location: "end"};
+						vDimension.cad2 = currCad.data.name;
+					} else {
+						dimension.entity1 = dimension.entity2;
+						dimension.entity2 = {id: entity.id, location: "end"};
+						dimension.cad2 = currCad.data.name;
+						vDimension.entity1 = vDimension.entity2;
+						vDimension.entity2 = {id: entity.id, location: "end"};
+						vDimension.cad2 = currCad.data.name;
 					}
 				}
 				vCad.render();
@@ -683,20 +692,14 @@ export class EditCadComponent implements AfterViewInit {
 		return index;
 	}
 
-	selectDimLine(i: number, line: number) {
+	selectDimLine(i: number) {
 		const {status, vCad} = this;
-		if (status.mode.type === "dimension" + line && status.mode.index === i) {
+		if (status.mode.type === "dimension" && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
 			const {entity1, entity2} = vCad.data.entities.dimension[this.getVIdx("dimensions") + i];
-			if (line === 1) {
-				vCad.data.entities.line.forEach((e) => (e.selected = e.id === entity1.id));
-				this.selectLineBegin("dimension1", i);
-			}
-			if (line === 2) {
-				vCad.data.entities.line.forEach((e) => (e.selected = e.id === entity2.id));
-				this.selectLineBegin("dimension2", i);
-			}
+			vCad.data.entities.line.forEach((e) => (e.selected = [entity1.id, entity2.id].includes(e.id)));
+			this.selectLineBegin("dimension", i);
 		}
 	}
 
@@ -736,7 +739,7 @@ export class EditCadComponent implements AfterViewInit {
 		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}, width: "80vw"});
 		ref.afterClosed().subscribe((data) => {
 			if (data) {
-				this.dataService.replaceData(this.route.snapshot.queryParams.encode, this.cad.exportData(), data.id);
+				this.dataService.replaceData(this.route.snapshot.queryParams.encode, this.cad.exportData("object"), data.id);
 			}
 		});
 	}

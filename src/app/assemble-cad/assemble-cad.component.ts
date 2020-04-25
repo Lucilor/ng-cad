@@ -9,7 +9,7 @@ import {cloneDeep} from "lodash";
 import {DimFormComponent} from "../edit-cad/dim-form.component";
 
 interface Mode {
-	type: "normal" | "assemble" | "dimension1" | "dimension2";
+	type: "normal" | "assemble" | "dimension";
 	index: number;
 }
 
@@ -75,9 +75,9 @@ export class AssembleCadComponent implements AfterViewInit {
 			selectedColor: 0x0000ff,
 			drawDimensions: true
 			// drawMText: true
-		}).render(true);
-		cad.enableDragging().enableWheeling().enableKeyboard();
+		});
 		this.cad = cad;
+		cad.enableDragging().enableWheeling().enableKeyboard();
 		cad.on(Events.entityclick, (event: PIXI.interaction.InteractionEvent, entity: CadEntity) => {
 			const {status} = this;
 			const index = status.mode.index;
@@ -113,7 +113,6 @@ export class AssembleCadComponent implements AfterViewInit {
 									lines.push(found.id);
 								}
 								lines.forEach((l) => (cad.findEntity(l).selected = true));
-								cad.render();
 							}
 							if ((lines.length === 2 && position === "absolute") || (lines.length === 3 && position === "relative")) {
 								found.selected = false;
@@ -124,7 +123,7 @@ export class AssembleCadComponent implements AfterViewInit {
 								} finally {
 									names.length = 0;
 									lines.length = 0;
-									cad.unselectAll().render();
+									cad.unselectAll();
 								}
 							}
 						} else if (prev > -1) {
@@ -148,17 +147,21 @@ export class AssembleCadComponent implements AfterViewInit {
 					}
 				}
 			}
-			if (status.mode.type.includes("dimension")) {
+			if (status.mode.type === "dimension") {
 				const dimension = cad.data.entities.dimension[index];
-				if (status.mode.type === "dimension1") {
-					dimension.entity1.id = entity.id;
+				if (!dimension.entity1) {
+					dimension.entity1 = {id: entity.id, location: "start"};
 					dimension.cad1 = cad.data.name;
-				}
-				if (status.mode.type === "dimension2") {
-					dimension.entity2.id = entity.id;
+				} else if (!dimension.entity2) {
+					dimension.entity2 = {id: entity.id, location: "end"};
+					dimension.cad2 = cad.data.name;
+				} else {
+					dimension.entity1 = dimension.entity2;
+					dimension.entity2 = {id: entity.id, location: "end"};
 					dimension.cad2 = cad.data.name;
 				}
 			}
+			cad.render();
 		});
 		this.cd.detectChanges();
 		this.cadContainer.nativeElement.append(cad.view);
@@ -423,20 +426,14 @@ export class AssembleCadComponent implements AfterViewInit {
 		status.mode.type = "normal";
 	}
 
-	selectDimLine(i: number, line: number) {
+	selectDimLine(i: number) {
 		const {status, cad} = this;
-		if (status.mode.type === "dimension" + line && status.mode.index === i) {
+		if (status.mode.type === "dimension" && status.mode.index === i) {
 			this.selectLineEnd();
 		} else {
 			const {entity1, entity2} = cad.data.entities.dimension[i];
-			if (line === 1) {
-				cad.flatEntities().forEach((e) => (e.selected = e.id === entity1.id));
-				this.selectLineBegin("dimension1", i);
-			}
-			if (line === 2) {
-				cad.flatEntities().forEach((e) => (e.selected = e.id === entity2.id));
-				this.selectLineBegin("dimension2", i);
-			}
+			cad.data.entities.line.forEach((e) => (e.selected = [entity1.id, entity2.id].includes(e.id)));
+			this.selectLineBegin("dimension", i);
 		}
 	}
 

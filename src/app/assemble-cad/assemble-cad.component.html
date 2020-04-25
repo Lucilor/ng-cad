@@ -80,17 +80,10 @@
 						<mat-hint [align]="'start'">
 							<button
 								mat-raised-button
-								[color]="status.mode.type === 'dimension1' && status.mode.index === i ? 'accent' : 'primary'"
-								(click)="selectDimLine(i, 1)"
+								[color]="status.mode.type === 'dimension' && status.mode.index === i ? 'accent' : 'primary'"
+								(click)="selectDimLine(i)"
 							>
-								线1
-							</button>
-							<button
-								mat-raised-button
-								[color]="status.mode.type === 'dimension2' && status.mode.index === i ? 'accent' : 'primary'"
-								(click)="selectDimLine(i, 2)"
-							>
-								线2
+								线
 							</button>
 						</mat-hint>
 					</mat-form-field>

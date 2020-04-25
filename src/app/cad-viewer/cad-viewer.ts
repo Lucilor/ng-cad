@@ -16,7 +16,8 @@ import {
 	ShapeGeometry,
 	Shape,
 	Mesh,
-	MeshBasicMaterial
+	MeshBasicMaterial,
+	Group
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
@@ -88,6 +89,7 @@ export class CadViewer {
 	width: number;
 	height: number;
 	dom: HTMLDivElement;
+	container = new Group();
 	scene: Scene;
 	camera: PerspectiveCamera;
 	renderer: WebGLRenderer;
