@@ -296,11 +296,13 @@ export class CadMtext extends CadEntity {
 	insert: number[];
 	font_size: number;
 	text: string;
+	anchor: number[];
 	constructor(data?: any, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.insert = Array.isArray(data.insert) ? data.insert.slice(0, 3) : [0, 0, 0];
 		this.font_size = data.font_size || 16;
 		this.text = data.text || "";
+		this.anchor = Array.isArray(data.anchor) ? data.anchor.slice(0, 2) : [0, 0];
 	}
 }
 

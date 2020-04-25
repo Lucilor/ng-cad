@@ -1,7 +1,7 @@
 import {NgModule} from "@angular/core";
 import {Routes, RouterModule} from "@angular/router";
 import {paths} from "./app.common";
-import {DrawCadComponent} from "./draw-cad/draw-cad.component";
+import {DrawCadComponent} from "@components/draw-cad/draw-cad.component";
 import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
 import {PathResolveService} from "./services/path-resolve.service";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";

@@ -41,7 +41,7 @@ export class CadViewerControls {
 		});
 		dom.addEventListener("pointermove", (event) => {
 			const p = new Vector2(event.clientX, event.clientY);
-			const {cad} = this;
+			const {cad, currentObject} = this;
 			const {button, dragging} = this._status;
 			if (dragging) {
 				const {pFrom, pTo, componentName} = this._status;
@@ -91,20 +91,24 @@ export class CadViewerControls {
 				}
 			}
 			this._status.pTo.set(p.x, p.y);
-			let object = this._getInterSection(new Vector2(event.clientX, event.clientY));
+			if (currentObject && currentObject.userData.selected !== true) {
+				cad.dom.style.cursor = "default";
+				if (currentObject instanceof Line) {
+					if (currentObject.material instanceof LineBasicMaterial) {
+						currentObject.material.color.set(cad.data.findEntity(currentObject.name)?.color);
+					}
+				}
+				this.currentObject = null;
+			}
+			const object = this._getInterSection(new Vector2(event.clientX, event.clientY));
 			if (object && object.userData.selected !== true) {
+				cad.dom.style.cursor = "pointer";
 				if (object instanceof Line) {
 					if (object.material instanceof LineBasicMaterial) {
 						object.material.color.set(cad.config.hoverColor);
 					}
 				}
-			} else if (this.currentObject && this.currentObject.userData.selected !== true) {
-				object = this.currentObject;
-				if (object instanceof Line) {
-					if (object.material instanceof LineBasicMaterial) {
-						object.material.color.set(cad.data.findEntity(object.name)?.color);
-					}
-				}
+				this.currentObject = object;
 			}
 		});
 		["pointercancel", "pointerleave", "pointerout", "pointerup"].forEach((v) => {
@@ -234,8 +238,7 @@ export class CadViewerControls {
 		raycaster.setFromCamera(this._getNDC(pointer), camera);
 		const intersects = raycaster.intersectObjects(Object.values(objects));
 		if (intersects.length) {
-			this.currentObject = intersects[0].object;
-			return this.currentObject;
+			return intersects[0].object;
 		}
 		return null;
 	}

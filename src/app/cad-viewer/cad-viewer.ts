@@ -96,6 +96,7 @@ export class CadViewer {
 	currentObject: Object3D;
 	controls: CadViewerControls;
 	private _renderTimer = {id: null, time: 0};
+	private _destroyed = false;
 
 	constructor(data: CadData, width = 300, height = 150, config: CadViewerConfig = {}) {
 		if (data instanceof CadData) {
@@ -148,7 +149,6 @@ export class CadViewer {
 		const animate = () => {
 			requestAnimationFrame(animate.bind(this));
 			const {renderer, camera, scene} = this;
-			// this.camera.lookAt(this.camera.position.clone().multiply(new Vector3(1, 1, 0)));
 			renderer.render(scene, camera);
 			stats.update();
 		};
@@ -184,11 +184,11 @@ export class CadViewer {
 		if (center) {
 			this.center();
 		}
-		entities.line.forEach((e) => this.drawLine(e, style));
-		entities.arc.forEach((e) => this.drawArc(e, style));
-		entities.circle.forEach((e) => this.drawCircle(e, style));
-		entities.mtext.forEach((e) => this.drawMtext(e, style));
-		entities.dimension.forEach((e) => this.drawDimension(e, style));
+		entities.line.forEach((e) => this._drawLine(e, style));
+		entities.arc.forEach((e) => this._drawArc(e, style));
+		entities.circle.forEach((e) => this._drawCircle(e, style));
+		entities.mtext.forEach((e) => this._drawMtext(e, style));
+		entities.dimension.forEach((e) => this._drawDimension(e, style));
 		return this;
 	}
 
@@ -248,7 +248,19 @@ export class CadViewer {
 		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
 	}
 
-	drawLine(entity: CadLine, style: CadStyle = {}) {
+	private _getZ(rect: {x: number; y: number; width: number; height: number}) {
+		const fov = MathUtils.degToRad(this.camera.fov);
+		const aspect = this.camera.aspect;
+		const aspectRect = rect.width / rect.height;
+		const width = aspect > aspectRect ? rect.height * aspect : rect.width;
+		const z = width / (2 * Math.tan(fov / 2) * aspect);
+		const h = Math.tan(fov / 2) * z * 2;
+		const w = h * aspect;
+		console.log(w / this.width, h / this.height);
+		return z;
+	}
+
+	private _drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const start = new Vector3(...entity.start);
 		const end = new Vector3(...entity.end);
@@ -268,7 +280,7 @@ export class CadViewer {
 		}
 	}
 
-	drawCircle(entity: CadCircle, style: CadStyle = {}) {
+	private _drawCircle(entity: CadCircle, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {radius} = entity;
 		const center = new Vector3(...entity.center);
@@ -278,6 +290,7 @@ export class CadViewer {
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints(points);
+			(line.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
@@ -289,7 +302,7 @@ export class CadViewer {
 		}
 	}
 
-	drawArc(entity: CadArc, style: CadStyle = {}) {
+	private _drawArc(entity: CadArc, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {radius, start_angle, end_angle, clockwise} = entity;
 		const center = new Vector3(...entity.center);
@@ -308,6 +321,7 @@ export class CadViewer {
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints(points);
+			(line.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
@@ -319,7 +333,7 @@ export class CadViewer {
 		}
 	}
 
-	drawMtext(entity: CadMtext, style: CadStyle = {}) {
+	private _drawMtext(entity: CadMtext, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {fontSize, color} = new CadStyle(style, this, entity);
 		const colorStr = "#" + new Color(color).getHexString();
@@ -331,13 +345,15 @@ export class CadViewer {
 			sprite.userData.selectable = true;
 			sprite.name = entity.id;
 			sprite.position.set(...entity.insert);
+			sprite.padding = 0;
+			const offset = new Vector2(...entity.anchor).subScalar(0.5).multiply(new Vector2(-sprite.width, sprite.height));
+			sprite.position.add(new Vector3(offset.x, offset.y, 0));
 			objects[entity.id] = sprite;
-			console.log(sprite);
 			scene.add(sprite);
 		}
 	}
 
-	drawDimension(entity: CadDimension, style: CadStyle = {}) {
+	private _drawDimension(entity: CadDimension, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {mingzi, qujian, axis, distance} = entity;
 		const {lineWidth, color, fontSize} = new CadStyle(style, this, entity);
@@ -508,8 +524,14 @@ export class CadViewer {
 	}
 
 	destroy() {
-		this.scene.dispose();
-		this.renderer.dispose();
+		if (this._destroyed) {
+			console.warn("This cad has already been destroyed.");
+		} else {
+			this.scene.dispose();
+			this.renderer.dispose();
+			this.data = null;
+			this._destroyed = true;
+		}
 	}
 
 	reset(data: CadData) {

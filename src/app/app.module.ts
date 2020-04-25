@@ -4,7 +4,7 @@ import {NgModule} from "@angular/core";
 import {AppRoutingModule} from "./app-routing.module";
 import {AppComponent} from "./app.component";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {DrawCadComponent} from "./draw-cad/draw-cad.component";
+import {DrawCadComponent} from "@components/draw-cad/draw-cad.component";
 import {LoadingComponent} from "./components/loading/loading.component";
 import {StoreModule} from "@ngrx/store";
 import {reducers, metaReducers} from "./store/reducers";

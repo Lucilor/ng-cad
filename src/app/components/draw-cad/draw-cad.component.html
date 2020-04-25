@@ -5,3 +5,12 @@
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale + 0.1">放大</button>
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale - 0.1">缩小</button>
 </div>
+<div class="menu right">
+	<div class="cad-fragment-container" *ngFor="let cad of cads; let i = index">
+		<img [src]="cad.src" alt="" />
+		<div class="btn-group">
+			<button mat-raised-button color="primary" (click)="editCad(i)">查看</button>
+			<button mat-raised-button color="primary" (click)="removeCad(i)">删除</button>
+		</div>
+	</div>
+</div>

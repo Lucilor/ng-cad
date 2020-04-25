@@ -47,24 +47,30 @@ export class PrintCadComponent implements AfterViewInit {
 		const cad = new CadViewer(dataService.currentFragment, innerWidth, innerHeight, {
 			showLineLength: 0,
 			backgroundColor: 0xffffff,
-			padding: 50,
 			drawMTexts: true,
 			drawPolyline: true,
 			drawDimensions: true,
-			fontSize: 26
+			dragAxis: "y"
 		}).render();
-		cad.enableDragging().enableKeyboard().enableWheeling();
+		cad.enableDragging();
 		this.cad = cad;
 		this.cadContainer.nativeElement.append(cad.view);
 
 		const rect = cad.getBounds();
-		const padding = 40;
-		const scale = (innerWidth - padding * 2) / rect.width;
+		const paddingX = 110;
+		const paddingY = 40;
+		const scale = (innerWidth - paddingX * 2) / rect.width;
 		const x = (innerWidth - rect.width) / 2 - rect.x;
-		const y = (innerHeight - rect.height) / 2 - rect.y - ((rect.height * scale - innerHeight) / 2 + padding) / scale;
+		const y = (innerHeight - rect.height) / 2 - rect.y - ((rect.height * scale - innerHeight) / 2 + paddingY) / scale;
 		cad.scale = scale;
 		cad.position = new Point(x, y);
 		cad.render();
+
+		const h = rect.height * scale + paddingY * 2;
+		cad.resize(null, h);
+		cad.view.style.height = innerHeight + "px";
+		cad.view.style.overflowX = "hidden";
+		cad.view.style.overflowY = "auto";
 	}
 
 	print() {
