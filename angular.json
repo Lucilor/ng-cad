@@ -144,46 +144,6 @@
 					}
 				}
 			}
-		},
-		"cad-viewer": {
-			"projectType": "library",
-			"root": "projects/cad-viewer",
-			"sourceRoot": "projects/cad-viewer/src",
-			"prefix": "lib",
-			"architect": {
-				"build": {
-					"builder": "@angular-devkit/build-ng-packagr:build",
-					"options": {
-						"tsConfig": "projects/cad-viewer/tsconfig.lib.json",
-						"project": "projects/cad-viewer/ng-package.json"
-					},
-					"configurations": {
-						"production": {
-							"tsConfig": "projects/cad-viewer/tsconfig.lib.prod.json"
-						}
-					}
-				},
-				"test": {
-					"builder": "@angular-devkit/build-angular:karma",
-					"options": {
-						"main": "projects/cad-viewer/src/test.ts",
-						"tsConfig": "projects/cad-viewer/tsconfig.spec.json",
-						"karmaConfig": "projects/cad-viewer/karma.conf.js"
-					}
-				},
-				"lint": {
-					"builder": "@angular-devkit/build-angular:tslint",
-					"options": {
-						"tsConfig": [
-							"projects/cad-viewer/tsconfig.lib.json",
-							"projects/cad-viewer/tsconfig.spec.json"
-						],
-						"exclude": [
-							"**/node_modules/**"
-						]
-					}
-				}
-			}
 		}
 	},
 	"defaultProject": "ng-cad",

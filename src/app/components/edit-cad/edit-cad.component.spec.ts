@@ -1,19 +1,19 @@
 import {async, ComponentFixture, TestBed} from "@angular/core/testing";
 
-import {ListCadComponent} from "./list-cad.component";
+import {EditCadComponent} from "./edit-cad.component";
 
-describe("ListCadComponent", () => {
-	let component: ListCadComponent;
-	let fixture: ComponentFixture<ListCadComponent>;
+describe("EditCadComponent", () => {
+	let component: EditCadComponent;
+	let fixture: ComponentFixture<EditCadComponent>;
 
 	beforeEach(async(() => {
 		TestBed.configureTestingModule({
-			declarations: [ListCadComponent]
+			declarations: [EditCadComponent]
 		}).compileComponents();
 	}));
 
 	beforeEach(() => {
-		fixture = TestBed.createComponent(ListCadComponent);
+		fixture = TestBed.createComponent(EditCadComponent);
 		component = fixture.componentInstance;
 		fixture.detectChanges();
 	});

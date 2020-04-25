@@ -52,5 +52,6 @@
 		"forin": false,
 		"no-bitwise": false,
 		"no-shadowed-variable": false
-	}
+	},
+	"rulesDirectory": ["codelyzer"]
 }
