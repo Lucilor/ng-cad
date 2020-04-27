@@ -2,9 +2,12 @@ import {CadViewer} from "./cad-viewer";
 import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, BufferGeometry} from "three";
 
 export interface CadViewerControlsConfig {
-	dragAxis?: "x" | "y" | "xy";
+	dragAxis?: "x" | "y" | "xy" | "";
 	selectMode?: "none" | "single" | "multiple";
 	selectable?: boolean;
+	maxScale?: number;
+	minScale?: number;
+	enableScale?: boolean;
 }
 
 export class CadViewerControls {
@@ -12,7 +15,10 @@ export class CadViewerControls {
 	config: CadViewerControlsConfig = {
 		dragAxis: "xy",
 		selectMode: "none",
-		selectable: true
+		selectable: true,
+		maxScale: 100,
+		minScale: 0.1,
+		enableScale: true
 	};
 	currentObject: Object3D;
 	private _status = {
@@ -176,10 +182,13 @@ export class CadViewerControls {
 			});
 		});
 		dom.addEventListener("wheel", (event) => {
-			if (event.deltaY > 0) {
-				this.cad.camera.position.z += 50;
-			} else if (event.deltaY < 0) {
-				this.cad.camera.position.z -= 50;
+			const {cad, config} = this;
+			if (config.enableScale) {
+				if (event.deltaY > 0) {
+					cad.scale = Math.max(config.minScale, cad.scale - 0.1);
+				} else if (event.deltaY < 0) {
+					cad.scale = Math.min(config.maxScale, cad.scale + 0.1);
+				}
 			}
 		});
 		window.addEventListener("keydown", (event) => {

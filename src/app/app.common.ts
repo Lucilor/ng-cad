@@ -31,3 +31,7 @@ export function checkLogout(response: string, execute = true) {
 	}
 	return false;
 }
+
+export async function timeout(time = 0) {
+	return new Promise((r) => setTimeout(() => r(), time));
+}

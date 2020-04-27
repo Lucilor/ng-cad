@@ -56,8 +56,6 @@ export interface CadViewerConfig {
 	padding?: number[] | number;
 	selectMode?: "none" | "single" | "multiple";
 	fps?: number;
-	drawMTexts?: boolean;
-	drawDimensions?: boolean;
 	showStats?: boolean;
 	reverseSimilarColor?: true;
 }
@@ -75,8 +73,6 @@ export class CadViewer {
 		showLineLength: 0,
 		padding: [0],
 		fps: 60,
-		drawMTexts: false,
-		drawDimensions: false,
 		showStats: false,
 		reverseSimilarColor: true
 	};
@@ -177,7 +173,7 @@ export class CadViewer {
 		this.resize().render(true);
 	}
 
-	setControls(config: CadViewerControlsConfig) {
+	setControls(config?: CadViewerControlsConfig) {
 		if (this.controls) {
 			for (const name in this.controls.config) {
 				if (config[name] !== undefined) {
@@ -294,14 +290,26 @@ export class CadViewer {
 	}
 
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
-		const {scene, objects} = this;
+		const {scene, objects, config} = this;
+		const showLineLength = config.showLineLength;
 		const start = new Vector3(...entity.start);
 		const end = new Vector3(...entity.end);
+		const length = start.distanceTo(end);
+		const middle = start.clone().add(end).divideScalar(2);
+		if (length <= 0) {
+			return;
+		}
 		const {lineWidth, color} = new CadStyle(style, this, entity);
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
 			line.geometry.setFromPoints([start, end]);
 			(line.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
+			const lengthText = line.children.find((o) => (o as any).isTextSprite) as TextSprite;
+			if (lengthText) {
+				lengthText.text = Math.round(length).toString();
+				lengthText.fontSize = showLineLength;
+				lengthText.fillStyle = color;
+			}
 		} else {
 			const geometry = new Geometry().setFromPoints([start, end]);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
@@ -310,6 +318,11 @@ export class CadViewer {
 			line.name = entity.id;
 			objects[entity.id] = line;
 			scene.add(line);
+			if (!isNaN(showLineLength)) {
+				const lengthText = new TextSprite({fontSize: showLineLength, fillStyle: color, text: Math.round(length).toString()});
+				lengthText.position.copy(middle);
+				line.add(lengthText);
+			}
 		}
 	}
 
@@ -372,7 +385,10 @@ export class CadViewer {
 		const colorStr = "#" + new Color(color).getHexString();
 		const text = entity.text || "";
 		if (objects[entity.id]) {
-			// const sprite = objects[entity.id] as TextSprite;
+			const sprite = objects[entity.id] as TextSprite;
+			sprite.text = entity.text;
+			sprite.fontSize = fontSize * 1.25;
+			sprite.fillStyle = colorStr;
 		} else {
 			const sprite = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text});
 			sprite.userData.selectable = true;
@@ -529,11 +545,11 @@ export class CadViewer {
 		return this.render();
 	}
 
-	exportImage() {
+	exportImage(type?: string, quality?: any) {
 		const image = new Image();
 		const {renderer, scene, camera} = this;
 		renderer.render(scene, camera);
-		image.src = renderer.domElement.toDataURL();
+		image.src = renderer.domElement.toDataURL(type, quality);
 		return image;
 	}
 

@@ -5,6 +5,7 @@ import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
 import {environment} from "@src/environments/environment";
+import {timeout} from "@src/app/app.common";
 
 @Component({
 	selector: "app-print-cad",
@@ -18,6 +19,7 @@ export class PrintCadComponent implements AfterViewInit {
 	img = "";
 	scale = 16;
 	miniMenu = false;
+	padding = [40, 110];
 	constructor(private dialog: MatDialog, private dataService: CadDataService) {
 		// tslint:disable-next-line
 		window["view"] = this;
@@ -34,7 +36,7 @@ export class PrintCadComponent implements AfterViewInit {
 			console.warn(error);
 		}
 		if (!data) {
-			data = dataService.getCadData()[0];
+			data = (await dataService.getCadData())[0];
 		}
 		if (!data) {
 			this.dialog.open(AlertComponent, {data: {content: "没有CAD数据"}});
@@ -48,44 +50,38 @@ export class PrintCadComponent implements AfterViewInit {
 			showStats: !environment.production,
 			showLineLength: 0,
 			backgroundColor: 0xffffff,
-			drawMTexts: true,
-			drawDimensions: true
-		}).render();
-		cad.setControls({dragAxis: "y", selectMode: "none"});
+			padding: this.padding
+		});
 		this.cad = cad;
+		cad.setControls({dragAxis: "y", selectMode: "none", enableScale: false});
 		this.cadContainer.nativeElement.append(cad.dom);
 
-		// const rect = cad.getBounds();
-		// const paddingX = 110;
-		// const paddingY = 40;
-		// const scale = (innerWidth - paddingX * 2) / rect.width;
-		// const x = (innerWidth - rect.width) / 2 - rect.x;
-		// const y = (innerHeight - rect.height) / 2 - rect.y - ((rect.height * scale - innerHeight) / 2 + paddingY) / scale;
-		// cad.scale = scale;
-		// cad.position = new Point(x, y);
-
-		// const h = rect.height * scale + paddingY * 2;
-		// cad.resize(null, h);
-		// cad.view.style.height = innerHeight + "px";
-		// cad.view.style.overflowX = "hidden";
-		// cad.view.style.overflowY = "auto";
+		cad.dom.style.overflowX = "hidden";
+		cad.dom.style.overflowY = "auto";
+		this.resetCad();
 	}
 
-	print() {
-		this.printing = true;
+	async print() {
 		const cad = this.cad;
 		const scale = Math.max(1, this.scale);
 		const width = 210 * scale;
 		const height = 297 * scale;
-		const newViewer = new CadViewer(cad.data.export(), {...cad.config, width, height});
-		this.img = newViewer.exportImage().src;
-		newViewer.destroy();
-		setTimeout(() => {
-			window.print();
-			this.img = "";
-			this.printing = false;
-		}, 0);
+		cad.resize(width, height).render(true);
+		this.printing = true;
+		this.img = cad.exportImage().src;
+		this.resetCad();
+		await timeout();
+		window.print();
+		this.img = "";
+		this.printing = false;
 	}
 
-	toggleMenu() {}
+	resetCad() {
+		const {cad, padding} = this;
+		const rect = cad.getBounds();
+		const scale = (innerWidth - padding[1] * 2) / rect.width;
+		const h = rect.height * scale + padding[0] * 2;
+		cad.resize(innerWidth, h).render(true);
+		cad.dom.style.height = innerHeight + "px";
+	}
 }
