@@ -21,6 +21,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatPaginatorModule, MatPaginatorIntl} from "@angular/material/paginator";
 import {MatRadioModule} from "@angular/material/radio";
 import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatTooltipModule} from "@angular/material/tooltip";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
@@ -69,6 +70,7 @@ import {PlaygroundComponent} from "@components/playground/playground.component";
 		MatPaginatorModule,
 		MatRadioModule,
 		MatCheckboxModule,
+		MatTooltipModule,
 		DragDropModule,
 		FormsModule,
 		ReactiveFormsModule

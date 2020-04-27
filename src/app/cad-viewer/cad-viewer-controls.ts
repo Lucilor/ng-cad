@@ -92,22 +92,13 @@ export class CadViewerControls {
 			this._status.pTo.set(p.x, p.y);
 			if (this.config.selectMode !== "none") {
 				if (currentObject && currentObject.userData.selected !== true) {
-					cad.dom.style.cursor = "default";
-					if (currentObject instanceof Line) {
-						if (currentObject.material instanceof LineBasicMaterial) {
-							currentObject.material.color.set(cad.data.findEntity(currentObject.name)?.color);
-						}
-					}
+					(currentObject as any).material?.color?.set(cad.data.findEntity(currentObject.name)?.color);
 					this.currentObject = null;
 				}
 				const object = this._getInterSection(new Vector2(event.clientX, event.clientY));
-				if (object && object.userData.selected !== true) {
-					cad.dom.style.cursor = "pointer";
-					if (object instanceof Line) {
-						if (object.material instanceof LineBasicMaterial) {
-							object.material.color.set(cad.config.hoverColor);
-						}
-					}
+				cad.dom.style.cursor = object ? "pointer" : "default";
+				if (object && object.userData.selectable && object.userData.selected !== true) {
+					(object as any).material?.color?.set(cad.config.hoverColor);
 					this.currentObject = object;
 				}
 			}
@@ -149,11 +140,9 @@ export class CadViewerControls {
 						if (toSelect.every((o) => o.userData.selected)) {
 							toSelect.forEach((o) => (o.userData.selected = false));
 						} else {
-							toSelect.forEach((object) => {
-								object.userData.selected = true;
-								object.material.color.set(config.selectedColor);
-							});
+							toSelect.forEach((object) => (object.userData.selected = true));
 						}
+						cad.render();
 					}
 				}
 				const p = new Vector2(event.clientX, event.clientY);
@@ -202,7 +191,13 @@ export class CadViewerControls {
 					break;
 				case "a":
 				case "ArrowLeft":
-					position.x -= step;
+					if (event.ctrlKey) {
+						if (this.config.selectMode === "multiple") {
+							cad.selectAll();
+						}
+					} else {
+						position.x -= step;
+					}
 					break;
 				case "s":
 				case "ArrowDown":
@@ -213,7 +208,13 @@ export class CadViewerControls {
 					position.x += step;
 					break;
 				case "Escape":
-					this.cad.unselectAll();
+					cad.unselectAll();
+					break;
+				case "[":
+					cad.scale -= 0.1;
+					break;
+				case "]":
+					cad.scale += 0.1;
 					break;
 				default:
 			}

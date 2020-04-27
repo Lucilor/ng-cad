@@ -318,7 +318,7 @@ export class CadViewer {
 			line.name = entity.id;
 			objects[entity.id] = line;
 			scene.add(line);
-			if (!isNaN(showLineLength)) {
+			if (showLineLength > 0) {
 				const lengthText = new TextSprite({fontSize: showLineLength, fillStyle: color, text: Math.round(length).toString()});
 				lengthText.position.copy(middle);
 				line.add(lengthText);
@@ -391,7 +391,7 @@ export class CadViewer {
 			sprite.fillStyle = colorStr;
 		} else {
 			const sprite = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text});
-			sprite.userData.selectable = true;
+			sprite.userData.selectable = false;
 			sprite.name = entity.id;
 			sprite.position.set(...entity.insert);
 			sprite.padding = 0;
@@ -538,6 +538,11 @@ export class CadViewer {
 			return 0xfffffff - color;
 		}
 		return color;
+	}
+
+	selectAll() {
+		Object.values(this.objects).forEach((o) => (o.userData.selected = o.userData.selectable));
+		return this.render();
 	}
 
 	unselectAll() {

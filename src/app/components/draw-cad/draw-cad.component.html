@@ -6,6 +6,9 @@
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale - 0.1">缩小</button>
 </div>
 <div class="menu right">
+	<div class="tooltip-container">
+		<mat-icon matTooltipPosition="left" [matTooltip]="tooltipText" matTooltipClass="tooltip">help</mat-icon>
+	</div>
 	<div class="cad-fragment-container" *ngFor="let cad of cads; let i = index">
 		<img [src]="cad.src" alt="" />
 		<div class="btn-group">

@@ -14,6 +14,7 @@ const title = "draw-cad";
 export class DrawCadComponent implements AfterViewInit {
 	cad: CadViewer;
 	cads: {src: string; data: CadData}[] = [];
+	tooltipText = ["移动：shift+左键 或 中键 或 wasd 或 方向键", "缩放：滚轮 或 [键 + ]键", "全选：ctrl+a", "全不选：esc"].join("\n");
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	constructor(private dataService: CadDataService, private route: ActivatedRoute) {}
 
@@ -51,7 +52,10 @@ export class DrawCadComponent implements AfterViewInit {
 		cad.destroy();
 	}
 
-	resetData() {}
+	resetData() {
+		this.cads = [];
+		this.cad.unselectAll();
+	}
 
 	editCad(index: number) {
 		this.dataService.saveCurrentCad(this.cads[index].data);

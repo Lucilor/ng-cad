@@ -74,4 +74,10 @@ export class ListCadComponent implements OnInit {
 	search() {
 		this.getData(this.paginator.pageIndex + 1, this.searchValue);
 	}
+
+	searchKeydown(event: KeyboardEvent) {
+		if (event.key === "Enter") {
+			this.search();
+		}
+	}
 }
