@@ -1,0 +1,77 @@
+<mat-expansion-panel expanded>
+	<mat-expansion-panel-header>
+		<mat-panel-title>CAD信息(总长: {{ cadLength }})</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div class="cad-info name">
+		<label>名字</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input matInput type="text" [(ngModel)]="cad?.data.name" placeholder="请输入名字" />
+		</mat-form-field>
+	</div>
+	<div class="cad-info type">
+		<label>分类</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input matInput type="text" [(ngModel)]="cad?.data.type" placeholder="请输入分类" />
+		</mat-form-field>
+	</div>
+	<div class="cad-info options" *ngFor="let o of cad?.data.options; let i = index">
+		<label>{{ i === 0 ? "选项" : "" }}</label>
+		<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
+			<mat-label></mat-label>
+			<input matInput type="text" [(ngModel)]="o.name" placeholder="选项" />
+		</mat-form-field>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input matInput type="text" [(ngModel)]="o.value" placeholder="选项" />
+			<mat-icon matSuffix color="primary" (click)="menu.addItem(i, 'options', cadIdx)">add_circle</mat-icon>
+			<mat-icon matSuffix color="primary" (click)="menu.removeItem(i, 'options', cadIdx)">remove_circle</mat-icon>
+		</mat-form-field>
+	</div>
+	<div class="cad-info conditions" *ngFor="let c of cad?.data.conditions; let i = index">
+		<label>{{ i === 0 ? "条件" : "" }}</label>
+		<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
+			<mat-label></mat-label>
+			<input matInput type="text" [ngModel]="c" (change)="cad?.data.conditions[i] = $event.target.value" placeholder="条件" />
+			<mat-icon matSuffix color="primary" (click)="menu.addItem(i, 'conditions', cadIdx)">add_circle</mat-icon>
+			<mat-icon matSuffix color="primary" (click)="menu.removeItem(i, 'conditions', cadIdx)">remove_circle</mat-icon>
+		</mat-form-field>
+	</div>
+	<div class="cad-info baselines" *ngFor="let b of cad?.data.baseLines; let i = index">
+		<button
+			mat-raised-button
+			[color]="menu.mode.type === 'baseLine' && menu.mode.index === i ? 'accent' : 'primary'"
+			(click)="menu.selectBaseline(i, cadIdx)"
+		>
+			&nbsp;基准&nbsp;
+		</button>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input matInput type="text" [(ngModel)]="b.name" placeholder="请输入名字" />
+			<mat-icon matSuffix color="primary" (click)="menu.addItem(i, 'baseLines')">add_circle</mat-icon>
+			<mat-icon matSuffix color="primary" (click)="menu.removeItem(i, 'baseLines')">remove_circle</mat-icon>
+			<mat-hint [align]="'start'">x:{{ b.valueX?.toFixed(2) }}, y:{{ b.valueY?.toFixed(2) }}</mat-hint>
+		</mat-form-field>
+	</div>
+	<div class="cad-info joint-points" *ngFor="let j of cad?.data.jointPoints; let i = index">
+		<button
+			mat-raised-button
+			[color]="menu.mode.type === 'jointPoint' && menu.mode.index === i ? 'accent' : 'primary'"
+			(click)="menu.selectJointPoint(i)"
+		>
+			连接点
+		</button>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input matInput type="text" [(ngModel)]="j.name" placeholder="请输入名字" />
+			<mat-icon matSuffix color="primary" (click)="menu.addItem(i, 'jointPoints')">add_circle</mat-icon>
+			<mat-icon matSuffix color="primary" (click)="menu.removeItem(i, 'jointPoints')">remove_circle</mat-icon>
+			<mat-hint [align]="'start'">x:{{ j.valueX?.toFixed(2) }}, y:{{ j.valueY?.toFixed(2) }}</mat-hint>
+		</mat-form-field>
+	</div>
+	<div class="btn-group">
+		<button mat-raised-button color="accent" [disabled]="!cad" (click)="submit()">确定修改</button>
+		<button mat-raised-button color="accent" [disabled]="!cad" (click)="replaceData()">替换数据</button>
+	</div>
+</mat-expansion-panel>

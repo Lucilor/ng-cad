@@ -82,6 +82,7 @@ export class PrintCadComponent implements AfterViewInit {
 		const scale = (innerWidth - padding[1] * 2) / rect.width;
 		const h = rect.height * scale + padding[0] * 2;
 		cad.resize(innerWidth, h).render(true);
+		console.log(innerHeight);
 		cad.dom.style.height = innerHeight + "px";
 	}
 }

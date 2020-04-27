@@ -20,6 +20,8 @@ export class DrawCadComponent implements AfterViewInit {
 
 	async ngAfterViewInit() {
 		document.title = title;
+		// tslint:disable-next-line: no-string-literal
+		window["view"] = this;
 		const data = (await this.dataService.getCadData())[0];
 		this.cad = new CadViewer(data, {
 			width: innerWidth,
@@ -30,8 +32,6 @@ export class DrawCadComponent implements AfterViewInit {
 		this.cad.setControls({selectMode: "multiple"});
 		this.cadContainer.nativeElement.append(this.cad.dom);
 		this.dataService.loadCadStatus(this.cad, title);
-		// tslint:disable-next-line: no-string-literal
-		window["view"] = this;
 
 		window.addEventListener("keypress", (event) => {
 			if (event.key === "Enter") {
@@ -46,7 +46,7 @@ export class DrawCadComponent implements AfterViewInit {
 	selectLines() {
 		const entities = this.cad.selectedEntities;
 		const data = new CadData({entities, layers: this.cad.data.layers});
-		data.name = "Cad-" + (this.cads.length + 1);
+		data.name = "CAD-" + (this.cads.length + 1);
 		const cad = new CadViewer(data, {padding: 10});
 		this.cads.push({src: cad.exportImage().src, data});
 		cad.destroy();

@@ -23,7 +23,7 @@ import {MatRadioModule} from "@angular/material/radio";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {DragDropModule} from "@angular/cdk/drag-drop";
-import {EditCadComponent} from "./edit-cad/edit-cad.component";
+import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
@@ -32,6 +32,7 @@ import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
 import {PlaygroundComponent} from "@components/playground/playground.component";
+import {CadInfoComponent} from "./components/cad-menu/cad-info/cad-info.component";
 
 @NgModule({
 	declarations: [
@@ -45,7 +46,8 @@ import {PlaygroundComponent} from "@components/playground/playground.component";
 		AssembleCadComponent,
 		PrintCadComponent,
 		ListCadComponent,
-		PlaygroundComponent
+		PlaygroundComponent,
+		CadInfoComponent
 	],
 	imports: [
 		BrowserModule,

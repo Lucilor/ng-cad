@@ -289,6 +289,12 @@ export class CadViewer {
 		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
 	}
 
+	private _setAnchor(sprite: TextSprite, position: Vector3, anchor: number[]) {
+		sprite.position.copy(position);
+		const offset = new Vector2(...anchor).subScalar(0.5).multiply(new Vector2(-sprite.width, sprite.height));
+		sprite.position.add(new Vector3(offset.x, offset.y, 0));
+	}
+
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects, config} = this;
 		const showLineLength = config.showLineLength;
@@ -300,15 +306,25 @@ export class CadViewer {
 			return;
 		}
 		const {lineWidth, color} = new CadStyle(style, this, entity);
+		const colorStr = new Color(color).getStyle();
+		const slope = (start.y - end.y) / (start.x - end.x);
+		const anchor = [0.5, 0.5];
+		if (slope === 0) {
+			anchor[1] = 1;
+		}
+		if (!isFinite(slope)) {
+			anchor[0] = 1;
+		}
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
-			line.geometry.setFromPoints([start, end]);
+			line.geometry = new Geometry().setFromPoints([start, end]);
 			(line.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 			const lengthText = line.children.find((o) => (o as any).isTextSprite) as TextSprite;
 			if (lengthText) {
 				lengthText.text = Math.round(length).toString();
 				lengthText.fontSize = showLineLength;
-				lengthText.fillStyle = color;
+				lengthText.fillStyle = colorStr;
+				this._setAnchor(lengthText, middle, anchor);
 			}
 		} else {
 			const geometry = new Geometry().setFromPoints([start, end]);
@@ -319,8 +335,9 @@ export class CadViewer {
 			objects[entity.id] = line;
 			scene.add(line);
 			if (showLineLength > 0) {
-				const lengthText = new TextSprite({fontSize: showLineLength, fillStyle: color, text: Math.round(length).toString()});
-				lengthText.position.copy(middle);
+				const lengthText = new TextSprite({fontSize: showLineLength, fillStyle: colorStr, text: Math.round(length).toString()});
+				lengthText.padding = 0;
+				this._setAnchor(lengthText, middle, anchor);
 				line.add(lengthText);
 			}
 		}
@@ -335,7 +352,7 @@ export class CadViewer {
 		const {lineWidth, color} = new CadStyle(style, this, entity);
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
-			line.geometry.setFromPoints(points);
+			line.geometry = new Geometry().setFromPoints(points);
 			(line.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
@@ -366,7 +383,7 @@ export class CadViewer {
 		const {lineWidth, color} = new CadStyle(style, this, entity);
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
-			line.geometry.setFromPoints(points);
+			line.geometry = new Geometry().setFromPoints(points);
 			(line.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
@@ -393,10 +410,8 @@ export class CadViewer {
 			const sprite = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text});
 			sprite.userData.selectable = false;
 			sprite.name = entity.id;
-			sprite.position.set(...entity.insert);
 			sprite.padding = 0;
-			const offset = new Vector2(...entity.anchor).subScalar(0.5).multiply(new Vector2(-sprite.width, sprite.height));
-			sprite.position.add(new Vector3(offset.x, offset.y, 0));
+			this._setAnchor(sprite, new Vector3(...entity.insert), entity.anchor);
 			objects[entity.id] = sprite;
 			scene.add(sprite);
 		}

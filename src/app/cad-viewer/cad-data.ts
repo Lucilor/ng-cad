@@ -1,5 +1,5 @@
-import {MathUtils} from "three";
-import {index2RGB} from "@lucilor/utils";
+import {MathUtils, Vector2} from "three";
+import {index2RGB, Line, Point, Angle, Arc} from "@lucilor/utils";
 import {cloneDeep} from "lodash";
 
 export const enum CadTypes {
@@ -20,6 +20,12 @@ export const cadTypes = {
 	circle: "CIRCLE",
 	hatch: "HATCH"
 };
+
+export interface CadTransform {
+	translate?: number[];
+	flip?: {vertical?: boolean; horizontal?: boolean; anchor?: number[]};
+	rotate?: {angle?: number; anchor?: number[]};
+}
 
 export class CadData {
 	entities: CadEntities;
@@ -139,6 +145,74 @@ export class CadData {
 			}
 		}
 	}
+
+	clone() {
+		return new CadData(this.export());
+	}
+
+	private _mergeArray(arr1: any[], arr2: any[], field?: string) {
+		if (field) {
+			const keys = arr1.map((v) => v[field]);
+			arr2.forEach((v) => {
+				const idx = keys.indexOf(v[field]);
+				if (idx === -1) {
+					arr1.push(v);
+				} else {
+					arr1[idx] = v;
+				}
+			});
+		} else {
+			arr1 = Array.from(new Set(arr1.concat(arr2)));
+		}
+		return arr1;
+	}
+
+	merge(data: CadData) {
+		this.layers = this.layers.concat(data.layers);
+		this.entities.merge(data.entities);
+		this.conditions = this._mergeArray(this.conditions, data.conditions);
+		this.options = this._mergeArray(this.options, data.options, "name");
+		this.partners = this._mergeArray(this.partners, data.partners, "id");
+		this.jointPoints = this._mergeArray(this.jointPoints, data.jointPoints, "name");
+		this.baseLines = this._mergeArray(this.baseLines, data.baseLines, "name");
+		this.components.connections = this._mergeArray(this.components.connections, data.components.connections);
+		this.components.data = this._mergeArray(this.components.data, data.components.data, "id");
+		return this;
+	}
+
+	transform({translate, flip, rotate}: CadTransform) {
+		this.entities.transform({translate, flip, rotate});
+		this.baseLines.forEach((v) => {
+			const point = new Point(v.valueX, v.valueY);
+			if (translate) {
+				point.add(translate[0], translate[1]);
+				point.add(translate[0], translate[1]);
+			}
+			if (flip) {
+				point.flip(flip.vertical, flip.horizontal, new Point(flip.anchor));
+			}
+			if (rotate) {
+				point.rotate(rotate.angle, new Point(rotate.anchor));
+			}
+			v.valueX = point.x;
+			v.valueY = point.y;
+		});
+		this.jointPoints.forEach((v) => {
+			const point = new Point(v.valueX, v.valueY);
+			if (translate) {
+				point.add(translate[0], translate[1]);
+				point.add(translate[0], translate[1]);
+			}
+			if (flip) {
+				point.flip(flip.vertical, flip.horizontal, new Point(flip.anchor));
+			}
+			if (rotate) {
+				point.rotate(rotate.angle, new Point(rotate.anchor));
+			}
+			v.valueX = point.x;
+			v.valueY = point.y;
+		});
+	}
 }
 
 export class CadEntities {
@@ -220,6 +294,12 @@ export class CadEntities {
 		});
 		return result;
 	}
+
+	transform(params: CadTransform) {
+		Object.keys(cadTypes).forEach((v) => {
+			(this[v] as CadEntity[]).forEach((e) => e.transform(params));
+		});
+	}
 }
 
 export class CadEntity {
@@ -257,6 +337,8 @@ export class CadEntity {
 			}
 		}
 	}
+
+	transform({translate, flip, rotate}: CadTransform) {}
 }
 
 export class CadLine extends CadEntity {
@@ -273,6 +355,22 @@ export class CadLine extends CadEntity {
 		this.qujian = data.qujian || "";
 		this.gongshi = data.gongshi || "";
 	}
+
+	transform({translate, flip, rotate}: CadTransform) {
+		const line = new Line(new Point(this.start), new Point(this.end));
+		if (translate) {
+			line.start.add(translate[0], translate[1]);
+			line.end.add(translate[0], translate[1]);
+		}
+		if (flip) {
+			line.flip(flip.vertical, flip.horizontal, new Point(flip.anchor));
+		}
+		if (rotate) {
+			line.rotate(rotate.angle, new Point(rotate.anchor));
+		}
+		this.start = line.start.toArray();
+		this.end = line.end.toArray();
+	}
 }
 
 export class CadCircle extends CadEntity {
@@ -282,6 +380,19 @@ export class CadCircle extends CadEntity {
 		super(data, layers);
 		this.center = Array.isArray(data.center) ? data.center.slice(0, 3) : [0, 0, 0];
 		this.radius = data.radius || 0;
+	}
+
+	transform({translate, flip, rotate}: CadTransform) {
+		if (translate) {
+			this.center[0] += translate[0];
+			this.center[1] += translate[1];
+		}
+		if (flip) {
+			this.center = new Point(this.center).flip(flip.vertical, flip.horizontal, new Point(flip.anchor)).toArray();
+		}
+		if (rotate) {
+			this.center = new Point(this.center).rotate(rotate.angle, new Point(rotate.anchor)).toArray();
+		}
 	}
 }
 
@@ -298,6 +409,25 @@ export class CadArc extends CadEntity {
 		this.start_angle = data.start_angle || 0;
 		this.end_angle = data.end_angle || 0;
 		this.clockwise = data.clockwise || false;
+	}
+
+	transform({translate, flip, rotate}: CadTransform) {
+		const start = new Angle(this.start_angle, "deg");
+		const end = new Angle(this.end_angle, "deg");
+		const arc = new Arc(new Point(this.center), this.radius, start, end, this.clockwise);
+		if (translate) {
+			arc.center.add(translate[0], translate[1]);
+		}
+		if (flip) {
+			arc.flip(flip.vertical, flip.horizontal, new Point(flip.anchor));
+		}
+		if (rotate) {
+			arc.rotate(rotate.angle, new Point(rotate.anchor));
+		}
+		this.center = arc.center.toArray();
+		this.start_angle = arc.startAngle.deg;
+		this.end_angle = arc.endAngle.deg;
+		this.clockwise = arc.clockwise;
 	}
 }
 

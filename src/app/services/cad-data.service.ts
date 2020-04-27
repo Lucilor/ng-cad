@@ -31,7 +31,7 @@ export class CadDataService {
 		this.baseURL = localStorage.getItem("baseURL");
 		const params = route.snapshot.queryParams;
 		this.encode = params.encode ? encodeURIComponent(params.encode) : "";
-		this.data = params.encode ? encodeURIComponent(params.data) : "";
+		this.data = params.data ? encodeURIComponent(params.data) : "";
 	}
 
 	private alert(msg: any) {

@@ -1,1 +1,16 @@
 <div #cadContainer></div>
+<div class="menu left">
+	<button mat-raised-button color="primary" (click)="flip(true, false)">垂直翻转</button>
+	<button mat-raised-button color="primary" (click)="flip(false, true)">水平翻转</button>
+	<button mat-raised-button color="primary" (click)="flip(false, true)">中心对称</button>
+	<button mat-raised-button color="primary" (click)="rotate(true)">顺时针旋转</button>
+	<button mat-raised-button color="primary" (click)="rotate(false)">逆时针旋转</button>
+	<input matInput type="number" [(ngModel)]="rotateAngle" />
+	<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
+	<button mat-raised-button color="primary" (click)="drawDimensions = !drawDimensions">{{ drawDimensions ? "隐藏" : "显示" }}标注</button>
+	<button mat-raised-button color="primary" (click)="drawMTexts = !drawMTexts">{{ drawMTexts ? "隐藏" : "显示" }}MTexts</button>
+	<button mat-raised-button color="accent" *ngIf="cadsData?.length > 1" (click)="submitAll()">修改全部</button>
+</div>
+<div class="menu right">
+	<mat-accordion multi></mat-accordion>
+</div>
