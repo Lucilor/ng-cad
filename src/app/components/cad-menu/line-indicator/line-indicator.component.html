@@ -1,0 +1,16 @@
+<div class="line-indicator">
+	<ng-container *ngIf="menu.mode.type==='normal' && cadLine.tLine">
+		<div class="point start-point" [style.left.px]="cadLine.tLine.start.x" [style.top.px]="cadLine.tLine.start.y"></div>
+		<div class="point end-point" [style.left.px]="cadLine.tLine.end.x" [style.top.px]="cadLine.tLine.end.y"></div>
+	</ng-container>
+	<div class="joint-points" *ngIf="menu.mode.type === 'jointPoint'">
+		<div
+			*ngFor="let p of menu.pointsMap; let i = index"
+			class="point joint-point"
+			[class.selected]="p.selected"
+			[style.left.px]="p.tPoint.x"
+			[style.top.px]="p.tPoint.y"
+			(click)="cadInfo.onJointPointClick(i)"
+		></div>
+	</div>
+</div>

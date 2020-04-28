@@ -1,11 +1,7 @@
-<!-- <div *ngFor="let item of pageData">
-	<span>{{ item.name }}</span>
-	<img [src]="item.img" />
-</div> -->
 <form>
 	<mat-form-field>
 		<mat-label>搜索CAD</mat-label>
-		<input name="search" matInput type="search" (keydown)="searchKeydown($event)" [(ngModel)]="searchValue" />
+		<input name="search" matInput type="search" (keydown)="searchKeydown($event)" [(ngModel)]="searchInput" />
 		<mat-icon class="search-button" ty matSuffix (click)="search()">search</mat-icon>
 	</mat-form-field>
 </form>

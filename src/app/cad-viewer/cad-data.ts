@@ -1,4 +1,4 @@
-import {MathUtils, Vector2, ArcCurve} from "three";
+import {MathUtils, Vector2, ArcCurve, Vector3} from "three";
 import {index2RGB, Line, Point, Angle, Arc} from "@lucilor/utils";
 import {cloneDeep} from "lodash";
 
@@ -83,6 +83,7 @@ export class CadData {
 	}
 
 	export() {
+		this.updateBaseLines();
 		const exLayers = {};
 		this.layers.forEach((v) => {
 			exLayers[v.id] = {id: v.id, color: v._indexColor, name: v.name};
@@ -93,12 +94,14 @@ export class CadData {
 			id: this.id,
 			name: this.name,
 			type: this.type,
-			conditions: this.conditions.slice(),
-			options: this.options.map((v) => {
-				const result = {};
-				result[v.name] = v.value;
-				return result;
-			}),
+			conditions: this.conditions.filter((v) => v),
+			options: this.options
+				.filter((v) => v.name)
+				.map((v) => {
+					const result = {};
+					result[v.name] = v.value;
+					return result;
+				}),
 			baseLines: cloneDeep(this.baseLines),
 			jointPoints: cloneDeep(this.jointPoints),
 			parent: this.parent,
@@ -223,6 +226,23 @@ export class CadData {
 		});
 	}
 
+	updateBaseLines() {
+		this.baseLines.forEach((v) => {
+			const eX = this.findEntity(v.idX);
+			const eY = this.findEntity(v.idY);
+			if (eX instanceof CadLine) {
+				v.valueX = eX.start.x;
+			} else {
+				v.valueX = NaN;
+			}
+			if (eY instanceof CadLine) {
+				v.valueY = eY.start.y;
+			} else {
+				v.valueY = NaN;
+			}
+		});
+	}
+
 	addComponent(component: CadData) {
 		const rect1 = this.getAllEntities().getBounds();
 		const rect2 = component.entities.getBounds();
@@ -311,12 +331,7 @@ export class CadEntities {
 	export() {
 		const result = {line: {}, circle: {}, arc: {}, mtext: {}, dimension: {}, hatch: {}};
 		Object.keys(cadTypes).forEach((type) => {
-			(this[type] as CadEntity[]).forEach((e) => {
-				const ee = JSON.parse(JSON.stringify(e));
-				ee.color = ee._indexColor;
-				delete ee._indexColor;
-				result[type][e.id] = ee;
-			});
+			(this[type] as CadEntity[]).forEach((e) => (result[type][e.id] = e.export()));
 		});
 		return result;
 	}
@@ -332,40 +347,38 @@ export class CadEntities {
 		let minX = Infinity;
 		let maxY = -Infinity;
 		let minY = Infinity;
-		const calc = (point: Vector2) => {
+		const calc = (point: Vector2 | Vector3) => {
 			maxX = Math.max(point.x, maxX);
 			maxY = Math.max(point.y, maxY);
 			minX = Math.min(point.x, minX);
 			minY = Math.min(point.y, minY);
 		};
 		this.line.forEach((entity) => {
-			const {start, end} = entity;
-			calc(new Vector2(...start));
-			calc(new Vector2(...end));
+			calc(entity.start);
+			calc(entity.end);
 		});
 		this.arc.forEach((entity) => {
 			const arcEntity = entity;
 			const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
-			const arc = new ArcCurve(
-				center[0],
-				center[1],
-				radius,
-				MathUtils.degToRad(start_angle),
-				MathUtils.degToRad(end_angle),
-				clockwise
-			);
+			const arc = new ArcCurve(center.x, center.y, radius, MathUtils.degToRad(start_angle), MathUtils.degToRad(end_angle), clockwise);
 			calc(arc.getPoint(0));
 			calc(arc.getPoint(1));
 		});
 		this.circle.forEach((entity) => {
 			const {center, radius} = entity;
-			calc(new Vector2(...center).addScalar(radius));
-			calc(new Vector2(...center).subScalar(radius));
+			calc(center.addScalar(radius));
+			calc(center.subScalar(radius));
 		});
 		if (!isFinite(maxX + minX) || !isFinite(maxY + minY)) {
 			return {x: 0, y: 0, width: 0, height: 0};
 		}
 		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
+	}
+
+	forEach(callback: (value: CadEntity, index: number, array: CadEntity[]) => void) {
+		Object.keys(cadTypes).forEach((type) => {
+			(this[type] as CadEntity[]).forEach(callback);
+		});
 	}
 }
 
@@ -406,25 +419,45 @@ export class CadEntity {
 	}
 
 	transform({translate, flip, rotate}: CadTransform) {}
+	export() {
+		return {
+			id: this.id,
+			layer: this.layer,
+			type: this.type,
+			color: this._indexColor
+		};
+	}
 }
 
 export class CadLine extends CadEntity {
-	start: number[];
-	end: number[];
+	start: Vector3;
+	end: Vector3;
 	mingzi?: string;
 	qujian?: string;
 	gongshi?: string;
+	get length() {
+		return this.start.distanceTo(this.end);
+	}
+	get slope() {
+		const {start, end} = this;
+		return (start.y - end.y) / (start.x - end.x);
+	}
+	get theta() {
+		const {start, end} = this;
+		return Math.atan2(start.y - end.y, start.x - end.x);
+	}
+
 	constructor(data: any = {type: cadTypes.line}, layers: CadLayer[] = []) {
 		super(data, layers);
-		this.start = Array.isArray(data.start) ? data.start.slice(0, 3) : [0, 0, 0];
-		this.end = Array.isArray(data.end) ? data.end.slice(0, 3) : [0, 0, 0];
+		this.start = Array.isArray(data.start) ? new Vector3(...data.start) : new Vector3();
+		this.end = Array.isArray(data.end) ? new Vector3(...data.end) : new Vector3();
 		this.mingzi = data.mingzi || "";
 		this.qujian = data.qujian || "";
 		this.gongshi = data.gongshi || "";
 	}
 
 	transform({translate, flip, rotate}: CadTransform) {
-		const line = new Line(new Point(this.start), new Point(this.end));
+		const line = new Line(new Point(this.start.x, this.start.y), new Point(this.end.x, this.end.y));
 		if (translate) {
 			line.start.add(translate[0], translate[1]);
 			line.end.add(translate[0], translate[1]);
@@ -435,43 +468,62 @@ export class CadLine extends CadEntity {
 		if (rotate) {
 			line.rotate(rotate.angle, new Point(rotate.anchor));
 		}
-		this.start = line.start.toArray();
-		this.end = line.end.toArray();
+		this.start = new Vector3(line.start.x, line.start.y);
+		this.end = new Vector3(line.end.x, line.end.y);
+	}
+
+	export() {
+		return Object.assign(super.export(), {
+			start: this.start.toArray(),
+			end: this.end.toArray(),
+			mingzi: this.mingzi,
+			qujian: this.qujian,
+			gongshi: this.gongshi
+		});
 	}
 }
 
 export class CadCircle extends CadEntity {
-	center: number[];
+	center: Vector3;
 	radius: number;
 	constructor(data: any = {type: cadTypes.circle}, layers: CadLayer[] = []) {
 		super(data, layers);
-		this.center = Array.isArray(data.center) ? data.center.slice(0, 3) : [0, 0, 0];
+		this.center = Array.isArray(data.center) ? new Vector3(...data.center) : new Vector3();
 		this.radius = data.radius || 0;
 	}
 
 	transform({translate, flip, rotate}: CadTransform) {
+		const center = new Point(this.center.x, this.center.y);
 		if (translate) {
 			this.center[0] += translate[0];
 			this.center[1] += translate[1];
 		}
 		if (flip) {
-			this.center = new Point(this.center).flip(flip.vertical, flip.horizontal, new Point(flip.anchor)).toArray();
+			center.flip(flip.vertical, flip.horizontal, new Point(flip.anchor));
 		}
 		if (rotate) {
-			this.center = new Point(this.center).rotate(rotate.angle, new Point(rotate.anchor)).toArray();
+			center.rotate(rotate.angle, new Point(rotate.anchor));
 		}
+		this.center = new Vector3(center.x, center.y);
+	}
+
+	export() {
+		return Object.assign(super.export(), {
+			center: this.center.toArray(),
+			radius: this.radius
+		});
 	}
 }
 
 export class CadArc extends CadEntity {
-	center: number[];
+	center: Vector3;
 	radius: number;
 	start_angle: number;
 	end_angle: number;
-	clockwise?: boolean;
+	clockwise: boolean;
 	constructor(data: any = {type: cadTypes.arc}, layers: CadLayer[] = []) {
 		super(data, layers);
-		this.center = Array.isArray(data.center) ? data.center.slice(0, 3) : [0, 0, 0];
+		this.center = Array.isArray(data.center) ? new Vector3(...data.center) : new Vector3();
 		this.radius = data.radius || 0;
 		this.start_angle = data.start_angle || 0;
 		this.end_angle = data.end_angle || 0;
@@ -481,7 +533,8 @@ export class CadArc extends CadEntity {
 	transform({translate, flip, rotate}: CadTransform) {
 		const start = new Angle(this.start_angle, "deg");
 		const end = new Angle(this.end_angle, "deg");
-		const arc = new Arc(new Point(this.center), this.radius, start, end, this.clockwise);
+		const center = new Point(this.center.x, this.center.y);
+		const arc = new Arc(center, this.radius, start, end, this.clockwise);
 		if (translate) {
 			arc.center.add(translate[0], translate[1]);
 		}
@@ -491,24 +544,43 @@ export class CadArc extends CadEntity {
 		if (rotate) {
 			arc.rotate(rotate.angle, new Point(rotate.anchor));
 		}
-		this.center = arc.center.toArray();
+		this.center = new Vector3(center.x, center.y);
 		this.start_angle = arc.startAngle.deg;
 		this.end_angle = arc.endAngle.deg;
 		this.clockwise = arc.clockwise;
 	}
+
+	export() {
+		return Object.assign(super.export(), {
+			center: this.center.toArray(),
+			radius: this.radius,
+			start_angle: this.start_angle,
+			end_angle: this.end_angle,
+			clockwise: this.clockwise
+		});
+	}
 }
 
 export class CadMtext extends CadEntity {
-	insert: number[];
+	insert: Vector3;
 	font_size: number;
 	text: string;
-	anchor: number[];
+	anchor: Vector3;
 	constructor(data: any = {type: cadTypes.mtext}, layers: CadLayer[] = []) {
 		super(data, layers);
-		this.insert = Array.isArray(data.insert) ? data.insert.slice(0, 3) : [0, 0, 0];
+		this.insert = Array.isArray(data.insert) ? new Vector3(...data.insert) : new Vector3();
 		this.font_size = data.font_size || 16;
 		this.text = data.text || "";
-		this.anchor = Array.isArray(data.anchor) ? data.anchor.slice(0, 2) : [0, 0];
+		this.anchor = Array.isArray(data.anchor) ? new Vector3(...data.anchor) : new Vector3();
+	}
+
+	export() {
+		return Object.assign(super.export(), {
+			insert: this.insert.toArray(),
+			font_size: this.font_size,
+			text: this.text,
+			anchor: this.anchor.toArray()
+		});
 	}
 }
 
@@ -553,23 +625,66 @@ export class CadDimension extends CadEntity {
 		this.mingzi = data.mingzi || "";
 		this.qujian = data.qujian || "";
 	}
+
+	export() {
+		return Object.assign(super.export(), {
+			dimstyle: this.dimstyle,
+			font_size: this.font_size,
+			axis: this.axis,
+			entity1: {...this.entity1},
+			entity2: {...this.entity2},
+			distance: this.distance,
+			cad1: this.cad1,
+			cad2: this.cad2,
+			mingzi: this.mingzi,
+			qujian: this.qujian
+		});
+	}
 }
 
 export class CadHatch extends CadEntity {
 	paths: {
-		edges?: {
-			start: number[];
-			end: number;
+		edges: {
+			start: Vector3;
+			end: Vector3;
 		}[];
-		vertices?: number[][];
+		vertices: Vector3[];
 	}[];
 	constructor(data: any = {type: cadTypes.hatch}, layers: CadLayer[] = []) {
 		super(data, layers);
-		if (data.paths) {
+		this.paths = [];
+		if (Array.isArray(data.paths)) {
+			data.paths.forEach((path) => {
+				const edges: CadHatch["paths"][0]["edges"] = [];
+				const vertices: CadHatch["paths"][0]["vertices"] = [];
+				if (Array.isArray(path.edges)) {
+					path.edges.forEach((edge) => {
+						const start = Array.isArray(edge.start) ? new Vector3(...edge.start) : new Vector3();
+						const end = Array.isArray(edge.end) ? new Vector3(...edge.end) : new Vector3();
+						edges.push({start, end});
+					});
+				}
+				if (Array.isArray(path.vertices)) {
+					path.vertices.forEach((vertice) => {
+						vertices.push(new Vector3(...vertice));
+					});
+				}
+				this.paths.push({edges, vertices});
+			});
 			this.paths = data.paths;
-		} else {
-			this.paths = [];
 		}
+	}
+
+	export() {
+		const paths = [];
+		this.paths.forEach((path) => {
+			const edges = [];
+			const vertices = [];
+			path.edges.forEach((edge) => edges.push({start: edge.start.toArray(), end: edge.end.toArray()}));
+			path.vertices.forEach((vertice) => vertices.push(vertice.toArray()));
+			paths.push({edges, vertices});
+		});
+		return Object.assign(super.export(), {paths});
 	}
 }
 
@@ -581,7 +696,7 @@ export class CadLayer {
 	constructor(data: any = {}) {
 		this.color = index2RGB(data.color, "number") || 0;
 		this.name = data.name || "";
-		this.id = data.id || "";
+		this.id = data.id || MathUtils.generateUUID();
 		this.color = 0;
 		if (data._indexColor && typeof data.color === "number") {
 			this._indexColor = data._indexColor;
@@ -601,25 +716,25 @@ export class CadBaseLine {
 	name: string;
 	idX: string;
 	idY: string;
-	valueX?: number;
-	valueY?: number;
+	valueX: number;
+	valueY: number;
 	constructor(data: any = {}) {
 		this.name = data.name || "";
 		this.idX = data.idX || "";
 		this.idY = data.idY || "";
-		this.valueX = data.valueX || null;
-		this.valueY = data.valueY || null;
+		this.valueX = data.valueX || NaN;
+		this.valueY = data.valueY || NaN;
 	}
 }
 
 export class CadJointPoint {
 	name: string;
-	valueX?: number;
-	valueY?: number;
+	valueX: number;
+	valueY: number;
 	constructor(data: any = {}) {
 		this.name = data.name || "";
-		this.valueX = data.valueX || null;
-		this.valueY = data.valueY || null;
+		this.valueX = data.valueX || NaN;
+		this.valueY = data.valueY || NaN;
 	}
 }
 

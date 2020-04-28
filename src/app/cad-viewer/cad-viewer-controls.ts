@@ -1,5 +1,6 @@
 import {CadViewer} from "./cad-viewer";
 import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, BufferGeometry} from "three";
+import {EventEmitter} from "events";
 
 export interface CadViewerControlsConfig {
 	dragAxis?: "x" | "y" | "xy" | "";
@@ -8,6 +9,19 @@ export interface CadViewerControlsConfig {
 	maxScale?: number;
 	minScale?: number;
 	enableScale?: boolean;
+}
+
+export enum CadEvents {
+	entitySelect = "entityselect",
+	entityUnselect = "entityunselect",
+	dragStart = "dragstart",
+	drag = "drag",
+	dragEnd = "dragend",
+	click = "click",
+	wheel = "wheel",
+	keyboard = "keyboard"
+	// move = "move",
+	// scale = "scale"
 }
 
 export class CadViewerControls {
@@ -29,6 +43,7 @@ export class CadViewerControls {
 		componentName: ""
 	};
 	private _multiSelector: HTMLDivElement;
+	private _emitter = new EventEmitter();
 	constructor(cad: CadViewer, config?: CadViewerControlsConfig) {
 		this.cad = cad;
 		const dom = cad.dom;
@@ -54,6 +69,7 @@ export class CadViewerControls {
 			this._status.pTo.set(x, y);
 			this._status.dragging = true;
 			this._status.button = event.button;
+			this._emitter.emit(CadEvents.dragStart, event);
 		});
 		dom.addEventListener("pointermove", (event) => {
 			const p = new Vector2(event.clientX, event.clientY);
@@ -88,6 +104,7 @@ export class CadViewerControls {
 						this._multiSelector.style.height = Math.abs(pFrom.y - pTo.y) + "px";
 					}
 				}
+				this._emitter.emit(CadEvents.drag, event);
 			}
 			this._status.pTo.set(p.x, p.y);
 			if (this.config.selectMode !== "none") {
@@ -144,29 +161,41 @@ export class CadViewerControls {
 						}
 						cad.render();
 					}
+					this._emitter.emit(CadEvents.dragEnd, event);
 				}
 				const p = new Vector2(event.clientX, event.clientY);
 				const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
 				if (Math.abs(offset.x) < 5 && Math.abs(offset.y) < 5) {
 					const object = this._getInterSection(p);
 					if (object) {
+						const entity = cad.data.findEntity(object.name);
 						if (object.userData.selected === true) {
 							if (object instanceof Line) {
 								if (object.material instanceof LineBasicMaterial) {
 									object.userData.selected = false;
-									object.material.color.set(cad.data.findEntity(object.name)?.color);
+									object.material.color.set(entity?.color);
 								}
 							}
+							this._emitter.emit(CadEvents.entityUnselect, event, entity, object);
 						} else if (object.userData.selectable !== false) {
 							if (object instanceof Line) {
 								if (object.material instanceof LineBasicMaterial) {
+									if (this.config.selectMode === "single") {
+										cad.unselectAll();
+									}
 									object.userData.selected = true;
-									object.material.color.set(cad.config.selectedColor);
+									if (typeof cad.config.selectedColor === "number") {
+										object.material.color.set(cad.config.selectedColor);
+									} else {
+										object.material.color.set(entity?.color);
+									}
 								}
 							}
+							this._emitter.emit(CadEvents.entitySelect, event, entity, object);
 						}
 					}
 				}
+				this._emitter.emit(CadEvents.click, event);
 				this._status.dragging = false;
 			});
 		});
@@ -179,8 +208,9 @@ export class CadViewerControls {
 					cad.scale = Math.min(config.maxScale, cad.scale + 0.1);
 				}
 			}
+			this._emitter.emit(CadEvents.wheel, event);
 		});
-		window.addEventListener("keydown", (event) => {
+		dom.addEventListener("keydown", (event) => {
 			const {cad} = this;
 			const position = cad.position;
 			const step = 10 / cad.scale;
@@ -218,7 +248,12 @@ export class CadViewerControls {
 					break;
 				default:
 			}
+			this._emitter.emit(CadEvents.keyboard, event);
 		});
+	}
+
+	on(event: CadEvents, listener: (...args: any[]) => void) {
+		this._emitter.on(event, listener);
 	}
 
 	private _getNDC(point: Vector2) {

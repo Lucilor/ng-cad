@@ -12,11 +12,12 @@ import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
 })
 export class ListCadComponent implements OnInit {
 	length = 100;
-	pageSizeOptions = [10, 20, 30, 40, 50];
+	pageSizeOptions = [1, 10, 20, 30, 40, 50];
 	pageSize = 10;
 	pageData: {data: CadData; img: string; checked: boolean}[] = [];
 	width: 300;
 	height: 150;
+	searchInput: "";
 	searchValue: "";
 	checkedIndex = -1;
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;
@@ -37,9 +38,9 @@ export class ListCadComponent implements OnInit {
 		this.getData(event.pageIndex + 1);
 	}
 
-	async getData(page: number, search = "") {
+	async getData(page: number) {
 		const params = this.route.snapshot.queryParams;
-		const data = await this.dataService.getCadDataPage(params.encode, page, this.paginator.pageSize, search);
+		const data = await this.dataService.getCadDataPage(params.encode, page, this.paginator.pageSize, this.searchValue);
 		this.length = data.count;
 		this.pageData.length = 0;
 		data.data.forEach((d) => {
@@ -72,7 +73,9 @@ export class ListCadComponent implements OnInit {
 	}
 
 	search() {
-		this.getData(this.paginator.pageIndex + 1, this.searchValue);
+		this.searchValue = this.searchInput;
+		this.paginator.pageIndex = 0;
+		this.getData(this.paginator.pageIndex + 1);
 	}
 
 	searchKeydown(event: KeyboardEvent) {

@@ -14,5 +14,8 @@
 <div class="menu right">
 	<mat-accordion multi>
 		<app-cad-info #cadInfo [menu]="menu"></app-cad-info>
+		<app-cad-line #cadLine [cadInfo]="cadInfo" [menu]="menu"></app-cad-line>
 	</mat-accordion>
 </div>
+
+<app-line-indicator [menu]="menu" [cadInfo]="cadInfo" [cadLine]="cadLine"></app-line-indicator>

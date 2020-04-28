@@ -179,28 +179,21 @@ export class EditCadComponent implements AfterViewInit {
 				if (status.mode.type === "dimension") {
 					const currCad = this.cad;
 					status.cadIdx = prevCadIdx;
-					const vIdx = this.getVIdx("dimensions");
 					const prevCad = this.cad;
 					const dimension = prevCad.data.entities.dimension[index];
-					const vDimension = vCad.data.entities.dimension[vIdx + index];
 					if (!dimension.entity1) {
 						dimension.entity1 = {id: entity.id, location: "start"};
 						dimension.cad1 = currCad.data.name;
-						vDimension.entity1 = {id: entity.id, location: "start"};
-						vDimension.cad1 = currCad.data.name;
 					} else if (!dimension.entity2) {
 						dimension.entity2 = {id: entity.id, location: "end"};
 						dimension.cad2 = currCad.data.name;
-						vDimension.entity2 = {id: entity.id, location: "end"};
-						vDimension.cad2 = currCad.data.name;
 					} else {
 						dimension.entity1 = dimension.entity2;
 						dimension.entity2 = {id: entity.id, location: "end"};
 						dimension.cad2 = currCad.data.name;
-						vDimension.entity1 = vDimension.entity2;
-						vDimension.entity2 = {id: entity.id, location: "end"};
-						vDimension.cad2 = currCad.data.name;
 					}
+					const vIdx = this.getVIdx("dimensions");
+					vCad.data.entities.dimension[vIdx + index] = dimension;
 				}
 				vCad.render();
 			}
@@ -252,16 +245,16 @@ export class EditCadComponent implements AfterViewInit {
 			setData(v.data);
 			const newData = v.exportData();
 			// setData(newData);
-			// const rect1 = vCad.getBounds();
-			// const rect2 = v.getBounds();
-			// const offset = new Point(rect1.x - rect2.x, rect1.y - rect2.y);
-			// offset.x += rect1.width + 15;
-			// offset.y += (rect1.height - rect2.height) / 2;
-			// vCad.transformEntities(newData.entities, {translate: offset});
-			// newData.jointPoints.forEach((p) => {
-			// 	p.valueX += offset.x;
-			// 	p.valueY += offset.y;
-			// });
+			const rect1 = vCad.getBounds();
+			const rect2 = v.getBounds();
+			const offset = new Point(rect1.x - rect2.x, rect1.y - rect2.y);
+			offset.x += rect1.width + 15;
+			offset.y += (rect1.height - rect2.height) / 2;
+			vCad.transformEntities(newData.entities, {translate: offset});
+			newData.jointPoints.forEach((p) => {
+				p.valueX += offset.x;
+				p.valueY += offset.y;
+			});
 
 			for (const key in newData.entities) {
 				vCad.data.entities[key] = vCad.data.entities[key].concat(newData.entities[key]);
@@ -455,6 +448,7 @@ export class EditCadComponent implements AfterViewInit {
 		const vCad = this.vCad;
 		const entities = this.cad.flatEntities();
 		const ids = entities.map((e) => e.id);
+		console.log();
 		entities.forEach((e) => {
 			if (e.container) {
 				if (e.type === CadTypes.Line) {

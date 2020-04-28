@@ -8,6 +8,7 @@ import {Angle} from "@lucilor/utils";
 import {CadMenu} from "../cad-menu/cad-menu.common";
 import {MatDialog} from "@angular/material/dialog";
 import {CadInfoComponent} from "../cad-menu/cad-info/cad-info.component";
+import {CadLineComponent} from "../cad-menu/cad-line/cad-line.component";
 
 const title = "编辑CAD";
 @Component({
@@ -18,6 +19,7 @@ const title = "编辑CAD";
 export class EditCadComponent implements OnInit, AfterViewInit {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	@ViewChild("cadInfo", {read: CadInfoComponent}) cadInfo: CadInfoComponent;
+	@ViewChild("cadLine", {read: CadLineComponent}) cadLine: CadLineComponent;
 	cad: CadViewer;
 	rotateAngle = 0;
 	drawDimensions = true;
@@ -35,7 +37,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			showLineLength: 8
 		});
 		this.cad.setControls({selectMode: "single"});
-		this.menu = new CadMenu(dialog, this.cad, true);
+		this.menu = new CadMenu(dialog, this.cad, true, dataService);
 	}
 
 	async ngOnInit() {
@@ -46,6 +48,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		this.cad.render(true);
 		this.menu.initData();
 		this.cadInfo.updateCadLength();
+		document.title = `${title}-${data.map((d) => d.name).join(",")}`;
 	}
 
 	ngAfterViewInit() {

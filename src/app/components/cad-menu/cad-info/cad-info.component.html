@@ -42,7 +42,7 @@
 		<button
 			mat-raised-button
 			[color]="menu.mode.type === 'baseLine' && menu.mode.index === i ? 'accent' : 'primary'"
-			(click)="menu.selectBaseline(i)"
+			(click)="selectBaseline(i)"
 		>
 			&nbsp;基准&nbsp;
 		</button>
@@ -58,7 +58,7 @@
 		<button
 			mat-raised-button
 			[color]="menu.mode.type === 'jointPoint' && menu.mode.index === i ? 'accent' : 'primary'"
-			(click)="menu.selectJointPoint(i)"
+			(click)="selectJointPoint(i)"
 		>
 			连接点
 		</button>
@@ -71,7 +71,7 @@
 		</mat-form-field>
 	</div>
 	<div class="btn-group">
-		<button mat-raised-button color="accent" (click)="submit()">确定修改</button>
+		<button mat-raised-button color="accent" (click)="menu.submit()">确定修改</button>
 		<button mat-raised-button color="accent" (click)="replaceData()">替换数据</button>
 	</div>
 </mat-expansion-panel>

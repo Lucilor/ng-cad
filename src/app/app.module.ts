@@ -33,6 +33,8 @@ import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
 import {PlaygroundComponent} from "@components/playground/playground.component";
 import {CadInfoComponent} from "./components/cad-menu/cad-info/cad-info.component";
+import {CadLineComponent} from "./components/cad-menu/cad-line/cad-line.component";
+import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-indicator.component";
 
 @NgModule({
 	declarations: [
@@ -47,7 +49,9 @@ import {CadInfoComponent} from "./components/cad-menu/cad-info/cad-info.componen
 		PrintCadComponent,
 		ListCadComponent,
 		PlaygroundComponent,
-		CadInfoComponent
+		CadInfoComponent,
+		CadLineComponent,
+		LineIndicatorComponent
 	],
 	imports: [
 		BrowserModule,

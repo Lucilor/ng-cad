@@ -1,0 +1,82 @@
+<mat-expansion-panel expanded>
+	<mat-expansion-panel-header>
+		<mat-panel-title>线段信息</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div class="line-info length">
+		<label>长度</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input
+				matInput
+				type="number"
+				(change)="setLineLength($event)"
+				[ngModel]="line?.length"
+				placeholder="请输入长度"
+				[disabled]="!line"
+			/>
+		</mat-form-field>
+	</div>
+	<div class="line-info color">
+		<label>颜色</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<mat-select
+				[ngModel]="getCssColor()"
+				[style]="{color: getCssColor(getCssColor()), backgroundColor: getCssColor()}"
+				(selectionChange)="setLineColor($event)"
+				[disabled]="!line"
+			>
+				<mat-option
+					*ngFor="let color of selectableColors"
+					[value]="color"
+					[style]="{color: getCssColor(color), backgroundColor: color}"
+				>
+					{{ color }}
+				</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<div class="line-info mingzi">
+		<label>名字</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input
+				matInput
+				type="text"
+				(change)="setLineText($event, 'mingzi')"
+				[ngModel]="line?.mingzi"
+				placeholder="请输入名字"
+				[disabled]="!line"
+			/>
+		</mat-form-field>
+	</div>
+	<div class="line-info qujian">
+		<label>区间</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input
+				matInput
+				type="text"
+				(change)="setLineText($event, 'qujian')"
+				[ngModel]="line?.qujian"
+				placeholder="请输入区间"
+				[disabled]="!line"
+			/>
+		</mat-form-field>
+	</div>
+	<div class="line-info gongshi">
+		<label>公式</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input
+				matInput
+				type="text"
+				(change)="setLineText($event, 'qujigongshian')"
+				[ngModel]="line?.gongshi || ''"
+				placeholder="请输入公式"
+				[disabled]="!line"
+			/>
+		</mat-form-field>
+	</div>
+	<button mat-raised-button color="accent" [disabled]="!menu.cad" (click)="menu.submit()">确定修改</button>
+</mat-expansion-panel>

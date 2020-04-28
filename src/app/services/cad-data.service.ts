@@ -10,7 +10,7 @@ import {LoadingAction, ActionTypes} from "../store/actions";
 import {Response} from "../app.common";
 import {CadData} from "../cad-viewer/cad-data";
 import {CadViewer} from "../cad-viewer/cad-viewer";
-import {SessionStorage} from "@lucilor/utils";
+import {SessionStorage, RSAEncrypt} from "@lucilor/utils";
 
 const session = new SessionStorage("cad-data");
 
@@ -67,6 +67,92 @@ export class CadDataService {
 			return null;
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadData"});
+		}
+	}
+
+	async postCadData(cadData: CadData[]) {
+		const {baseURL, encode, data} = this;
+		const result: CadData[] = [];
+		let counter = 0;
+		let successCounter = 0;
+		this.store.dispatch<LoadingAction>({
+			type: ActionTypes.setLoadingProgress,
+			name: "postCadData",
+			progress: 0
+		});
+		return new Promise<CadData[]>((resolve) => {
+			cadData.forEach(async (d, i) => {
+				const formData = new FormData();
+				if (data) {
+					formData.append("data", data);
+				}
+				formData.append("cadData", JSON.stringify(d.export()));
+				try {
+					const response = await this.http.post<Response>(`${baseURL}/peijian/cad/setCAD/${encode}`, formData).toPromise();
+					if (response.code === 0) {
+						const {json, 分类, 名字, 条件, 选项} = response.data;
+						if (!json) {
+							return null;
+						}
+						// TODO 返回格式
+						json.name = 名字;
+						json.type = 分类;
+						json.options = 选项;
+						json.conditions = 条件;
+						result[i] = json;
+						successCounter++;
+					} else {
+						throw new Error(response.msg);
+					}
+				} catch (error) {
+					result[i] = null;
+				} finally {
+					counter++;
+				}
+				this.store.dispatch<LoadingAction>({
+					type: ActionTypes.setLoadingProgress,
+					name: "postCadData",
+					progress: counter / cadData.length
+				});
+				if (counter / cadData.length >= 1) {
+					setTimeout(() => {
+						this.store.dispatch<LoadingAction>({
+							type: ActionTypes.setLoadingProgress,
+							name: "postCadData",
+							progress: -1
+						});
+					}, 200);
+				}
+				if (counter >= cadData.length) {
+					if (successCounter === counter) {
+						this.snackBar.open(`${successCounter > 1 ? "全部" : ""}成功`);
+					} else {
+						this.snackBar.open(`${counter > 1 ? (successCounter > 0 ? "部分" : "全部") : ""}失败`);
+					}
+					resolve(result);
+				}
+			});
+		});
+	}
+
+	async replaceData(source: CadData, target: string) {
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
+		const {baseURL, encode} = this;
+		try {
+			const data = new FormData();
+			data.append("data", RSAEncrypt({source: source.export(), target}));
+			const response = await this.http.post<Response>(`${baseURL}/peijian/cad/replaceCad/${encode}`, data).toPromise();
+			if (response.code === 0 && response.data) {
+				this.snackBar.open(response.msg);
+				return new CadData(response.data);
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alert(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
 		}
 	}
 

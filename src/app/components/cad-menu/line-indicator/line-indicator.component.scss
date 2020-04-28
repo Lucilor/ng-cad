@@ -1,0 +1,52 @@
+.line-indicator {
+	$point-size: 20px;
+	.point {
+		position: absolute;
+		width: $point-size;
+		height: $point-size;
+		border-radius: 20px;
+		background-color: white;
+		cursor: pointer;
+		transform: translate(-50%, -50%);
+		user-select: none;
+		top: -$point-size;
+		left: -$point-size;
+
+		&.start-point,
+		&.end-point {
+			&:hover {
+				opacity: 0.9;
+				background-color: rgb(53, 53, 53);
+			}
+		}
+
+		$selected-color: rgb(0, 0, 255);
+		&.joint-point {
+			animation: point 2.2s linear infinite;
+			&:hover {
+				opacity: 0.9;
+				background-color: $selected-color;
+			}
+			&.selected {
+				background-color: $selected-color;
+				animation: unset;
+			}
+		}
+
+		@keyframes point {
+			0% {
+				transform: translate(-50%, -50%) scale(1);
+			}
+			50% {
+				transform: translate(-50%, -50%) scale(1.2);
+			}
+			100% {
+				transform: translate(-50%, -50%) scale(1);
+			}
+		}
+	}
+
+	input {
+		position: absolute;
+	}
+}

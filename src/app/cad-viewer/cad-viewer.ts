@@ -30,7 +30,7 @@ export class CadStyle {
 	constructor(params: {color?: number; lineWidth?: number; fontSize?: number} = {}, cad?: CadViewer, entity?: CadEntity) {
 		const selected = cad.objects[entity?.id]?.userData.selected;
 		this.color = params.color || entity?.color || 0;
-		if (selected) {
+		if (selected && typeof cad.config.selectedColor === "number") {
 			this.color = cad.config.selectedColor;
 		}
 		if (cad.config.reverseSimilarColor) {
@@ -252,17 +252,16 @@ export class CadViewer {
 		return entities.getBounds();
 	}
 
-	private _setAnchor(sprite: TextSprite, position: Vector3, anchor: number[]) {
+	private _setAnchor(sprite: TextSprite, position: Vector3, anchor: Vector3) {
 		sprite.position.copy(position);
-		const offset = new Vector2(...anchor).subScalar(0.5).multiply(new Vector2(-sprite.width, sprite.height));
+		const offset = anchor.subScalar(0.5).multiply(new Vector3(-sprite.width, sprite.height));
 		sprite.position.add(new Vector3(offset.x, offset.y, 0));
 	}
 
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects, config} = this;
 		const showLineLength = config.showLineLength;
-		const start = new Vector3(...entity.start);
-		const end = new Vector3(...entity.end);
+		const {start, end} = entity;
 		const length = start.distanceTo(end);
 		const middle = start.clone().add(end).divideScalar(2);
 		if (length <= 0) {
@@ -271,12 +270,12 @@ export class CadViewer {
 		const {lineWidth, color} = new CadStyle(style, this, entity);
 		const colorStr = new Color(color).getStyle();
 		const slope = (start.y - end.y) / (start.x - end.x);
-		const anchor = [0.5, 0.5];
+		const anchor = new Vector3(0.5, 0.5);
 		if (slope === 0) {
-			anchor[1] = 1;
+			anchor.y = 1;
 		}
 		if (!isFinite(slope)) {
-			anchor[0] = 1;
+			anchor.x = 1;
 		}
 		if (objects[entity.id]) {
 			const line = objects[entity.id] as Line;
@@ -309,7 +308,7 @@ export class CadViewer {
 	private _drawCircle(entity: CadCircle, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {radius} = entity;
-		const center = new Vector3(...entity.center);
+		const center = entity.center;
 		const curve = new EllipseCurve(center.x, center.y, radius, radius, 0, Math.PI * 2, true, 0);
 		const points = curve.getPoints(50);
 		const {lineWidth, color} = new CadStyle(style, this, entity);
@@ -330,8 +329,7 @@ export class CadViewer {
 
 	private _drawArc(entity: CadArc, style: CadStyle = {}) {
 		const {scene, objects} = this;
-		const {radius, start_angle, end_angle, clockwise} = entity;
-		const center = new Vector3(...entity.center);
+		const {center, radius, start_angle, end_angle, clockwise} = entity;
 		const curve = new EllipseCurve(
 			center.x,
 			center.y,
@@ -374,7 +372,7 @@ export class CadViewer {
 			sprite.userData.selectable = false;
 			sprite.name = entity.id;
 			sprite.padding = 0;
-			this._setAnchor(sprite, new Vector3(...entity.insert), entity.anchor);
+			this._setAnchor(sprite, entity.insert, entity.anchor);
 			objects[entity.id] = sprite;
 			scene.add(sprite);
 		}
@@ -409,13 +407,13 @@ export class CadViewer {
 
 		const getPoint = (e: CadLine, location: string) => {
 			if (location === "start") {
-				return new Vector3(...e.start);
+				return e.start;
 			}
 			if (location === "end") {
-				return new Vector3(...e.start);
+				return e.start;
 			}
 			if (location === "center") {
-				return new Vector3(...e.start).add(new Vector3(...e.end)).divideScalar(2);
+				return e.start.add(e.end).divideScalar(2);
 			}
 		};
 		let p1 = getPoint(entity1, entity.entity1.location);
@@ -552,5 +550,13 @@ export class CadViewer {
 		this.objects = {};
 		this.data = data;
 		return this.render();
+	}
+
+	translatePoint(point: Vector2 | Vector3) {
+		const result = new Vector2();
+		const {scale, width, height} = this;
+		result.x = (point.x - this.position.x) * scale + width / 2;
+		result.y = height / 2 - (point.y - this.position.y) * scale;
+		return result;
 	}
 }
