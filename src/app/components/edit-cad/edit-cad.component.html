@@ -9,8 +9,10 @@
 	<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
 	<button mat-raised-button color="primary" (click)="drawDimensions = !drawDimensions">{{ drawDimensions ? "隐藏" : "显示" }}标注</button>
 	<button mat-raised-button color="primary" (click)="drawMTexts = !drawMTexts">{{ drawMTexts ? "隐藏" : "显示" }}MTexts</button>
-	<button mat-raised-button color="accent" *ngIf="cadsData?.length > 1" (click)="submitAll()">修改全部</button>
+	<button mat-raised-button color="accent" *ngIf="cad.data.components.data.length > 1" (click)="submitAll()">修改全部</button>
 </div>
 <div class="menu right">
-	<mat-accordion multi></mat-accordion>
+	<mat-accordion multi>
+		<app-cad-info #cadInfo [menu]="menu"></app-cad-info>
+	</mat-accordion>
 </div>

@@ -1,4 +1,4 @@
-import {MathUtils, Vector2} from "three";
+import {MathUtils, Vector2, ArcCurve} from "three";
 import {index2RGB, Line, Point, Angle, Arc} from "@lucilor/utils";
 import {cloneDeep} from "lodash";
 
@@ -40,6 +40,7 @@ export class CadData {
 	parent: string;
 	partners: CadData[];
 	components: Components;
+	visible = true;
 	constructor(data: any = {}) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
@@ -112,16 +113,24 @@ export class CadData {
 	 * 010: this.partners entities
 	 * 001: components.partners entities
 	 */
-	getAllEntities(mode = 0b111) {
+	getAllEntities(mode = 0b111, visibleOnly = true) {
 		const result = new CadEntities();
 		if (mode & 0b100) {
 			result.merge(this.entities);
 		}
 		if (mode & 0b010) {
-			this.partners.forEach((p) => result.merge(p.entities));
+			this.partners.forEach((p) => {
+				if (!visibleOnly || p.visible) {
+					result.merge(p.entities);
+				}
+			});
 		}
 		if (mode & 0b001) {
-			this.components.data.forEach((c) => result.merge(c.entities));
+			this.components.data.forEach((c) => {
+				if (!visibleOnly || c.visible) {
+					result.merge(c.entities);
+				}
+			});
 		}
 		return result;
 	}
@@ -213,6 +222,23 @@ export class CadData {
 			v.valueY = point.y;
 		});
 	}
+
+	addComponent(component: CadData) {
+		const rect1 = this.getAllEntities().getBounds();
+		const rect2 = component.entities.getBounds();
+		const offset1 = [rect1.x - rect2.x, rect1.y - rect2.y];
+		offset1[0] += (rect1.width + rect2.width) / 2 + 15;
+		// offset1[1] += (rect1.height - rect2.height) / 2;
+		component.transform({translate: offset1});
+		const data = this.components.data;
+		const prev = data.findIndex((v) => v.name === component.name);
+		if (prev > -1) {
+			data[prev] = component;
+		} else {
+			data.push(component);
+		}
+		return this;
+	}
 }
 
 export class CadEntities {
@@ -300,6 +326,47 @@ export class CadEntities {
 			(this[v] as CadEntity[]).forEach((e) => e.transform(params));
 		});
 	}
+
+	getBounds() {
+		let maxX = -Infinity;
+		let minX = Infinity;
+		let maxY = -Infinity;
+		let minY = Infinity;
+		const calc = (point: Vector2) => {
+			maxX = Math.max(point.x, maxX);
+			maxY = Math.max(point.y, maxY);
+			minX = Math.min(point.x, minX);
+			minY = Math.min(point.y, minY);
+		};
+		this.line.forEach((entity) => {
+			const {start, end} = entity;
+			calc(new Vector2(...start));
+			calc(new Vector2(...end));
+		});
+		this.arc.forEach((entity) => {
+			const arcEntity = entity;
+			const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
+			const arc = new ArcCurve(
+				center[0],
+				center[1],
+				radius,
+				MathUtils.degToRad(start_angle),
+				MathUtils.degToRad(end_angle),
+				clockwise
+			);
+			calc(arc.getPoint(0));
+			calc(arc.getPoint(1));
+		});
+		this.circle.forEach((entity) => {
+			const {center, radius} = entity;
+			calc(new Vector2(...center).addScalar(radius));
+			calc(new Vector2(...center).subScalar(radius));
+		});
+		if (!isFinite(maxX + minX) || !isFinite(maxY + minY)) {
+			return {x: 0, y: 0, width: 0, height: 0};
+		}
+		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
+	}
 }
 
 export class CadEntity {
@@ -315,7 +382,7 @@ export class CadEntity {
 		if (Object.values(cadTypes).includes(data.type)) {
 			this.type = data.type;
 		} else {
-			throw new Error("Unrecognized cad type.");
+			throw new Error(`Unrecognized cad type: ${data.type}`);
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
 		this.layer = typeof data.layer === "string" ? data.layer : "0";
@@ -347,7 +414,7 @@ export class CadLine extends CadEntity {
 	mingzi?: string;
 	qujian?: string;
 	gongshi?: string;
-	constructor(data?: any, layers: CadLayer[] = []) {
+	constructor(data: any = {type: cadTypes.line}, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.start = Array.isArray(data.start) ? data.start.slice(0, 3) : [0, 0, 0];
 		this.end = Array.isArray(data.end) ? data.end.slice(0, 3) : [0, 0, 0];
@@ -376,7 +443,7 @@ export class CadLine extends CadEntity {
 export class CadCircle extends CadEntity {
 	center: number[];
 	radius: number;
-	constructor(data?: any, layers: CadLayer[] = []) {
+	constructor(data: any = {type: cadTypes.circle}, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.center = Array.isArray(data.center) ? data.center.slice(0, 3) : [0, 0, 0];
 		this.radius = data.radius || 0;
@@ -402,7 +469,7 @@ export class CadArc extends CadEntity {
 	start_angle: number;
 	end_angle: number;
 	clockwise?: boolean;
-	constructor(data?: any, layers: CadLayer[] = []) {
+	constructor(data: any = {type: cadTypes.arc}, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.center = Array.isArray(data.center) ? data.center.slice(0, 3) : [0, 0, 0];
 		this.radius = data.radius || 0;
@@ -436,7 +503,7 @@ export class CadMtext extends CadEntity {
 	font_size: number;
 	text: string;
 	anchor: number[];
-	constructor(data?: any, layers: CadLayer[] = []) {
+	constructor(data: any = {type: cadTypes.mtext}, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.insert = Array.isArray(data.insert) ? data.insert.slice(0, 3) : [0, 0, 0];
 		this.font_size = data.font_size || 16;
@@ -462,7 +529,7 @@ export class CadDimension extends CadEntity {
 	cad2?: string;
 	mingzi?: string;
 	qujian?: string;
-	constructor(data?: any, layers: CadLayer[] = []) {
+	constructor(data: any = {type: cadTypes.dimension}, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.font_size = data.font_size || 16;
 		this.dimstyle = data.dimstyle || "";
@@ -496,7 +563,7 @@ export class CadHatch extends CadEntity {
 		}[];
 		vertices?: number[][];
 	}[];
-	constructor(data?: any, layers: CadLayer[] = []) {
+	constructor(data: any = {type: cadTypes.hatch}, layers: CadLayer[] = []) {
 		super(data, layers);
 		if (data.paths) {
 			this.paths = data.paths;
@@ -511,7 +578,7 @@ export class CadLayer {
 	color: number;
 	name: string;
 	_indexColor: number;
-	constructor(data?: any) {
+	constructor(data: any = {}) {
 		this.color = index2RGB(data.color, "number") || 0;
 		this.name = data.name || "";
 		this.id = data.id || "";
@@ -536,7 +603,7 @@ export class CadBaseLine {
 	idY: string;
 	valueX?: number;
 	valueY?: number;
-	constructor(data?: any) {
+	constructor(data: any = {}) {
 		this.name = data.name || "";
 		this.idX = data.idX || "";
 		this.idY = data.idY || "";
@@ -549,7 +616,7 @@ export class CadJointPoint {
 	name: string;
 	valueX?: number;
 	valueY?: number;
-	constructor(data?: any) {
+	constructor(data: any = {}) {
 		this.name = data.name || "";
 		this.valueX = data.valueX || null;
 		this.valueY = data.valueY || null;

@@ -1,11 +1,11 @@
-import {CadData, CadLine, cadTypes, CadEntity} from "@app/cad-viewer/cad-data";
+import {CadData, CadLine, cadTypes, CadEntity, CadOption, CadBaseLine, CadJointPoint, CadDimension} from "@app/cad-viewer/cad-data";
 import {AlertComponent} from "../alert/alert.component";
-import {cloneDeep} from "lodash";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
-import {Line, LineBasicMaterial, Material, Mesh, Vector2} from "three";
+import {Line, Material, Mesh} from "three";
 import {Angle, Arc, Point} from "@lucilor/utils";
 
+const emptyData = new CadData();
 interface Mode {
 	type: "normal" | "baseLine" | "dimension" | "jointPoint";
 	index: number;
@@ -20,7 +20,7 @@ interface LinesAtPoint {
 
 export class CadMenu {
 	cad: CadViewer;
-	cadsData?: CadData[];
+	multi?: boolean;
 	dialog: MatDialog;
 	entity: CadLine;
 	mode: Mode;
@@ -28,92 +28,118 @@ export class CadMenu {
 	dimension: string;
 	cadIdx = 0;
 	partner: string;
-	private initVals = {
-		options: {name: "", value: ""},
-		conditions: "",
-		baseLines: {name: "", idX: "", idY: ""},
-		jointPoints: {name: "", valueX: null, valueY: null},
-		dimensions: {
-			axis: "x",
-			color: 7,
-			type: "DIMENSION",
-			entity1: {id: "", location: "start"},
-			entity2: {id: "", location: "end"},
-			distance: 16,
-			font_size: 16,
-			dimstyle: ""
-		}
-	};
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	readonly accuracy = 0.01;
 	pointsMap: LinesAtPoint[];
 
-	constructor(dialog: MatDialog, cad: CadViewer, cadsData?: CadData[]) {
+	constructor(dialog: MatDialog, cad: CadViewer, multi = false) {
 		this.cad = cad;
 		this.dialog = dialog;
 		this.mode = {type: "normal", index: 0};
+		this.multi = multi;
 	}
 
-	getVIdx(field: string) {
-		let index = 0;
-		if (field === "dimensions") {
-			for (let i = 0; i < this.cadIdx; i++) {
-				index += this.cadsData[i].entities.dimension.length;
-			}
-			// index += Math.max(0, this.mode.index);
+	initData() {
+		if (this.multi) {
+			this.cad.data.components.data.forEach((d, i) => {
+				this.setData(d, i);
+			});
 		} else {
-			for (let i = 0; i < this.cadIdx; i++) {
-				index += this.cadsData[i][field].length;
-			}
-			// index += Math.max(0, this.mode.index);
-		}
-		return index;
-	}
-
-	addItem(i: number, field: string, cadIdx: number) {
-		const initVal = cloneDeep(this.initVals[field]);
-		let arr1: any;
-		let arr2: any;
-		if (field === "dimensions") {
-			arr1 = this.cad.data.entities.dimension;
-			arr2 = this.cadsData?.[cadIdx].entities.dimension;
-		} else {
-			arr1 = this.cad.data[field];
-			arr2 = this.cadsData?.[cadIdx][field];
-		}
-		arr1.splice(i + 1, 0, initVal);
-		if (arr2) {
-			arr2.splice(this.getVIdx(field) + 1, 0, initVal);
+			this.setData(this.cad.data, 0);
 		}
 	}
 
-	removeItem(i: number, field: string) {
-		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
-		let arr1: any;
-		let arr2: any;
-		if (field === "dimensions") {
-			arr1 = this.cad.data.entities.dimension;
-			arr2 = this.cadsData?.[this.cadIdx].entities.dimension;
-		} else {
-			arr1 = this.cad.data[field];
-			arr2 = this.cadsData?.[this.cadIdx][field];
+	getData(cadIdx = this.cadIdx) {
+		const {multi, cad} = this;
+		return (multi ? cad.data.components.data[cadIdx] : cad.data) || emptyData;
+	}
+
+	setData(d: CadData, cadIdx: number) {
+		if (d.options.length < 1) {
+			this.addOption(0, cadIdx);
 		}
-		ref.afterClosed().subscribe((res) => {
-			if (res === true) {
-				const initVal = JSON.parse(JSON.stringify(this.initVals[field]));
-				if (arr1.length === 1) {
-					arr1[0] = initVal;
-					if (arr2) {
-						arr2[this.getVIdx(field)] = initVal;
-					}
-				} else {
-					arr1.splice(i, 1);
-					if (arr2) {
-						arr2.splice(this.getVIdx(field), 1);
-					}
-				}
+		if (d.conditions.length < 1) {
+			this.addCondition(0, cadIdx);
+		}
+		if (d.baseLines.length < 1) {
+			this.addBaseLine(0, cadIdx);
+		}
+		if (d.jointPoints.length < 1) {
+			this.addJointPoint(0, cadIdx);
+		}
+		if (d.entities.dimension.length < 1) {
+			this.addDimension(0, cadIdx);
+		}
+	}
+
+	addOption(i: number, cadIdx = this.cadIdx) {
+		this.getData(cadIdx).options.splice(i + 1, 0, new CadOption());
+	}
+	async removeOption(i: number, cadIdx = this.cadIdx) {
+		if ((await this._beforeRemove()) === true) {
+			const arr = this.getData(cadIdx).options;
+			if (arr.length === 1) {
+				arr[0] = new CadOption();
+			} else {
+				arr.splice(i, 1);
 			}
-		});
+		}
+	}
+
+	addCondition(i: number, cadIdx = this.cadIdx) {
+		this.getData(cadIdx).conditions.splice(i + 1, 0, "");
+	}
+	async removeCondition(i: number, cadIdx = this.cadIdx) {
+		if ((await this._beforeRemove()) === true) {
+			const arr = this.getData(cadIdx).conditions;
+			if (arr.length === 1) {
+				arr[0] = "";
+			} else {
+				arr.splice(i, 1);
+			}
+		}
+	}
+
+	addBaseLine(i: number, cadIdx = this.cadIdx) {
+		this.getData(cadIdx).baseLines.splice(i + 1, 0, new CadBaseLine());
+	}
+	async removeBaseLine(i: number, cadIdx = this.cadIdx) {
+		if ((await this._beforeRemove()) === true) {
+			const arr = this.getData(cadIdx).baseLines;
+			if (arr.length === 1) {
+				arr[0] = new CadBaseLine();
+			} else {
+				arr.splice(i, 1);
+			}
+		}
+	}
+
+	addJointPoint(i: number, cadIdx = this.cadIdx) {
+		this.getData(cadIdx).jointPoints.splice(i + 1, 0, new CadJointPoint());
+	}
+	async removeJointPoint(i: number, cadIdx = this.cadIdx) {
+		if ((await this._beforeRemove()) === true) {
+			const arr = this.getData(cadIdx).jointPoints;
+			if (arr.length === 1) {
+				arr[0] = new CadJointPoint();
+			} else {
+				arr.splice(i, 1);
+			}
+		}
+	}
+
+	addDimension(i: number, cadIdx = this.cadIdx) {
+		this.getData(cadIdx).entities.dimension.splice(i + 1, 0, new CadDimension());
+	}
+	async removeDimension(i: number, cadIdx = this.cadIdx) {
+		if ((await this._beforeRemove()) === true) {
+			const arr = this.getData(cadIdx).entities.dimension;
+			if (arr.length === 1) {
+				arr[0] = new CadDimension();
+			} else {
+				arr.splice(i, 1);
+			}
+		}
 	}
 
 	selectLineBegin(type: Mode["type"], index: number) {
@@ -175,12 +201,13 @@ export class CadMenu {
 		this.mode.type = "normal";
 	}
 
-	selectBaseline(i: number, cadIdx: number) {
+	selectBaseline(i: number) {
 		const {mode, cad} = this;
 		if (mode.type === "baseLine" && mode.index === i) {
 			this.selectLineEnd();
 		} else {
-			const {idX, idY} = cad.data.baseLines[this.getVIdx("baseLines")];
+			// const data = multi?cad.data.components.data[cadIdx]
+			const {idX, idY} = this.getData().baseLines[i];
 			Object.values(cadTypes).forEach((type) => {
 				(cad.data.entities[type] as CadEntity[]).forEach((e) => {
 					const object = cad.objects[e.id] as Mesh;
@@ -205,12 +232,11 @@ export class CadMenu {
 	}
 
 	onJointPointClick(i: number) {
-		const {pointsMap, cad, cadsData, mode} = this;
+		const {pointsMap, mode} = this;
 		pointsMap.forEach((v, j) => (v.selected = i === j));
 		const index = mode.index;
-		const vIdx = this.getVIdx("jointPoints");
 		const point = pointsMap[i].point;
-		const jointPoint = cad.data.jointPoints[index];
+		const jointPoint = this.getData().jointPoints[index];
 		jointPoint.valueX = point.x;
 		jointPoint.valueY = point.y;
 		// const vJointPoint = vCad.data.jointPoints[vIdx + index];
@@ -219,7 +245,7 @@ export class CadMenu {
 	}
 
 	private generatePointsMap() {
-		const {cad, accuracy, cadsData} = this;
+		const {cad, accuracy} = this;
 		if (!this.cad) {
 			this.pointsMap = [];
 			return;
@@ -233,7 +259,6 @@ export class CadMenu {
 				pointsMap.push({point, lines: [line], tPoint: new Point(), selected: false});
 			}
 		};
-		const vIdx = this.getVIdx("entities");
 		// const entities = vCad.flatEntities().slice(vIdx, vIdx + cad.flatEntities().length);
 		cad.data.entities.line.forEach((entity) => {
 			const start = new Point(entity.start);
@@ -253,5 +278,14 @@ export class CadMenu {
 			}
 		});
 		this.pointsMap = pointsMap;
+	}
+
+	private _beforeRemove() {
+		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
+		return new Promise((r) => {
+			ref.afterClosed().subscribe((res) => {
+				r(res);
+			});
+		});
 	}
 }

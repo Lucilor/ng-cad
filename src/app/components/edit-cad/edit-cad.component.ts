@@ -1,4 +1,4 @@
-import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
+import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/core";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData, CadLine, CadDimension} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
@@ -7,6 +7,7 @@ import {environment} from "@src/environments/environment";
 import {Angle} from "@lucilor/utils";
 import {CadMenu} from "../cad-menu/cad-menu.common";
 import {MatDialog} from "@angular/material/dialog";
+import {CadInfoComponent} from "../cad-menu/cad-info/cad-info.component";
 
 const title = "编辑CAD";
 @Component({
@@ -14,31 +15,19 @@ const title = "编辑CAD";
 	templateUrl: "./edit-cad.component.html",
 	styleUrls: ["./edit-cad.component.scss"]
 })
-export class EditCadComponent implements AfterViewInit {
+export class EditCadComponent implements OnInit, AfterViewInit {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
+	@ViewChild("cadInfo", {read: CadInfoComponent}) cadInfo: CadInfoComponent;
 	cad: CadViewer;
-	cadsData: CadData[];
 	rotateAngle = 0;
 	drawDimensions = true;
 	drawMTexts = true;
 	menu: CadMenu;
-	get cadData() {
-		return this.cadsData[this.menu.cadIdx];
-	}
 	constructor(private route: ActivatedRoute, private dataService: CadDataService, private dialog: MatDialog) {
-		this.menu = new CadMenu(dialog, this.cad, this.cadsData);
-	}
-
-	async ngAfterViewInit() {
-		document.title = title;
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
-		this.cadsData = await this.dataService.getCadData();
-		const vData = new CadData();
-		this.cadsData.forEach((d) => {
-			vData.merge(d);
-		});
-		this.cad = new CadViewer(vData, {
+		document.title = title;
+		this.cad = new CadViewer(new CadData(), {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
@@ -46,6 +35,20 @@ export class EditCadComponent implements AfterViewInit {
 			showLineLength: 8
 		});
 		this.cad.setControls({selectMode: "single"});
+		this.menu = new CadMenu(dialog, this.cad, true);
+	}
+
+	async ngOnInit() {
+		const data = await this.dataService.getCadData();
+		data.forEach((d) => {
+			this.cad.data.addComponent(d);
+		});
+		this.cad.render(true);
+		this.menu.initData();
+		this.cadInfo.updateCadLength();
+	}
+
+	ngAfterViewInit() {
 		this.cadContainer.nativeElement.appendChild(this.cad.dom);
 	}
 
@@ -58,7 +61,7 @@ export class EditCadComponent implements AfterViewInit {
 		// 	this.vCad.flip(vertical, horizontal).render(true);
 		// 	this.cad.flip(vertical, horizontal);
 		// }
-		this.cadData.transform({flip: {vertical, horizontal}});
+		this.cad.data.transform({flip: {vertical, horizontal}});
 		this.cad.render(true);
 	}
 

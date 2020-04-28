@@ -246,47 +246,10 @@ export class CadViewer {
 	}
 
 	getBounds(entities?: CadEntities) {
-		let maxX = -Infinity;
-		let minX = Infinity;
-		let maxY = -Infinity;
-		let minY = Infinity;
-		const calc = (point: Vector2) => {
-			maxX = Math.max(point.x, maxX);
-			maxY = Math.max(point.y, maxY);
-			minX = Math.min(point.x, minX);
-			minY = Math.min(point.y, minY);
-		};
 		if (!entities) {
 			entities = this.data.getAllEntities();
 		}
-		entities.line.forEach((entity) => {
-			const {start, end} = entity;
-			calc(new Vector2(...start));
-			calc(new Vector2(...end));
-		});
-		entities.arc.forEach((entity) => {
-			const arcEntity = entity;
-			const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
-			const arc = new ArcCurve(
-				center[0],
-				center[1],
-				radius,
-				MathUtils.degToRad(start_angle),
-				MathUtils.degToRad(end_angle),
-				clockwise
-			);
-			calc(arc.getPoint(0));
-			calc(arc.getPoint(1));
-		});
-		entities.circle.forEach((entity) => {
-			const {center, radius} = entity;
-			calc(new Vector2(...center).addScalar(radius));
-			calc(new Vector2(...center).subScalar(radius));
-		});
-		if (!isFinite(maxX + minX) || !isFinite(maxY + minY)) {
-			return {x: 0, y: 0, width: 0, height: 0};
-		}
-		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
+		return entities.getBounds();
 	}
 
 	private _setAnchor(sprite: TextSprite, position: Vector3, anchor: number[]) {
@@ -428,19 +391,19 @@ export class CadViewer {
 		const entity1 = this.data.findEntity(entity.entity1.id) as CadLine;
 		const entity2 = this.data.findEntity(entity.entity2.id) as CadLine;
 		if (!entity1) {
-			console.warn(`线段${entity1.id}没找到`);
+			console.warn(`线段${entity.entity1.id}没找到`);
 			return null;
 		}
 		if (!entity2) {
-			console.warn(`线段${entity2.id}没找到`);
+			console.warn(`线段${entity.entity2.id}没找到`);
 			return null;
 		}
 		if (entity1.type !== CadTypes.Line) {
-			console.warn(`实体${entity1.id}不是线段`);
+			console.warn(`实体${entity.entity1.id}不是线段`);
 			return null;
 		}
 		if (entity2.type !== CadTypes.Line) {
-			console.warn(`实体${entity2.id}不是线段`);
+			console.warn(`实体${entity.entity2.id}不是线段`);
 			return null;
 		}
 

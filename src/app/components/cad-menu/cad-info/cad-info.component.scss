@@ -1,0 +1,51 @@
+@import "../../../../styles.scss";
+
+.cad-info,
+.line-info,
+.dimension-info {
+	mat-form-field {
+		width: calc(100% - 42px);
+		margin-left: 10px;
+
+		input {
+			@include font();
+		}
+
+		mat-icon {
+			cursor: pointer;
+			font-size: 1.5rem;
+			width: 1.5rem;
+		}
+
+		mat-hint {
+			font-size: 1rem;
+		}
+
+		mat-select {
+			@include font();
+		}
+	}
+
+	label {
+		line-height: 1.5rem;
+		font-size: 1rem;
+	}
+
+	&.options {
+		mat-form-field {
+			width: calc(100% - 170px);
+		}
+	}
+
+	&.joint-points,
+	&.baselines {
+		button {
+			width: 74px;
+		}
+
+		mat-form-field {
+			width: calc(100% - 84px);
+			margin-bottom: 10px;
+		}
+	}
+}
