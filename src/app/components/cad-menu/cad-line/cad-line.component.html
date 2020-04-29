@@ -1,4 +1,4 @@
-<mat-expansion-panel expanded>
+<mat-expansion-panel expanded *ngIf="data">
 	<mat-expansion-panel-header>
 		<mat-panel-title>线段信息</mat-panel-title>
 	</mat-expansion-panel-header>
@@ -79,4 +79,10 @@
 		</mat-form-field>
 	</div>
 	<button mat-raised-button color="accent" [disabled]="!menu.cad" (click)="menu.submit()">确定修改</button>
+</mat-expansion-panel>
+<mat-expansion-panel *ngIf="!data">
+	<mat-expansion-panel-header>
+		<mat-panel-title>线段信息</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div>未选择CAD</div>
 </mat-expansion-panel>

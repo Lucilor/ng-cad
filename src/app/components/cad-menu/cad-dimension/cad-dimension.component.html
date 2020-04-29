@@ -1,31 +1,37 @@
-<mat-expansion-panel expanded>
-    <mat-expansion-panel-header>
-        <mat-panel-title>标注信息</mat-panel-title>
-    </mat-expansion-panel-header>
-    <div class="dimension-info" *ngFor="let d of data.entities.dimension; let i = index">
-        <button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
-        <mat-form-field>
-            <mat-label></mat-label>
-            <input
-                matInput
-                type="text"
-                [ngModel]="getDimensionName(d, i)"
-                (focus)="dimNameFocus = i"
-                (blur)="dimNameFocus = -1"
-                (change)="setDimensionName($event, d)"
-                placeholder="标注名字"
-            />
-            <mat-icon matSuffix color="primary" (click)="menu.addDimension(i)">add_circle</mat-icon>
-            <mat-icon matSuffix color="primary" (click)="menu.removeDimension(i)">remove_circle</mat-icon>
-            <mat-hint [align]="'start'">
-                <button
-                    mat-raised-button
-                    [color]="menu.mode.type === 'dimension' && menu.mode.index === i ? 'accent' : 'primary'"
-                    (click)="selectDimLine(i)"
-                >
-                    线
-                </button>
-            </mat-hint>
-        </mat-form-field>
-    </div>
+<mat-expansion-panel expanded *ngIf="data">
+	<mat-expansion-panel-header>
+		<mat-panel-title>标注信息</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div class="dimension-info" *ngFor="let d of data.entities.dimension; let i = index">
+		<button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input
+				matInput
+				type="text"
+				[ngModel]="getDimensionName(d, i)"
+				(focus)="dimNameFocus = i"
+				(blur)="dimNameFocus = -1"
+				(change)="setDimensionName($event, d)"
+				placeholder="标注名字"
+			/>
+			<mat-icon matSuffix color="primary" (click)="menu.addDimension(i)">add_circle</mat-icon>
+			<mat-icon matSuffix color="primary" (click)="menu.removeDimension(i)">remove_circle</mat-icon>
+			<mat-hint [align]="'start'">
+				<button
+					mat-raised-button
+					[color]="menu.mode.type === 'dimension' && menu.mode.index === i ? 'accent' : 'primary'"
+					(click)="selectDimLine(i)"
+				>
+					线
+				</button>
+			</mat-hint>
+		</mat-form-field>
+	</div>
+</mat-expansion-panel>
+<mat-expansion-panel *ngIf="!data">
+	<mat-expansion-panel-header>
+		<mat-panel-title>标注信息</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div>未选择CAD</div>
 </mat-expansion-panel>

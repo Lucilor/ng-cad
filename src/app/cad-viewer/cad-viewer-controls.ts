@@ -116,8 +116,9 @@ export class CadViewerControls {
 					this.currentObject = null;
 				}
 				const object = this._getInterSection(new Vector2(event.clientX, event.clientY));
-				cad.dom.style.cursor = object ? "pointer" : "default";
-				if (object && object.userData.selectable && object.userData.selected !== true) {
+				const selectable = object && object.userData.selectable;
+				cad.dom.style.cursor = selectable ? "pointer" : "default";
+				if (selectable && object.userData.selected !== true) {
 					(object as any).material?.color?.set(cad.config.hoverColor);
 					this.currentObject = object;
 				}

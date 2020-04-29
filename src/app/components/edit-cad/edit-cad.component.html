@@ -13,11 +13,14 @@
 </div>
 <div class="menu right">
 	<mat-accordion multi>
+		<app-cad-subcad #subcad [menu]="menu"></app-cad-subcad>
 		<app-cad-info #cadInfo [menu]="menu"></app-cad-info>
-		<app-cad-line #cadLine [cadInfo]="cadInfo" [menu]="menu"></app-cad-line>
-		<app-cad-subcad #subcad></app-cad-subcad>
+		<app-cad-line #cadLine [menu]="menu"></app-cad-line>
 		<app-cad-dimension #cadDimension [menu]="menu"></app-cad-dimension>
 	</mat-accordion>
+</div>
+<div class="menu top" *ngIf="showTopMenu">
+	<button mat-raised-button color="primary">垂直翻转</button>
 </div>
 
 <app-line-indicator [menu]="menu" [cadInfo]="cadInfo" [cadLine]="cadLine"></app-line-indicator>

@@ -1,6 +1,6 @@
-<mat-expansion-panel expanded>
+<mat-expansion-panel expanded *ngIf="data">
 	<mat-expansion-panel-header>
-		<mat-panel-title>CAD信息(总长: {{ cadLength }})</mat-panel-title>
+		<mat-panel-title>CAD信息(总长: {{ menu.cadLength }})</mat-panel-title>
 	</mat-expansion-panel-header>
 	<div class="cad-info name">
 		<label>名字</label>
@@ -74,4 +74,10 @@
 		<button mat-raised-button color="accent" (click)="menu.submit()">确定修改</button>
 		<button mat-raised-button color="accent" (click)="replaceData()">替换数据</button>
 	</div>
+</mat-expansion-panel>
+<mat-expansion-panel *ngIf="!data">
+	<mat-expansion-panel-header>
+		<mat-panel-title>CAD信息</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div>未选择CAD</div>
 </mat-expansion-panel>

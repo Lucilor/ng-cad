@@ -16,7 +16,6 @@ import {Line, Material, Mesh, Vector2, Vector3} from "three";
 import {Angle, Arc, Point} from "@lucilor/utils";
 import {CadDataService} from "@services/cad-data.service";
 
-const emptyData = new CadData();
 interface Mode {
 	type: "normal" | "baseLine" | "dimension" | "jointPoint";
 	index: number;
@@ -36,9 +35,9 @@ export class CadMenu {
 	dataService: CadDataService;
 	line: CadLine;
 	mode: Mode;
-	dimension: string;
-	cadIdx = 0;
+	cadIdx = -1;
 	partner: string;
+	cadLength = 0;
 	readonly accuracy = 1;
 	pointsMap: LinesAtPoint[];
 
@@ -52,18 +51,42 @@ export class CadMenu {
 	}
 
 	initData() {
-		if (this.multi) {
-			this.cad.data.components.data.forEach((d, i) => {
+		const {multi, cad} = this;
+		if (multi) {
+			cad.data.components.data.forEach((d, i) => {
 				this.setData(d, i);
 			});
 		} else {
 			this.setData(this.cad.data, 0);
 		}
+		const start = new Vector2();
+		let button: number;
+		cad.controls.on("dragstart", (event) => {
+			start.set(event.clientX, event.clientY);
+			button = event.button;
+		});
+		cad.controls.on("drag", (event) => {
+			if (this.cadIdx > -1 && (button === 1 || (event.shiftKey && button === 0))) {
+				const data = this.getData();
+				const scale = cad.scale;
+				const end = new Vector2(event.clientX, event.clientY);
+				const offset = end.sub(start).divide(new Vector2(scale, -scale));
+				data.transform({translate: offset.toArray()});
+				cad.render();
+				start.set(event.clientX, event.clientY);
+			}
+		});
+		cad.controls.on("dragend", () => (button = NaN));
+		window.addEventListener("keydown", (event) => {
+			if (event.key === "Escape") {
+				this.blur();
+			}
+		});
 	}
 
 	getData(cadIdx = this.cadIdx) {
 		const {multi, cad} = this;
-		return (multi ? cad.data.components.data[cadIdx] : cad.data) || emptyData;
+		return multi ? cad.data.components.data[cadIdx] : cad.data;
 	}
 
 	setData(d: CadData, cadIdx: number) {
@@ -161,28 +184,6 @@ export class CadMenu {
 
 	selectLineBegin(type: Mode["type"], index: number) {
 		const cad = this.cad;
-		const entities = this.getData().entities;
-		const ids = entities.line.map((e) => e.id);
-		entities.forEach((e) => {
-			const object = cad.objects[e.id] as Line;
-			if (object) {
-				const material = object.material as Material;
-				if (e instanceof CadLine) {
-					const slope = (e.start[1] - e.end[1]) / (e.start[0] - e.end[0]);
-					const flag = slope === 0 || !isFinite(slope);
-					if (type === "dimension" || (ids.includes(e.id) && flag)) {
-						material.setValues({opacity: 1});
-						object.userData.selectable = true;
-					} else {
-						material.setValues({opacity: 0.3, transparent: true});
-						object.userData.selectable = false;
-					}
-				} else {
-					material.setValues({opacity: 0.3, transparent: true});
-					object.userData.selectable = false;
-				}
-			}
-		});
 		this.mode.type = type;
 		this.mode.index = index;
 		cad.config.selectedColor = 0x0000ff;
@@ -192,15 +193,7 @@ export class CadMenu {
 
 	selectLineEnd() {
 		const {cad} = this;
-		this.getData().entities.forEach((e) => {
-			const object = cad.objects[e.id] as Mesh;
-			if (object) {
-				const material = object.material as Material;
-				material.setValues({opacity: 1});
-				object.userData.selectable = true;
-				object.userData.selected = false;
-			}
-		});
+		this.focus(this.cadIdx);
 		cad.config.selectedColor = null;
 		cad.config.hoverColor = null;
 		cad.render();
@@ -289,6 +282,48 @@ export class CadMenu {
 			}
 		}
 		return entities;
+	}
+
+	focus(cadIdx: number) {
+		this.cadIdx = cadIdx;
+		const cad = this.cad;
+		const data = this.getData();
+		cad.data.components.data.forEach((d) => {
+			const opacity = d.id === data.id ? 1 : 0.3;
+			const selectable = d.id === data.id ? true : false;
+			cad.traverse((o) => {
+				o.userData.selectable = selectable;
+				const m = (o as Mesh).material as Material;
+				m.setValues({opacity, transparent: true});
+			}, d.getAllEntities());
+		});
+		cad.controls.config.dragAxis = "";
+		this.updateCadLength();
+	}
+
+	blur() {
+		this.cadIdx = -1;
+		this.cad.traverse((o) => {
+			o.userData.selectable = true;
+			const m = (o as Mesh).material as Material;
+			m.setValues({opacity: 1});
+		});
+		this.cad.controls.config.dragAxis = "xy";
+	}
+
+	updateCadLength() {
+		const data = this.getData();
+		if (data) {
+			this.cadLength = 0;
+			const entities = data.entities;
+			entities.line.forEach((e) => (this.cadLength += e.length));
+			entities.arc.forEach((e) => {
+				const {radius, start_angle, end_angle} = e;
+				const l = ((Math.abs(start_angle - end_angle) % 360) * Math.PI * radius) / 180;
+				this.cadLength += l;
+			});
+			this.cadLength = Number(this.cadLength.toFixed(2));
+		}
 	}
 
 	private _beforeRemove() {

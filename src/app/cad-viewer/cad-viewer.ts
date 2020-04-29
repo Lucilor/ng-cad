@@ -7,7 +7,6 @@ import {
 	Line,
 	Object3D,
 	Vector2,
-	ArcCurve,
 	MathUtils,
 	Raycaster,
 	Geometry,
@@ -16,7 +15,8 @@ import {
 	ShapeGeometry,
 	Shape,
 	Mesh,
-	MeshBasicMaterial
+	MeshBasicMaterial,
+	Material
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
@@ -458,9 +458,9 @@ export class CadViewer {
 
 		let line: Line;
 		if (objects[entity.id]) {
-			// const sprite = objects[entity.id] as TextSprite;
 			line = objects[entity.id] as Line;
 			line.remove(...line.children);
+			line.geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 		} else {
 			const geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
@@ -481,8 +481,7 @@ export class CadViewer {
 		arrowShape2.lineTo(arrow2[1].x, arrow2[1].y);
 		arrowShape2.lineTo(arrow2[2].x, arrow2[2].y);
 		arrowShape2.closePath();
-		line.add(new Mesh(new ShapeGeometry(arrowShape1), new MeshBasicMaterial({color})));
-		line.add(new Mesh(new ShapeGeometry(arrowShape2), new MeshBasicMaterial({color})));
+		line.add(new Mesh(new ShapeGeometry([arrowShape1, arrowShape2]), new MeshBasicMaterial({color})));
 		let text = "";
 		if (mingzi) {
 			text = mingzi;
@@ -511,7 +510,7 @@ export class CadViewer {
 	private _drawHatch(entity: CadHatch, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {paths} = entity;
-		const {lineWidth, color, fontSize} = new CadStyle(style, this, entity);
+		const {color} = new CadStyle(style, this, entity);
 
 		if (objects[entity.id]) {
 		} else {
@@ -531,7 +530,6 @@ export class CadViewer {
 					shape.lineTo(path.vertices[2].x, path.vertices[2].y);
 					shape.lineTo(path.vertices[3].x, path.vertices[3].y);
 				}
-				console.log(shape);
 				shape.closePath();
 				shapes.push(shape);
 			});
@@ -593,5 +591,9 @@ export class CadViewer {
 		result.x = (point.x - this.position.x) * scale + width / 2;
 		result.y = height / 2 - (point.y - this.position.y) * scale;
 		return result;
+	}
+
+	traverse(callback: (o: Object3D, e: CadEntity) => void, entities = this.data.getAllEntities()) {
+		entities.forEach((e) => this.objects[e.id]?.traverse((o) => callback(o, e)));
 	}
 }

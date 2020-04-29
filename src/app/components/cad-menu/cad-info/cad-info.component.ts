@@ -1,8 +1,7 @@
 import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {cadTypes} from "cad-viewer";
 import {CadEntity, CadLine} from "@app/cad-viewer/cad-data";
-import {Mesh, Line} from "three";
+import {Mesh, Line, Material} from "three";
 import {MatDialog} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CadDataService} from "@services/cad-data.service";
@@ -17,7 +16,6 @@ export class CadInfoComponent implements OnInit {
 	get data() {
 		return this.menu.getData();
 	}
-	cadLength = 0;
 	constructor(private dialog: MatDialog, private dataService: CadDataService) {}
 
 	ngOnInit() {
@@ -57,33 +55,29 @@ export class CadInfoComponent implements OnInit {
 		});
 	}
 
-	updateCadLength() {
-		this.cadLength = 0;
-		const entities = this.data.entities;
-		entities.line.forEach((e) => (this.cadLength += e.length));
-		entities.arc.forEach((e) => {
-			const {radius, start_angle, end_angle} = e;
-			const l = ((Math.abs(start_angle - end_angle) % 360) * Math.PI * radius) / 180;
-			this.cadLength += l;
-		});
-		this.cadLength = Number(this.cadLength.toFixed(2));
-	}
-
 	selectBaseline(i: number) {
 		const menu = this.menu;
 		const {mode, cad} = menu;
 		if (mode.type === "baseLine" && mode.index === i) {
 			menu.selectLineEnd();
 		} else {
-			// const data = multi?cad.data.components.data[cadIdx]
 			const {idX, idY} = menu.getData().baseLines[i];
-			Object.keys(cadTypes).forEach((type) => {
-				(cad.data.entities[type] as CadEntity[]).forEach((e) => {
-					const object = cad.objects[e.id] as Mesh;
-					if (object) {
-						object.userData.selected = [idX, idY].includes(e.id);
+			cad.traverse((o, e) => {
+				o.userData.selected = [idX, idY].includes(e.id);
+				const material = (o as Mesh).material as Material;
+				if (e instanceof CadLine) {
+					const slope = (e.start[1] - e.end[1]) / (e.start[0] - e.end[0]);
+					if (slope === 0 || !isFinite(slope)) {
+						material.setValues({opacity: 1});
+						o.userData.selectable = true;
+					} else {
+						material.setValues({opacity: 0.3, transparent: true});
+						o.userData.selectable = false;
 					}
-				});
+				} else {
+					material.setValues({opacity: 0.3, transparent: true});
+					o.userData.selectable = false;
+				}
 			});
 			menu.selectLineBegin("baseLine", i);
 		}

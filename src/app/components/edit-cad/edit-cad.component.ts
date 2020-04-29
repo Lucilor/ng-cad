@@ -29,6 +29,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	drawDimensions = true;
 	drawMTexts = true;
 	menu: CadMenu;
+	showTopMenu = false;
 	get subcads() {
 		return this.cad.data.components.data;
 	}
@@ -55,9 +56,17 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		});
 		this.cad.render(true);
 		this.menu.initData();
-		this.cadInfo.updateCadLength();
 		this.subcad.updateList(data);
 		document.title = `${title}-${data.map((d) => d.name).join(",")}`;
+
+		window.addEventListener("pointermove", (event) => {
+			const {clientX: x, clientY: y} = event;
+			if (y <= 90) {
+				this.showTopMenu = true;
+			} else {
+				this.showTopMenu = false;
+			}
+		});
 	}
 
 	ngAfterViewInit() {

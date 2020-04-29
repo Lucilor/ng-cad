@@ -139,23 +139,7 @@ export class CadData {
 	}
 
 	findEntity(id: string) {
-		let result: CadEntity = null;
-		result = this.entities.find(id);
-		if (result) {
-			return result;
-		}
-		for (const p of this.partners) {
-			result = p.entities.find(id);
-			if (result) {
-				return result;
-			}
-		}
-		for (const c of this.components.data) {
-			result = c.entities.find(id);
-			if (result) {
-				return result;
-			}
-		}
+		return this.getAllEntities().find(id);
 	}
 
 	clone() {
@@ -618,7 +602,7 @@ export class CadDimension extends CadEntity {
 				this[field] = null;
 			}
 		});
-		this.axis = data.axis || "";
+		this.axis = data.axis || "x";
 		this.distance = data.distance || 16;
 		this.cad1 = data.cad1 || "";
 		this.cad2 = data.cad2 || "";

@@ -14,11 +14,11 @@ export class CadDimensionFormComponent implements OnInit {
 	constructor(
 		private fb: FormBuilder,
 		public dialogRef: MatDialogRef<CadDimensionFormComponent>,
-		@Inject(MAT_DIALOG_DATA) public data: {data: CadData; index: number}
+		@Inject(MAT_DIALOG_DATA) public data: {data: CadDimension}
 	) {}
 
 	ngOnInit() {
-		const dimension = new CadDimension(this.data.data.entities.dimension[this.data.index]);
+		const dimension = new CadDimension(this.data.data);
 		this.dimension = dimension;
 		this.form = this.fb.group({
 			mingzi: [dimension.mingzi],
@@ -28,8 +28,8 @@ export class CadDimensionFormComponent implements OnInit {
 			axis: dimension.axis,
 			distance: dimension.distance,
 			fontSize: dimension.font_size,
-			cad1: new FormControl({value: dimension.cad1, disabled: true}),
-			cad2: new FormControl({value: dimension.cad2, disabled: true})
+			cad1: new FormControl({value: dimension.cad1 || " ", disabled: true}),
+			cad2: new FormControl({value: dimension.cad2 || " ", disabled: true})
 		});
 	}
 

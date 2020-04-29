@@ -13,7 +13,6 @@ import {MatSelectChange} from "@angular/material/select";
 })
 export class CadLineComponent implements OnInit {
 	@Input() menu: CadMenu;
-	@Input() cadInfo: CadInfoComponent;
 	line: CadLine;
 	tLine: {start: Vector2; end: Vector2};
 	get data() {
@@ -35,7 +34,7 @@ export class CadLineComponent implements OnInit {
 	}
 
 	setLineLength(event: InputEvent) {
-		const {line, menu, cadInfo} = this;
+		const {line, menu} = this;
 		const length = Number((event.target as HTMLInputElement).value);
 		// const start = new Point(line.start);
 		// const end = new Point(line.end);
@@ -49,7 +48,7 @@ export class CadLineComponent implements OnInit {
 		entities.transform({translate: offset.toArray()});
 		menu.cad.render();
 		this.setPoints();
-		cadInfo.updateCadLength();
+		menu.updateCadLength();
 		this.updateTLine();
 	}
 

@@ -2,8 +2,8 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialogRef, MatDialog} from "@angular/material/dialog";
 import {CadDimensionFormComponent} from "../cad-dimension-form/cad-dimension-form.component";
-import {CadDimension, CadLine} from "@app/cad-viewer/cad-data";
-import {Line} from "three";
+import {CadDimension, CadLine, CadData} from "@app/cad-viewer/cad-data";
+import {Line, Mesh, Material} from "three";
 
 @Component({
 	selector: "app-cad-dimension",
@@ -22,26 +22,28 @@ export class CadDimensionComponent implements OnInit {
 		const {cad, mode} = this.menu;
 		cad.controls.on("entityselect", (event, entity, object) => {
 			const {type, index} = mode;
-			const data = this.menu.getData();
+			const data = this.data;
 			if (type === "dimension") {
-				if (entity instanceof CadLine && object instanceof Line) {
-					const slope = entity.slope;
-					const baseLine = data.baseLines[index];
-					if (slope === 0) {
-						baseLine.idY = object.userData.selected ? entity.id : null;
+				const dimension = data.entities.dimension[index];
+				let thatData: CadData;
+				for (const d of cad.data.components.data) {
+					if (d.findEntity(entity.id)) {
+						thatData = d;
+						break;
 					}
-					if (!isFinite(slope)) {
-						baseLine.idX = object.userData.selected ? entity.id : null;
-					}
-					data.updateBaseLines();
-					data.entities.forEach((e) => {
-						const object = cad.objects[e.id];
-						if (object) {
-							object.userData.selected = [baseLine.idX, baseLine.idY].includes(e.id);
-						}
-					});
-					cad.render();
 				}
+				if (!dimension.entity1) {
+					dimension.entity1 = {id: entity.id, location: "start"};
+					dimension.cad1 = thatData.name;
+				} else if (!dimension.entity2) {
+					dimension.entity2 = {id: entity.id, location: "end"};
+					dimension.cad2 = thatData.name;
+				} else {
+					dimension.entity1 = dimension.entity2;
+					dimension.entity2 = {id: entity.id, location: "end"};
+					dimension.cad2 = thatData.name;
+				}
+				cad.render();
 			}
 		});
 	}
@@ -49,9 +51,8 @@ export class CadDimensionComponent implements OnInit {
 	editDimension(i: number) {
 		const {menu, data} = this;
 		const cad = menu.cad;
-		menu.dimension = data.entities.dimension[i].id;
 		const ref: MatDialogRef<CadDimensionFormComponent, CadDimension> = this.dialog.open(CadDimensionFormComponent, {
-			data: {data, index: i},
+			data: {data: data.entities.dimension[i]},
 			disableClose: true
 		});
 		ref.afterClosed().subscribe((dimension) => {
@@ -83,10 +84,18 @@ export class CadDimensionComponent implements OnInit {
 			menu.selectLineEnd();
 		} else {
 			const {entity1, entity2} = data.entities.dimension[i];
-			data.entities.forEach((e) => {
-				const object = cad.objects[e.id];
-				if (object) {
-					object.userData.selected = [entity1.id, entity2.id].includes(e.id);
+			cad.traverse((o, e) => {
+				const material = (o as Mesh).material as Material;
+				if (e instanceof CadLine) {
+					o.userData.selectable = true;
+					o.userData.selected = [entity1.id, entity2.id].includes(e.id);
+					material.setValues({opacity: 1});
+				} else if (e instanceof CadDimension) {
+					o.userData.selectable = false;
+					material.setValues({opacity: 1});
+				} else {
+					o.userData.selectable = false;
+					material.setValues({opacity: 0.3, transparent: true});
 				}
 			});
 			menu.selectLineBegin("dimension", i);
