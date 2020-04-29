@@ -27,23 +27,17 @@ export class PrintCadComponent implements AfterViewInit {
 
 	async ngAfterViewInit() {
 		document.title = "打印CAD";
-		const dataService = this.dataService;
 		let data: CadData;
 		try {
 			data = JSON.parse(sessionStorage.getItem("cache-cad-data"));
-			sessionStorage.removeItem("cache-cad-data");
 		} catch (error) {
 			console.warn(error);
-		}
-		if (!data) {
-			data = (await dataService.getCadData())[0];
 		}
 		if (!data) {
 			this.dialog.open(AlertComponent, {data: {content: "没有CAD数据"}});
 			return;
 		}
 		data = new CadData(data);
-		this.dataService.saveCurrentCad(data);
 		const cad = new CadViewer(data, {
 			width: innerWidth,
 			height: innerHeight,
@@ -82,7 +76,6 @@ export class PrintCadComponent implements AfterViewInit {
 		const scale = (innerWidth - padding[1] * 2) / rect.width;
 		const h = rect.height * scale + padding[0] * 2;
 		cad.resize(innerWidth, h).render(true);
-		console.log(innerHeight);
 		cad.dom.style.height = innerHeight + "px";
 	}
 }

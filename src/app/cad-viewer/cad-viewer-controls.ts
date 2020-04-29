@@ -1,6 +1,7 @@
 import {CadViewer} from "./cad-viewer";
 import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, BufferGeometry} from "three";
 import {EventEmitter} from "events";
+import {CadEntity} from "./cad-data";
 
 export interface CadViewerControlsConfig {
 	dragAxis?: "x" | "y" | "xy" | "";
@@ -11,15 +12,15 @@ export interface CadViewerControlsConfig {
 	enableScale?: boolean;
 }
 
-export enum CadEvents {
-	entitySelect = "entityselect",
-	entityUnselect = "entityunselect",
-	dragStart = "dragstart",
-	drag = "drag",
-	dragEnd = "dragend",
-	click = "click",
-	wheel = "wheel",
-	keyboard = "keyboard"
+export interface CadEvents {
+	entityselect: [PointerEvent, CadEntity, Object3D];
+	entityunselect: [PointerEvent, CadEntity, Object3D];
+	dragstart: [PointerEvent, never, never];
+	drag: [PointerEvent, never, never];
+	dragend: [PointerEvent, never, never];
+	click: [PointerEvent, never, never];
+	wheel: [WheelEvent, never, never];
+	keyboard: [KeyboardEvent, never, never];
 	// move = "move",
 	// scale = "scale"
 }
@@ -69,7 +70,8 @@ export class CadViewerControls {
 			this._status.pTo.set(x, y);
 			this._status.dragging = true;
 			this._status.button = event.button;
-			this._emitter.emit(CadEvents.dragStart, event);
+			const name: keyof CadEvents = "dragstart";
+			this._emitter.emit(name, event);
 		});
 		dom.addEventListener("pointermove", (event) => {
 			const p = new Vector2(event.clientX, event.clientY);
@@ -104,7 +106,8 @@ export class CadViewerControls {
 						this._multiSelector.style.height = Math.abs(pFrom.y - pTo.y) + "px";
 					}
 				}
-				this._emitter.emit(CadEvents.drag, event);
+				const name: keyof CadEvents = "drag";
+				this._emitter.emit(name, event);
 			}
 			this._status.pTo.set(p.x, p.y);
 			if (this.config.selectMode !== "none") {
@@ -122,7 +125,7 @@ export class CadViewerControls {
 		});
 		["pointerup"].forEach((v) => {
 			dom.addEventListener(v, (event: PointerEvent) => {
-				const {camera, objects, config} = this.cad;
+				const {camera, objects} = this.cad;
 				const {pFrom, pTo, dragging} = this._status;
 				if (dragging) {
 					if (this._multiSelector.hidden === false) {
@@ -161,7 +164,8 @@ export class CadViewerControls {
 						}
 						cad.render();
 					}
-					this._emitter.emit(CadEvents.dragEnd, event);
+					const name: keyof CadEvents = "dragend";
+					this._emitter.emit(name, event);
 				}
 				const p = new Vector2(event.clientX, event.clientY);
 				const offset = new Vector2(p.x - pTo.x, pTo.y - p.y);
@@ -176,7 +180,8 @@ export class CadViewerControls {
 									object.material.color.set(entity?.color);
 								}
 							}
-							this._emitter.emit(CadEvents.entityUnselect, event, entity, object);
+							const name: keyof CadEvents = "entityunselect";
+							this._emitter.emit(name, event, entity, object);
 						} else if (object.userData.selectable !== false) {
 							if (object instanceof Line) {
 								if (object.material instanceof LineBasicMaterial) {
@@ -191,11 +196,13 @@ export class CadViewerControls {
 									}
 								}
 							}
-							this._emitter.emit(CadEvents.entitySelect, event, entity, object);
+							const name: keyof CadEvents = "entityselect";
+							this._emitter.emit(name, event, entity, object);
 						}
 					}
 				}
-				this._emitter.emit(CadEvents.click, event);
+				const name: keyof CadEvents = "click";
+				this._emitter.emit(name, event);
 				this._status.dragging = false;
 			});
 		});
@@ -208,7 +215,8 @@ export class CadViewerControls {
 					cad.scale = Math.min(config.maxScale, cad.scale + 0.1);
 				}
 			}
-			this._emitter.emit(CadEvents.wheel, event);
+			const name: keyof CadEvents = "wheel";
+			this._emitter.emit(name, event);
 		});
 		dom.addEventListener("keydown", (event) => {
 			const {cad} = this;
@@ -248,11 +256,15 @@ export class CadViewerControls {
 					break;
 				default:
 			}
-			this._emitter.emit(CadEvents.keyboard, event);
+			const name: keyof CadEvents = "keyboard";
+			this._emitter.emit(name, event);
 		});
 	}
 
-	on(event: CadEvents, listener: (...args: any[]) => void) {
+	on<K extends keyof CadEvents>(
+		event: K,
+		listener: (event: CadEvents[K][0], entity?: CadEvents[K][1], object?: CadEvents[K][2]) => void
+	) {
 		this._emitter.on(event, listener);
 	}
 

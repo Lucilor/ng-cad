@@ -155,6 +155,7 @@ export class CadMenu {
 			} else {
 				arr.splice(i, 1);
 			}
+			this.cad.render();
 		}
 	}
 

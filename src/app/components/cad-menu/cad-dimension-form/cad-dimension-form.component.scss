@@ -1,0 +1,10 @@
+@import "../../../../styles.scss";
+
+.mat-dialog-content {
+	min-width: 400px;
+	@include font();
+}
+
+mat-form-field {
+	display: block;
+}

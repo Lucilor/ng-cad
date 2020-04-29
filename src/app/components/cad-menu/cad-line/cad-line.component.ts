@@ -1,8 +1,7 @@
 import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {CadEvents} from "@app/cad-viewer/cad-viewer-controls";
-import {CadLine, CadEntity} from "@app/cad-viewer/cad-data";
-import {Object3D, Vector2} from "three";
+import {CadLine} from "@app/cad-viewer/cad-data";
+import {Vector2} from "three";
 import {CadInfoComponent} from "../cad-info/cad-info.component";
 import {Point, getColorLightness} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
@@ -25,14 +24,14 @@ export class CadLineComponent implements OnInit {
 
 	ngOnInit() {
 		const {cad, mode} = this.menu;
-		cad.controls.on(CadEvents.entitySelect, (event: PointerEvent, entity: CadEntity) => {
+		cad.controls.on("entityselect", (event, entity) => {
 			if (mode.type === "normal" && entity instanceof CadLine) {
 				this.line = entity;
 				this.updateTLine();
 			}
 		});
-		cad.controls.on(CadEvents.drag, () => this.updateTLine());
-		cad.controls.on(CadEvents.wheel, () => this.updateTLine());
+		cad.controls.on("drag", () => this.updateTLine());
+		cad.controls.on("wheel", () => this.updateTLine());
 	}
 
 	setLineLength(event: InputEvent) {

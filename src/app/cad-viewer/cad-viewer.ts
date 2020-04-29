@@ -20,7 +20,7 @@ import {
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
-import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities, CadMtext, CadDimension} from "./cad-data";
+import {CadData, CadEntity, CadLine, CadTypes, CadArc, CadCircle, CadEntities, CadMtext, CadDimension, CadHatch} from "./cad-data";
 import TextSprite from "@seregpie/three.text-sprite";
 
 export class CadStyle {
@@ -227,6 +227,7 @@ export class CadViewer {
 		entities.circle.forEach((e) => this._drawCircle(e, style));
 		entities.mtext.forEach((e) => this._drawMtext(e, style));
 		entities.dimension.forEach((e) => this._drawDimension(e, style));
+		entities.hatch.forEach((e) => this._drawHatch(e, style));
 		return this;
 	}
 
@@ -505,6 +506,40 @@ export class CadViewer {
 			sprite.lineGap = 0;
 		}
 		line.add(sprite);
+	}
+
+	private _drawHatch(entity: CadHatch, style: CadStyle = {}) {
+		const {scene, objects} = this;
+		const {paths} = entity;
+		const {lineWidth, color, fontSize} = new CadStyle(style, this, entity);
+
+		if (objects[entity.id]) {
+		} else {
+			const shapes = [];
+			paths.forEach((path) => {
+				const shape = new Shape();
+				path.edges.forEach((edge, i) => {
+					if (i === 0) {
+						shape.moveTo(edge.end.x, edge.end.y);
+					} else {
+						shape.lineTo(edge.end.x, edge.end.y);
+					}
+				});
+				if (path.vertices.length === 4) {
+					shape.moveTo(path.vertices[0].x, path.vertices[0].y);
+					shape.lineTo(path.vertices[1].x, path.vertices[1].y);
+					shape.lineTo(path.vertices[2].x, path.vertices[2].y);
+					shape.lineTo(path.vertices[3].x, path.vertices[3].y);
+				}
+				console.log(shape);
+				shape.closePath();
+				shapes.push(shape);
+			});
+			const geometry = new ShapeGeometry(shapes);
+			const material = new MeshBasicMaterial({color});
+			const mesh = new Mesh(geometry, material);
+			scene.add(mesh);
+		}
 	}
 
 	moveComponent(curr: CadData, translate: Vector2, prev?: CadData) {}

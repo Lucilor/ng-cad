@@ -175,7 +175,6 @@ export class CadDataService {
 	}
 
 	saveCurrentCad(data: CadData) {
-		console.log(data.export());
 		session.save("currentCad", data.export());
 	}
 

@@ -2,12 +2,10 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {cadTypes} from "cad-viewer";
 import {CadEntity, CadLine} from "@app/cad-viewer/cad-data";
-import {Mesh, Vector3, Object3D, Line} from "three";
-import {CadEvents} from "@app/cad-viewer/cad-viewer-controls";
+import {Mesh, Line} from "three";
 import {MatDialog} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CadDataService} from "@services/cad-data.service";
-import {ActivatedRoute} from "@angular/router";
 
 @Component({
 	selector: "app-cad-info",
@@ -24,7 +22,7 @@ export class CadInfoComponent implements OnInit {
 
 	ngOnInit() {
 		const {cad, mode} = this.menu;
-		cad.controls.on(CadEvents.entitySelect, (event: PointerEvent, entity: CadEntity, object: Object3D) => {
+		cad.controls.on("entityselect", (event, entity, object) => {
 			const {type, index} = mode;
 			const data = this.menu.getData();
 			if (type === "baseLine") {

@@ -23,7 +23,7 @@ import {MatRadioModule} from "@angular/material/radio";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {DragDropModule} from "@angular/cdk/drag-drop";
-import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
+import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
@@ -35,6 +35,9 @@ import {PlaygroundComponent} from "@components/playground/playground.component";
 import {CadInfoComponent} from "./components/cad-menu/cad-info/cad-info.component";
 import {CadLineComponent} from "./components/cad-menu/cad-line/cad-line.component";
 import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-indicator.component";
+import {CadDimensionComponent} from "./components/cad-menu/cad-dimension/cad-dimension.component";
+import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-form/cad-dimension-form.component";
+import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
 
 @NgModule({
 	declarations: [
@@ -51,7 +54,10 @@ import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-
 		PlaygroundComponent,
 		CadInfoComponent,
 		CadLineComponent,
-		LineIndicatorComponent
+		LineIndicatorComponent,
+		CadDimensionComponent,
+		CadDimensionFormComponent,
+		CadSubcadComponent
 	],
 	imports: [
 		BrowserModule,

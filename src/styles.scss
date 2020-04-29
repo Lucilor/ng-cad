@@ -175,6 +175,25 @@ app-edit-cad {
 			margin-bottom: 10px;
 		}
 	}
+
+	.dimension-info {
+		mat-form-field {
+			width: calc(100% - 74px);
+			margin-bottom: 10px;
+		}
+
+		mat-hint {
+			button {
+				min-width: unset;
+				width: 40px;
+				height: 24px;
+				font-size: 0.8rem;
+				line-height: 24px;
+				margin: 0 5px;
+				padding: 0;
+			}
+		}
+	}
 }
 
 .btn-group {

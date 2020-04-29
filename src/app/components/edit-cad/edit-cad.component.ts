@@ -9,6 +9,8 @@ import {CadMenu} from "../cad-menu/cad-menu.common";
 import {MatDialog} from "@angular/material/dialog";
 import {CadInfoComponent} from "../cad-menu/cad-info/cad-info.component";
 import {CadLineComponent} from "../cad-menu/cad-line/cad-line.component";
+import {CadDimensionComponent} from "../cad-menu/cad-dimension/cad-dimension.component";
+import {CadSubcadComponent} from "../cad-menu/cad-subcad/cad-subcad.component";
 
 const title = "编辑CAD";
 @Component({
@@ -20,11 +22,17 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	@ViewChild("cadInfo", {read: CadInfoComponent}) cadInfo: CadInfoComponent;
 	@ViewChild("cadLine", {read: CadLineComponent}) cadLine: CadLineComponent;
+	@ViewChild("cadDimension", {read: CadDimensionComponent}) cadDimension: CadDimensionComponent;
+	@ViewChild("subcad", {read: CadSubcadComponent}) subcad: CadSubcadComponent;
 	cad: CadViewer;
 	rotateAngle = 0;
 	drawDimensions = true;
 	drawMTexts = true;
 	menu: CadMenu;
+	get subcads() {
+		return this.cad.data.components.data;
+	}
+
 	constructor(private route: ActivatedRoute, private dataService: CadDataService, private dialog: MatDialog) {
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
@@ -48,6 +56,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		this.cad.render(true);
 		this.menu.initData();
 		this.cadInfo.updateCadLength();
+		this.subcad.updateList(data);
 		document.title = `${title}-${data.map((d) => d.name).join(",")}`;
 	}
 

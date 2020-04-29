@@ -4,7 +4,7 @@ import {paths} from "./app.common";
 import {DrawCadComponent} from "@components/draw-cad/draw-cad.component";
 import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
 import {PathResolveService} from "./services/path-resolve.service";
-import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
+import {EditCadComponent} from "./edit-cad/edit-cad.component";
 import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {PlaygroundComponent} from "@components/playground/playground.component";

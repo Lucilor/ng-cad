@@ -88,6 +88,12 @@ export class CadData {
 		this.layers.forEach((v) => {
 			exLayers[v.id] = {id: v.id, color: v._indexColor, name: v.name};
 		});
+		const exOptions = {};
+		this.options.forEach((v) => {
+			if (v.name) {
+				exOptions[v.name] = v.value;
+			}
+		});
 		const result = {
 			layers: exLayers,
 			entities: this.entities.export(),
@@ -95,13 +101,7 @@ export class CadData {
 			name: this.name,
 			type: this.type,
 			conditions: this.conditions.filter((v) => v),
-			options: this.options
-				.filter((v) => v.name)
-				.map((v) => {
-					const result = {};
-					result[v.name] = v.value;
-					return result;
-				}),
+			options: exOptions,
 			baseLines: cloneDeep(this.baseLines),
 			jointPoints: cloneDeep(this.jointPoints),
 			parent: this.parent,
@@ -671,7 +671,6 @@ export class CadHatch extends CadEntity {
 				}
 				this.paths.push({edges, vertices});
 			});
-			this.paths = data.paths;
 		}
 	}
 

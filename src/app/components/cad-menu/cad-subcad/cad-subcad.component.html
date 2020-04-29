@@ -1,0 +1,9 @@
+<mat-expansion-panel expanded *ngIf="list.length">
+	<mat-expansion-panel-header>
+		<mat-panel-title>关联CAD</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div class="cad-image" *ngFor="let v of list; let i = index" [class.active]="v.index === index">
+		<div class="title">{{ v.name }}</div>
+		<img [src]="v.src" (click)="clickItem(i)" />
+	</div>
+</mat-expansion-panel>
