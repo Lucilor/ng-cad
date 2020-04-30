@@ -2,7 +2,7 @@
 	<mat-expansion-panel-header>
 		<mat-panel-title>{{ listName }}</mat-panel-title>
 	</mat-expansion-panel-header>
-	<div class="cad-image" *ngFor="let v of list; let i = index" [class.active]="v.index === menu.cadIdx">
+	<div class="cad-image" *ngFor="let v of list; let i = index" [class.active]="isActive(i)">
 		<div class="title">{{ v.name }}</div>
 		<img [src]="v.src" (click)="clickItem(i)" />
 	</div>

@@ -176,11 +176,12 @@ export class CadData {
 	}
 
 	transform({translate, flip, rotate}: CadTransform) {
-		this.getAllEntities().transform({translate, flip, rotate});
+		this.entities.transform({translate, flip, rotate});
+		this.partners.forEach((v) => v.transform({translate, flip, rotate}));
+		this.components.data.forEach((v) => v.transform({translate, flip, rotate}));
 		this.baseLines.forEach((v) => {
 			const point = new Point(v.valueX, v.valueY);
 			if (translate) {
-				point.add(translate[0], translate[1]);
 				point.add(translate[0], translate[1]);
 			}
 			if (flip) {
@@ -195,7 +196,6 @@ export class CadData {
 		this.jointPoints.forEach((v) => {
 			const point = new Point(v.valueX, v.valueY);
 			if (translate) {
-				point.add(translate[0], translate[1]);
 				point.add(translate[0], translate[1]);
 			}
 			if (flip) {
@@ -238,9 +238,11 @@ export class CadData {
 		}
 		if (!translate) {
 			const rect1 = this.getAllEntities().getBounds();
-			const rect2 = partner.getAllEntities().getBounds();
-			translate = [rect1.x - rect2.x, rect1.y - rect2.y];
-			translate[0] += (rect1.width + rect2.width) / 2 + 15;
+			if (rect1.width && rect1.height) {
+				const rect2 = partner.getAllEntities().getBounds();
+				translate = [rect1.x - rect2.x, rect1.y - rect2.y];
+				translate[0] += (rect1.width + rect2.width) / 2 + 15;
+			}
 		}
 		partner.transform({translate});
 		const data = this.partners;
@@ -252,13 +254,21 @@ export class CadData {
 		}
 	}
 
+	updatePartners() {
+		this.partners.forEach((v) => this.addPartner(v));
+		this.partners.forEach((v) => v.updatePartners());
+		this.components.data.forEach((v) => v.updatePartners());
+	}
+
 	addComponent(component: CadData) {
 		const rect1 = this.getAllEntities().getBounds();
-		const rect2 = component.getAllEntities().getBounds();
-		const offset1 = [rect1.x - rect2.x, rect1.y - rect2.y];
-		offset1[0] += (rect1.width + rect2.width) / 2 + 15;
-		// offset1[1] += (rect1.height - rect2.height) / 2;
-		component.transform({translate: offset1});
+		if (rect1.width && rect1.height) {
+			const rect2 = component.getAllEntities().getBounds();
+			const translate = [rect1.x - rect2.x, rect1.y - rect2.y];
+			translate[0] += (rect1.width + rect2.width) / 2 + 15;
+			// offset1[1] += (rect1.height - rect2.height) / 2;
+			component.transform({translate});
+		}
 		const data = this.components.data;
 		const prev = data.findIndex((v) => v.id === component.id);
 		if (prev > -1) {

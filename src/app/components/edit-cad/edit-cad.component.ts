@@ -54,13 +54,18 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	async ngOnInit() {
+		const join = this.route.snapshot.queryParams.join;
 		const data = await this.dataService.getCadData();
 		data.forEach((d) => {
 			this.cad.data.addComponent(d);
 		});
 		this.cad.render(true);
 		this.menu.initData();
-		this.menu.focus(0);
+		if (join) {
+			this.menu.focus(0, 0, "partners");
+		} else {
+			this.menu.focus(0, -1, "normal");
+		}
 		this.subcad.updateList();
 		document.title = `${title}-${data.map((d) => d.name).join(",")}`;
 

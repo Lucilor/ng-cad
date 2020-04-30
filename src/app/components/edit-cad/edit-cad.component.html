@@ -20,9 +20,23 @@
 	</mat-accordion>
 </div>
 <div class="menu top" *ngIf="showTopMenu" @topMenuTrigger>
-	<button mat-raised-button color="primary" (click)="setViewMode('normal')">普通</button>
-	<button mat-raised-button color="primary" [disabled]="menu.cadIdx === -1" (click)="setViewMode('partners')">关联</button>
-	<button mat-raised-button color="primary" [disabled]="menu.cadIdx === -1" (click)="setViewMode('components')">装配</button>
+	<button mat-raised-button [color]="menu.viewMode === 'normal' ? 'accent' : 'primary'" (click)="setViewMode('normal')">普通</button>
+	<button
+		mat-raised-button
+		[color]="menu.viewMode === 'partners' ? 'accent' : 'primary'"
+		[disabled]="menu.cadIdx === -1"
+		(click)="setViewMode('partners')"
+	>
+		关联
+	</button>
+	<button
+		mat-raised-button
+		[color]="menu.viewMode === 'components' ? 'accent' : 'primary'"
+		[disabled]="true || menu.cadIdx === -1"
+		(click)="setViewMode('components')"
+	>
+		装配
+	</button>
 </div>
 
 <app-line-indicator [menu]="menu" [cadInfo]="cadInfo" [cadLine]="cadLine"></app-line-indicator>

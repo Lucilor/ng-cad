@@ -40,12 +40,13 @@ export class CadLineComponent implements OnInit {
 		// const end = new Point(line.end);
 		const d = line.length - length;
 		const theta = line.theta;
-		const offset = new Point(Math.cos(theta), Math.sin(theta)).multiply(d);
-		line.end[0] += offset.x;
-		line.end[1] += offset.y;
+		const offset = new Vector2(Math.cos(theta), Math.sin(theta)).multiplyScalar(d);
+		line.end.x += offset.x;
+		line.end.y += offset.y;
 		menu.generatePointsMap();
 		const entities = menu.findAllAdjacentLines(line, line.end);
 		entities.transform({translate: offset.toArray()});
+		menu.getData().updatePartners();
 		menu.cad.render();
 		this.setPoints();
 		menu.updateCadLength();

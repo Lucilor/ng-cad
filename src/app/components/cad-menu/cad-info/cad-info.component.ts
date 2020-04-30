@@ -97,15 +97,15 @@ export class CadInfoComponent implements OnInit {
 
 	onJointPointClick(i: number) {
 		const menu = this.menu;
-		const {pointsMap, mode} = menu;
+		const {pointsMap, mode, cad} = menu;
+		const data = menu.getData();
 		pointsMap.forEach((v, j) => (v.selected = i === j));
 		const index = mode.index;
 		const point = pointsMap[i].point;
-		const jointPoint = menu.getData().jointPoints[index];
+		const jointPoint = data.jointPoints[index];
 		jointPoint.valueX = point.x;
 		jointPoint.valueY = point.y;
-		// const vJointPoint = vCad.data.jointPoints[vIdx + index];
-		// vJointPoint.valueX = point.x;
-		// vJointPoint.valueY = point.y;
+		data.updatePartners();
+		cad.render();
 	}
 }

@@ -52,9 +52,7 @@ export class CadMenu {
 
 	initData() {
 		const {cad} = this;
-		cad.data.components.data.forEach((d, i) => {
-			this.setData(d, i);
-		});
+		cad.data.components.data.forEach((d) => this.setData(d));
 		const start = new Vector2();
 		let button: number;
 		cad.controls.on("dragstart", (event) => {
@@ -90,34 +88,36 @@ export class CadMenu {
 		}
 	}
 
-	setData(d: CadData, cadIdx: number) {
+	setData(d: CadData) {
 		if (d.options.length < 1) {
-			this.addOption(0, cadIdx);
+			this.addOption(0, d);
 		}
 		if (d.conditions.length < 1) {
-			this.addCondition(0, cadIdx);
+			this.addCondition(0, d);
 		}
 		if (d.baseLines.length < 1) {
-			this.addBaseLine(0, cadIdx);
+			this.addBaseLine(0, d);
 		}
 		if (d.jointPoints.length < 1) {
-			this.addJointPoint(0, cadIdx);
+			this.addJointPoint(0, d);
 		}
 		if (d.entities.dimension.length < 1) {
-			this.addDimension(0, cadIdx);
+			this.addDimension(0, d);
 		}
+		d.partners.forEach((v) => this.setData(v));
+		d.components.data.forEach((v) => this.setData(v));
 	}
 
 	submit() {
 		this.dataService.postCadData([this.getData()]);
 	}
 
-	addOption(i: number, cadIdx = this.cadIdx) {
-		this.getData(cadIdx).options.splice(i + 1, 0, new CadOption());
+	addOption(i: number, data = this.getData()) {
+		data.options.splice(i + 1, 0, new CadOption());
 	}
-	async removeOption(i: number, cadIdx = this.cadIdx) {
+	async removeOption(i: number, data = this.getData()) {
 		if ((await this._beforeRemove()) === true) {
-			const arr = this.getData(cadIdx).options;
+			const arr = data.options;
 			if (arr.length === 1) {
 				arr[0] = new CadOption();
 			} else {
@@ -126,12 +126,12 @@ export class CadMenu {
 		}
 	}
 
-	addCondition(i: number, cadIdx = this.cadIdx) {
-		this.getData(cadIdx).conditions.splice(i + 1, 0, "");
+	addCondition(i: number, data = this.getData()) {
+		data.conditions.splice(i + 1, 0, "");
 	}
-	async removeCondition(i: number, cadIdx = this.cadIdx) {
+	async removeCondition(i: number, data = this.getData()) {
 		if ((await this._beforeRemove()) === true) {
-			const arr = this.getData(cadIdx).conditions;
+			const arr = data.conditions;
 			if (arr.length === 1) {
 				arr[0] = "";
 			} else {
@@ -140,12 +140,12 @@ export class CadMenu {
 		}
 	}
 
-	addBaseLine(i: number, cadIdx = this.cadIdx) {
-		this.getData(cadIdx).baseLines.splice(i + 1, 0, new CadBaseLine());
+	addBaseLine(i: number, data = this.getData()) {
+		data.baseLines.splice(i + 1, 0, new CadBaseLine());
 	}
-	async removeBaseLine(i: number, cadIdx = this.cadIdx) {
+	async removeBaseLine(i: number, data = this.getData()) {
 		if ((await this._beforeRemove()) === true) {
-			const arr = this.getData(cadIdx).baseLines;
+			const arr = data.baseLines;
 			if (arr.length === 1) {
 				arr[0] = new CadBaseLine();
 			} else {
@@ -154,12 +154,12 @@ export class CadMenu {
 		}
 	}
 
-	addJointPoint(i: number, cadIdx = this.cadIdx) {
-		this.getData(cadIdx).jointPoints.splice(i + 1, 0, new CadJointPoint());
+	addJointPoint(i: number, data = this.getData()) {
+		data.jointPoints.splice(i + 1, 0, new CadJointPoint());
 	}
-	async removeJointPoint(i: number, cadIdx = this.cadIdx) {
+	async removeJointPoint(i: number, data = this.getData()) {
 		if ((await this._beforeRemove()) === true) {
-			const arr = this.getData(cadIdx).jointPoints;
+			const arr = data.jointPoints;
 			if (arr.length === 1) {
 				arr[0] = new CadJointPoint();
 			} else {
@@ -168,12 +168,12 @@ export class CadMenu {
 		}
 	}
 
-	addDimension(i: number, cadIdx = this.cadIdx) {
-		this.getData(cadIdx).entities.dimension.splice(i + 1, 0, new CadDimension());
+	addDimension(i: number, data = this.getData()) {
+		data.entities.dimension.splice(i + 1, 0, new CadDimension());
 	}
-	async removeDimension(i: number, cadIdx = this.cadIdx) {
+	async removeDimension(i: number, data = this.getData()) {
 		if ((await this._beforeRemove()) === true) {
-			const arr = this.getData(cadIdx).entities.dimension;
+			const arr = data.entities.dimension;
 			if (arr.length === 1) {
 				arr[0] = new CadDimension();
 			} else {
@@ -194,7 +194,7 @@ export class CadMenu {
 
 	selectLineEnd() {
 		const {cad} = this;
-		this.focus(this.cadIdx);
+		this.focus();
 		cad.config.selectedColor = null;
 		cad.config.hoverColor = null;
 		cad.render();
@@ -285,12 +285,11 @@ export class CadMenu {
 		return entities;
 	}
 
-	focus(cadIdx: number, cadIdx2 = -1, viewMode: CadMenu["viewMode"] = "normal") {
+	focus(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2, viewMode: CadMenu["viewMode"] = this.viewMode) {
 		this.cadIdx = cadIdx;
 		this.cadIdx2 = cadIdx2;
 		this.viewMode = viewMode;
 		const cad = this.cad;
-		const data = this.getData();
 		if (cadIdx2 >= 0) {
 			cad.data.components.data.forEach((d, i) => {
 				if (cadIdx === i || viewMode === "normal") {
@@ -302,7 +301,8 @@ export class CadMenu {
 			cad.render(true);
 		}
 		if (viewMode === "normal") {
-			cad.data.components.data.forEach((d, i) => {
+			const data = this.getData();
+			cad.data.components.data.forEach((d) => {
 				const opacity = d.id === data.id ? 1 : 0.3;
 				const selectable = d.id === data.id ? true : false;
 				cad.traverse((o) => {
@@ -317,9 +317,11 @@ export class CadMenu {
 	}
 
 	blur() {
-		this.cadIdx = -1;
-		this.cadIdx2 = -1;
-		this.viewMode = "normal";
+		if (this.cadIdx2 >= 0) {
+			this.cadIdx2 = -1;
+		} else if (this.cadIdx >= 0) {
+			this.cadIdx = -1;
+		}
 		this.cad.traverse((o) => {
 			o.userData.selectable = true;
 			const m = (o as Mesh).material as Material;

@@ -10,7 +10,7 @@ import {CadMenu} from "../cad-menu.common";
 })
 export class CadSubcadComponent implements OnInit {
 	@Input() menu: CadMenu;
-	list: {id: string; name: string; index: number; src: string}[] = [];
+	list: {id: string; name: string; src: string}[] = [];
 	listName = "CAD列表";
 	get data() {
 		const menu = this.menu;
@@ -40,7 +40,7 @@ export class CadSubcadComponent implements OnInit {
 		data?.forEach((d, i) => {
 			const cad = new CadViewer(d, {width: 300, height: 150, padding: 10});
 			const src = cad.exportImage().src;
-			this.list.push({id: d.id, name: d.name, index: i, src});
+			this.list.push({id: d.id, name: d.name, src});
 		});
 	}
 
@@ -54,11 +54,17 @@ export class CadSubcadComponent implements OnInit {
 				menu.focus(index);
 			}
 		} else {
-			if (index === cadIdx) {
-				// menu.blur();
+			if (index === cadIdx2) {
+				menu.blur();
 			} else {
-				// menu.focus(index);
+				menu.focus(cadIdx, index);
 			}
 		}
+	}
+
+	isActive(index: number) {
+		const {menu} = this;
+		const {cadIdx, cadIdx2, viewMode} = menu;
+		return viewMode === "normal" ? index === cadIdx : index === cadIdx2;
 	}
 }
