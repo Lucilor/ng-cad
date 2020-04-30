@@ -23,7 +23,7 @@ import {MatRadioModule} from "@angular/material/radio";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {DragDropModule} from "@angular/cdk/drag-drop";
-import {EditCadComponent} from "./edit-cad/edit-cad.component";
+import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
@@ -38,6 +38,7 @@ import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-
 import {CadDimensionComponent} from "./components/cad-menu/cad-dimension/cad-dimension.component";
 import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-form/cad-dimension-form.component";
 import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
+import { CadAssembleComponent } from './components/cad-menu/cad-assemble/cad-assemble.component';
 
 @NgModule({
 	declarations: [
@@ -57,7 +58,8 @@ import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.co
 		LineIndicatorComponent,
 		CadDimensionComponent,
 		CadDimensionFormComponent,
-		CadSubcadComponent
+		CadSubcadComponent,
+		CadAssembleComponent
 	],
 	imports: [
 		BrowserModule,

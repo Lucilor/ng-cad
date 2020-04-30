@@ -1,6 +1,6 @@
 import {MathUtils, Vector2, ArcCurve, Vector3} from "three";
 import {index2RGB, Line, Point, Angle, Arc} from "@lucilor/utils";
-import {cloneDeep} from "lodash";
+import _ from "lodash";
 
 export const enum CadTypes {
 	Line = "LINE",
@@ -40,7 +40,7 @@ export class CadData {
 	parent: string;
 	partners: CadData[];
 	components: Components;
-	visible = true;
+	readonly visible: boolean;
 	constructor(data: any = {}) {
 		if (typeof data !== "object") {
 			throw new Error("Invalid data.");
@@ -76,10 +76,13 @@ export class CadData {
 		}
 		this.parent = data.parent || "";
 		this.partners = [];
-		if (Array.isArray(data.partners)) {
-			data.partners.forEach((v) => this.partners.push(new CadData(v)));
-		}
 		this.components = new Components(data.components || {});
+		if (Array.isArray(data.partners)) {
+			data.partners.forEach((v) => {
+				this.addPartner(new CadData(v));
+			});
+		}
+		this.visible = data.visible === false ? false : true;
 	}
 
 	export() {
@@ -102,8 +105,8 @@ export class CadData {
 			type: this.type,
 			conditions: this.conditions.filter((v) => v),
 			options: exOptions,
-			baseLines: cloneDeep(this.baseLines),
-			jointPoints: cloneDeep(this.jointPoints),
+			baseLines: _.cloneDeep(this.baseLines),
+			jointPoints: _.cloneDeep(this.jointPoints),
 			parent: this.parent,
 			partners: this.partners.map((v) => v.export()),
 			components: this.components.export()
@@ -116,23 +119,19 @@ export class CadData {
 	 * 010: this.partners entities
 	 * 001: components.partners entities
 	 */
-	getAllEntities(mode = 0b111, visibleOnly = true) {
+	getAllEntities(mode = 0b111) {
 		const result = new CadEntities();
 		if (mode & 0b100) {
 			result.merge(this.entities);
 		}
 		if (mode & 0b010) {
 			this.partners.forEach((p) => {
-				if (!visibleOnly || p.visible) {
-					result.merge(p.entities);
-				}
+				result.merge(p.getAllEntities(mode));
 			});
 		}
 		if (mode & 0b001) {
 			this.components.data.forEach((c) => {
-				if (!visibleOnly || c.visible) {
-					result.merge(c.entities);
-				}
+				result.merge(c.getAllEntities(mode));
 			});
 		}
 		return result;
@@ -177,7 +176,7 @@ export class CadData {
 	}
 
 	transform({translate, flip, rotate}: CadTransform) {
-		this.entities.transform({translate, flip, rotate});
+		this.getAllEntities().transform({translate, flip, rotate});
 		this.baseLines.forEach((v) => {
 			const point = new Point(v.valueX, v.valueY);
 			if (translate) {
@@ -227,20 +226,56 @@ export class CadData {
 		});
 	}
 
+	addPartner(partner: CadData) {
+		let translate: number[];
+		for (const p1 of this.jointPoints) {
+			for (const p2 of partner.jointPoints) {
+				if (p1.name === p2.name) {
+					translate = [p1.valueX - p2.valueX, p1.valueY - p2.valueY];
+					break;
+				}
+			}
+		}
+		if (!translate) {
+			const rect1 = this.getAllEntities().getBounds();
+			const rect2 = partner.getAllEntities().getBounds();
+			translate = [rect1.x - rect2.x, rect1.y - rect2.y];
+			translate[0] += (rect1.width + rect2.width) / 2 + 15;
+		}
+		partner.transform({translate});
+		const data = this.partners;
+		const prev = data.findIndex((v) => v.id === partner.id);
+		if (prev > -1) {
+			data[prev] = partner;
+		} else {
+			data.push(partner);
+		}
+	}
+
 	addComponent(component: CadData) {
 		const rect1 = this.getAllEntities().getBounds();
-		const rect2 = component.entities.getBounds();
+		const rect2 = component.getAllEntities().getBounds();
 		const offset1 = [rect1.x - rect2.x, rect1.y - rect2.y];
 		offset1[0] += (rect1.width + rect2.width) / 2 + 15;
 		// offset1[1] += (rect1.height - rect2.height) / 2;
 		component.transform({translate: offset1});
 		const data = this.components.data;
-		const prev = data.findIndex((v) => v.name === component.name);
+		const prev = data.findIndex((v) => v.id === component.id);
 		if (prev > -1) {
 			data[prev] = component;
 		} else {
 			data.push(component);
 		}
+		return this;
+	}
+
+	show() {
+		this.getAllEntities().forEach((e) => (e.visible = true));
+		return this;
+	}
+
+	hide() {
+		this.getAllEntities().forEach((e) => (e.visible = false));
 		return this;
 	}
 }
@@ -338,20 +373,33 @@ export class CadEntities {
 			minY = Math.min(point.y, minY);
 		};
 		this.line.forEach((entity) => {
-			calc(entity.start);
-			calc(entity.end);
+			if (entity.visible) {
+				calc(entity.start);
+				calc(entity.end);
+			}
 		});
 		this.arc.forEach((entity) => {
-			const arcEntity = entity;
-			const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
-			const arc = new ArcCurve(center.x, center.y, radius, MathUtils.degToRad(start_angle), MathUtils.degToRad(end_angle), clockwise);
-			calc(arc.getPoint(0));
-			calc(arc.getPoint(1));
+			if (entity.visible) {
+				const arcEntity = entity;
+				const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
+				const arc = new ArcCurve(
+					center.x,
+					center.y,
+					radius,
+					MathUtils.degToRad(start_angle),
+					MathUtils.degToRad(end_angle),
+					clockwise
+				);
+				calc(arc.getPoint(0));
+				calc(arc.getPoint(1));
+			}
 		});
 		this.circle.forEach((entity) => {
-			const {center, radius} = entity;
-			calc(center.addScalar(radius));
-			calc(center.subScalar(radius));
+			if (entity.visible) {
+				const {center, radius} = entity;
+				calc(center.addScalar(radius));
+				calc(center.subScalar(radius));
+			}
 		});
 		if (!isFinite(maxX + minX) || !isFinite(maxY + minY)) {
 			return {x: 0, y: 0, width: 0, height: 0};
@@ -371,6 +419,7 @@ export class CadEntity {
 	type: string;
 	layer: string;
 	color: number;
+	visible: boolean;
 	_indexColor: number;
 	constructor(data: any = {}, layers: CadLayer[] = []) {
 		if (typeof data !== "object") {
@@ -400,6 +449,7 @@ export class CadEntity {
 				}
 			}
 		}
+		this.visible = data.visible === false ? false : true;
 	}
 
 	transform({translate, flip, rotate}: CadTransform) {}

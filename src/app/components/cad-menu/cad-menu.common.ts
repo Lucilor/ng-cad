@@ -30,35 +30,31 @@ interface LinesAtPoint {
 
 export class CadMenu {
 	cad: CadViewer;
-	multi?: boolean;
 	dialog: MatDialog;
 	dataService: CadDataService;
 	line: CadLine;
 	mode: Mode;
 	cadIdx = -1;
+	cadIdx2 = -1;
 	partner: string;
 	cadLength = 0;
 	readonly accuracy = 1;
 	pointsMap: LinesAtPoint[];
+	viewMode: "normal" | "partners" | "components" = "normal";
 
 	constructor(dialog: MatDialog, cad: CadViewer, multi = false, dataService: CadDataService) {
 		cad.config.selectedColor = null;
 		this.cad = cad;
 		this.dialog = dialog;
 		this.mode = {type: "normal", index: 0};
-		this.multi = multi;
 		this.dataService = dataService;
 	}
 
 	initData() {
-		const {multi, cad} = this;
-		if (multi) {
-			cad.data.components.data.forEach((d, i) => {
-				this.setData(d, i);
-			});
-		} else {
-			this.setData(this.cad.data, 0);
-		}
+		const {cad} = this;
+		cad.data.components.data.forEach((d, i) => {
+			this.setData(d, i);
+		});
 		const start = new Vector2();
 		let button: number;
 		cad.controls.on("dragstart", (event) => {
@@ -66,8 +62,8 @@ export class CadMenu {
 			button = event.button;
 		});
 		cad.controls.on("drag", (event) => {
-			if (this.cadIdx > -1 && (button === 1 || (event.shiftKey && button === 0))) {
-				const data = this.getData();
+			if (this.cadIdx >= 0 && (button === 1 || (event.shiftKey && button === 0))) {
+				const data = this.getData(this.cadIdx, -1);
 				const scale = cad.scale;
 				const end = new Vector2(event.clientX, event.clientY);
 				const offset = end.sub(start).divide(new Vector2(scale, -scale));
@@ -84,9 +80,14 @@ export class CadMenu {
 		});
 	}
 
-	getData(cadIdx = this.cadIdx) {
-		const {multi, cad} = this;
-		return multi ? cad.data.components.data[cadIdx] : cad.data;
+	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2) {
+		const {cad, viewMode} = this;
+		if (viewMode === "normal" || cadIdx2 < 0) {
+			return cad.data.components.data[cadIdx];
+		}
+		if (viewMode === "partners") {
+			return cad.data.components.data[cadIdx].partners[cadIdx2];
+		}
 	}
 
 	setData(d: CadData, cadIdx: number) {
@@ -284,25 +285,41 @@ export class CadMenu {
 		return entities;
 	}
 
-	focus(cadIdx: number) {
+	focus(cadIdx: number, cadIdx2 = -1, viewMode: CadMenu["viewMode"] = "normal") {
 		this.cadIdx = cadIdx;
+		this.cadIdx2 = cadIdx2;
+		this.viewMode = viewMode;
 		const cad = this.cad;
 		const data = this.getData();
-		cad.data.components.data.forEach((d) => {
-			const opacity = d.id === data.id ? 1 : 0.3;
-			const selectable = d.id === data.id ? true : false;
-			cad.traverse((o) => {
-				o.userData.selectable = selectable;
-				const m = (o as Mesh).material as Material;
-				m.setValues({opacity, transparent: true});
-			}, d.getAllEntities());
-		});
+		if (cadIdx2 >= 0) {
+			cad.data.components.data.forEach((d, i) => {
+				if (cadIdx === i || viewMode === "normal") {
+					d.show();
+				} else {
+					d.hide();
+				}
+			});
+			cad.render(true);
+		}
+		if (viewMode === "normal") {
+			cad.data.components.data.forEach((d, i) => {
+				const opacity = d.id === data.id ? 1 : 0.3;
+				const selectable = d.id === data.id ? true : false;
+				cad.traverse((o) => {
+					o.userData.selectable = selectable;
+					const m = (o as Mesh).material as Material;
+					m.setValues({opacity, transparent: true});
+				}, d.getAllEntities());
+			});
+		}
 		cad.controls.config.dragAxis = "";
 		this.updateCadLength();
 	}
 
 	blur() {
 		this.cadIdx = -1;
+		this.cadIdx2 = -1;
+		this.viewMode = "normal";
 		this.cad.traverse((o) => {
 			o.userData.selectable = true;
 			const m = (o as Mesh).material as Material;

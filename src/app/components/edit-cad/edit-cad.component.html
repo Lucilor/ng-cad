@@ -7,7 +7,7 @@
 	<button mat-raised-button color="primary" (click)="rotate(false)">逆时针旋转</button>
 	<input matInput type="number" [(ngModel)]="rotateAngle" />
 	<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
-	<button mat-raised-button color="primary" (click)="drawDimensions = !drawDimensions">{{ drawDimensions ? "隐藏" : "显示" }}标注</button>
+	<button mat-raised-button color="primary" (click)="toggleDimensions()">{{ drawDimensions ? "隐藏" : "显示" }}标注</button>
 	<button mat-raised-button color="primary" (click)="drawMTexts = !drawMTexts">{{ drawMTexts ? "隐藏" : "显示" }}MTexts</button>
 	<button mat-raised-button color="accent" *ngIf="cad.data.components.data.length > 1" (click)="submitAll()">修改全部</button>
 </div>
@@ -19,8 +19,10 @@
 		<app-cad-dimension #cadDimension [menu]="menu"></app-cad-dimension>
 	</mat-accordion>
 </div>
-<div class="menu top" *ngIf="showTopMenu">
-	<button mat-raised-button color="primary">垂直翻转</button>
+<div class="menu top" *ngIf="showTopMenu" @topMenuTrigger>
+	<button mat-raised-button color="primary" (click)="setViewMode('normal')">普通</button>
+	<button mat-raised-button color="primary" [disabled]="menu.cadIdx === -1" (click)="setViewMode('partners')">关联</button>
+	<button mat-raised-button color="primary" [disabled]="menu.cadIdx === -1" (click)="setViewMode('components')">装配</button>
 </div>
 
 <app-line-indicator [menu]="menu" [cadInfo]="cadInfo" [cadLine]="cadLine"></app-line-indicator>

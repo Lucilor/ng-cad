@@ -1,6 +1,6 @@
 <mat-expansion-panel expanded *ngIf="list.length">
 	<mat-expansion-panel-header>
-		<mat-panel-title>CAD列表</mat-panel-title>
+		<mat-panel-title>{{ listName }}</mat-panel-title>
 	</mat-expansion-panel-header>
 	<div class="cad-image" *ngFor="let v of list; let i = index" [class.active]="v.index === menu.cadIdx">
 		<div class="title">{{ v.name }}</div>

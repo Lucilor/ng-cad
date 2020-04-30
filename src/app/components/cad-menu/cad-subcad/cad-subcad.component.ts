@@ -11,14 +11,33 @@ import {CadMenu} from "../cad-menu.common";
 export class CadSubcadComponent implements OnInit {
 	@Input() menu: CadMenu;
 	list: {id: string; name: string; index: number; src: string}[] = [];
-	@Output() selectCad = new EventEmitter<number>();
+	listName = "CAD列表";
+	get data() {
+		const menu = this.menu;
+		const d = menu.cad.data.components.data[menu.cadIdx];
+		let data: CadData[];
+		if (menu.viewMode === "normal") {
+			this.listName = "CAD列表";
+			data = menu.cad.data.components.data;
+		}
+		if (menu.viewMode === "partners") {
+			this.listName = `${d.name} 的关联CAD`;
+			data = d.partners;
+		}
+		if (menu.viewMode === "components") {
+			this.listName = `${d.name} 的装配CAD`;
+			data = d.components.data;
+		}
+		return data;
+	}
 	constructor() {}
 
 	ngOnInit() {}
 
-	updateList(data: CadData[]) {
+	updateList() {
 		this.list = [];
-		data.forEach((d, i) => {
+		const data = this.data;
+		data?.forEach((d, i) => {
 			const cad = new CadViewer(d, {width: 300, height: 150, padding: 10});
 			const src = cad.exportImage().src;
 			this.list.push({id: d.id, name: d.name, index: i, src});
@@ -26,14 +45,20 @@ export class CadSubcadComponent implements OnInit {
 	}
 
 	clickItem(index: number) {
-		if (index === this.menu.cadIdx) {
-			this.selectCad.emit(-1);
-			this.menu.cadIdx = -1;
-			this.menu.blur();
+		const {menu} = this;
+		const {cadIdx, cadIdx2, viewMode} = menu;
+		if (viewMode === "normal") {
+			if (index === cadIdx) {
+				menu.blur();
+			} else {
+				menu.focus(index);
+			}
 		} else {
-			this.selectCad.emit(index);
-			this.menu.cadIdx = index;
-			this.menu.focus(index);
+			if (index === cadIdx) {
+				// menu.blur();
+			} else {
+				// menu.focus(index);
+			}
 		}
 	}
 }
