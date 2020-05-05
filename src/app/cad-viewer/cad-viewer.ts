@@ -512,14 +512,17 @@ export class CadViewer {
 		}
 		text = text.replace("<>", p3.distanceTo(p4).toFixed(2));
 		if (axis === "y") {
-			text.split("").join("\n");
+			text = text.split("").join("\n");
 		}
 		const sprite = new TextSprite({fontSize, fillStyle: colorStr, text});
 		const midPoint = new Vector3().add(p3).add(p4).divideScalar(2);
 		sprite.position.copy(midPoint);
-		sprite.center.set(0.5, 1);
+		if (axis === "x") {
+			this._setAnchor(sprite, midPoint, new Vector3(0.5, 1));
+		}
 		if (axis === "y") {
 			sprite.lineGap = 0;
+			this._setAnchor(sprite, midPoint, new Vector3(0, 0.5));
 		}
 		line.add(sprite);
 	}

@@ -885,34 +885,32 @@ export class CadDimension extends CadEntity {
 	font_size: number;
 	dimstyle: string;
 	axis: "x" | "y";
-	entity1?: {
+	entity1: {
 		id: string;
 		location: "start" | "end" | "center";
 	};
-	entity2?: {
+	entity2: {
 		id: string;
 		location: "start" | "end" | "center";
 	};
 	distance: number;
-	cad1?: string;
-	cad2?: string;
-	mingzi?: string;
-	qujian?: string;
+	cad1: string;
+	cad2: string;
+	mingzi: string;
+	qujian: string;
 	constructor(data: any = {type: cadTypes.dimension}, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.font_size = data.font_size || 16;
 		this.dimstyle = data.dimstyle || "";
 		["entity1", "entity2"].forEach((field) => {
+			this[field] = {id: "", location: "center"};
 			if (data[field]) {
-				this[field] = {id: "", location: "center"};
 				if (typeof data[field].id === "string") {
 					this[field].id = data[field].id;
 				}
 				if (["start", "end", "center"].includes(data[field].location)) {
 					this[field].location = data[field].location;
 				}
-			} else {
-				this[field] = null;
 			}
 		});
 		this.axis = data.axis || "x";

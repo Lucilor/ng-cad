@@ -1,6 +1,6 @@
 import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/core";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
-import {CadData, CadDimension} from "@app/cad-viewer/cad-data";
+import {CadData} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
 import {ActivatedRoute} from "@angular/router";
 import {environment} from "@src/environments/environment";
@@ -40,7 +40,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	menu: CadMenu;
 	showTopMenu = false;
 
-	constructor(private route: ActivatedRoute, private dataService: CadDataService, private dialog: MatDialog) {
+	constructor(private route: ActivatedRoute, private dataService: CadDataService, dialog: MatDialog) {
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
 		document.title = title;
@@ -72,7 +72,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		document.title = `${title}-${data.map((d) => d.name).join(",")}`;
 
 		window.addEventListener("pointermove", (event) => {
-			const {clientX: x, clientY: y} = event;
+			const {clientY: y} = event;
 			if (y <= 90) {
 				this.showTopMenu = true;
 			} else {
@@ -101,19 +101,15 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
-		// const partner = this.status.partner;
-		// if (partner) {
-		// 	this.vCad.flipPartner(partner, vertical, horizontal).render(true);
-		// 	this.cad.flipPartner(partner, vertical, horizontal);
-		// } else {
-		// 	this.vCad.flip(vertical, horizontal).render(true);
-		// 	this.cad.flip(vertical, horizontal);
-		// }
-		this.cad.data.transform({flip: {vertical, horizontal}});
-		this.cad.render(true);
+		const {cad, menu} = this;
+		menu.getData().transform({flip: {vertical, horizontal}});
+		cad.data.updatePartners();
+		cad.data.updateComponents();
+		cad.render(true);
 	}
 
 	rotate(clockwise?: boolean) {
+		const {cad, menu} = this;
 		let angle = 0;
 		if (clockwise === true) {
 			angle = -Math.PI / 2;
@@ -123,38 +119,18 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			angle = new Angle(this.rotateAngle, "deg").rad;
 		}
 		if (typeof clockwise === "boolean") {
-			const reverseAxis = (d: CadDimension) => {
+			cad.data.getAllEntities().dimension.forEach((d) => {
 				if (d.axis === "x") {
 					d.axis = "y";
 				} else {
 					d.axis = "x";
 				}
-			};
-			this.cad.data.entities.dimension.forEach((d) => reverseAxis(d));
-			this.cad.data.partners.forEach((p) => {
-				p.entities.dimension.forEach((d) => reverseAxis(d));
 			});
-			this.cad.data.components.data.forEach((c) => {
-				c.entities.dimension.forEach((d) => reverseAxis(d));
-			});
-			// this.cad.data.entities.dimension.forEach((d) => reverseAxis(d));
-			// this.cad.data.partners.forEach((p) => {
-			// 	p.entities.dimension.forEach((d) => reverseAxis(d));
-			// });
-			// this.cad.data.components.data.forEach((c) => {
-			// 	c.entities.dimension.forEach((d) => reverseAxis(d));
-			// });
 		}
-		// const partner = this.status.partner;
-		// if (partner) {
-		// 	this.vCad.rotatePartner(partner, angle).render(true);
-		// 	this.cad.rotatePartner(partner, angle);
-		// } else {
-		// 	this.vCad.rotate(angle).render(true);
-		// 	this.cad.rotate(angle);
-		// }
-		this.cad.data.transform({rotate: {angle}});
-		this.cad.render(true);
+		menu.getData().transform({rotate: {angle}});
+		cad.data.updatePartners();
+		cad.data.updateComponents();
+		cad.render(true);
 	}
 
 	setViewMode(mode: CadMenu["viewMode"]) {
