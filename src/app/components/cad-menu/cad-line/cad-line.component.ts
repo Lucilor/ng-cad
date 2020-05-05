@@ -36,8 +36,6 @@ export class CadLineComponent implements OnInit {
 	setLineLength(event: InputEvent) {
 		const {line, menu} = this;
 		const length = Number((event.target as HTMLInputElement).value);
-		// const start = new Point(line.start);
-		// const end = new Point(line.end);
 		const d = line.length - length;
 		const theta = line.theta;
 		const offset = new Vector2(Math.cos(theta), Math.sin(theta)).multiplyScalar(d);
@@ -48,25 +46,8 @@ export class CadLineComponent implements OnInit {
 		entities.transform({translate: offset.toArray()});
 		menu.getData().updatePartners();
 		menu.cad.render();
-		this.setPoints();
 		menu.updateCadLength();
 		this.updateTLine();
-	}
-
-	setPoints() {
-		// 	const {line} = this;
-		// 	if (!status.entity) {
-		// 		return;
-		// 	}
-		// 	if (status.entity.type === CadTypes.Arc) {
-		// 		line = new Line(new Point());
-		// 	}
-		// 	if (status.entity.type === CadTypes.Line) {
-		// 		const entity = status.entity as CadLine;
-		// 		const start = vCad.translatePoint(new Point(entity.start));
-		// 		const end = vCad.translatePoint(new Point(entity.end));
-		// 		status.line = new Line(start, end);
-		// 	}
 	}
 
 	getCssColor(color?: string) {

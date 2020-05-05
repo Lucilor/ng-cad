@@ -17,7 +17,7 @@ import {Angle, Arc, Point} from "@lucilor/utils";
 import {CadDataService} from "@services/cad-data.service";
 
 interface Mode {
-	type: "normal" | "baseLine" | "dimension" | "jointPoint";
+	type: "normal" | "baseLine" | "dimension" | "jointPoint" | "assemble";
 	index: number;
 }
 
@@ -61,11 +61,15 @@ export class CadMenu {
 		});
 		cad.controls.on("drag", (event) => {
 			if (this.cadIdx >= 0 && (button === 1 || (event.shiftKey && button === 0))) {
-				const data = this.getData(this.cadIdx, -1);
 				const scale = cad.scale;
 				const end = new Vector2(event.clientX, event.clientY);
 				const offset = end.sub(start).divide(new Vector2(scale, -scale));
-				data.transform({translate: offset.toArray()});
+				const data = this.getData(this.cadIdx, -1);
+				if (this.viewMode === "components") {
+					data.moveComponent(this.getData(), offset.toArray());
+				} else {
+					data.transform({translate: offset.toArray()});
+				}
 				cad.render();
 				start.set(event.clientX, event.clientY);
 			}
@@ -86,6 +90,9 @@ export class CadMenu {
 		}
 		if (viewMode === "partners") {
 			return cad.data.components.data[cadIdx].partners[cadIdx2];
+		}
+		if (viewMode === "components") {
+			return cad.data.components.data[cadIdx].components.data[cadIdx2];
 		}
 	}
 
@@ -299,7 +306,7 @@ export class CadMenu {
 					d.hide();
 				}
 			});
-			cad.render(true);
+			cad.render();
 		}
 		if (viewMode === "normal") {
 			const data = this.getData();
@@ -312,16 +319,47 @@ export class CadMenu {
 					m.setValues({opacity, transparent: true});
 				}, d.getAllEntities());
 			});
+		} else {
+			const data = this.getData(this.cadIdx, -1);
+			if (cadIdx2 >= 0) {
+				let subData: CadData[];
+				if (viewMode === "partners") {
+					subData = data.partners;
+				}
+				if (viewMode === "components") {
+					subData = data.components.data;
+				}
+				subData.forEach((d, i) => {
+					const opacity = i === cadIdx2 ? 1 : 0.3;
+					const selectable = i === cadIdx2 ? true : false;
+					cad.traverse((o) => {
+						o.userData.selectable = selectable;
+						const m = (o as Mesh).material as Material;
+						m.setValues({opacity, transparent: true});
+					}, d.getAllEntities());
+				});
+				cad.traverse((o) => {
+					o.userData.selectable = false;
+					const m = (o as Mesh).material as Material;
+					m.setValues({opacity: 0.3, transparent: true});
+				}, data.entities);
+			} else {
+				cad.traverse((o) => {
+					o.userData.selectable = true;
+					const m = (o as Mesh).material as Material;
+					m.setValues({opacity: 1});
+				}, data.getAllEntities());
+			}
 		}
 		cad.controls.config.dragAxis = "";
 		this.updateCadLength();
 	}
 
-	blur() {
+	blur(cadIdx = -1, cadIdx2 = -1) {
 		if (this.cadIdx2 >= 0) {
-			this.cadIdx2 = -1;
+			this.cadIdx2 = cadIdx2;
 		} else if (this.cadIdx >= 0) {
-			this.cadIdx = -1;
+			this.cadIdx = cadIdx;
 		}
 		this.cad.traverse((o) => {
 			o.userData.selectable = true;

@@ -1,1 +1,37 @@
-<p>cad-assemble works!</p>
+<mat-expansion-panel expanded>
+	<mat-expansion-panel-header>
+		<mat-panel-title>选项</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div class="option">
+		<label>距离</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input matInput type="text" [(ngModel)]="options.space" placeholder="请输入距离" />
+		</mat-form-field>
+	</div>
+	<div class="option">
+		<label>定位</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<mat-select [(ngModel)]="options.position">
+				<mat-option value="absolute">绝对定位</mat-option>
+				<mat-option value="relative">相对定位</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+	<button mat-raised-button color="accent" (click)="toggleAssemble()">
+		{{ assembling ? "结束" : "开始" }}装配
+	</button>
+</mat-expansion-panel>
+<mat-expansion-panel expanded>
+	<mat-expansion-panel-header>
+		<mat-panel-title>配合</mat-panel-title>
+	</mat-expansion-panel-header>
+	<div class="connection" *ngFor="let c of data.components?.connections; let i = index">
+		<p>名字: {{ c.names[0] }} &harr; {{ c.names[1] }}</p>
+		<p>方向: {{ c.axis }}</p>
+		<p>距离: {{ c.space || 0 }}</p>
+		<p>定位: {{ c.position === "relative" ? "相对定位" : "绝对定位" }}</p>
+		<button mat-raised-button color="primary" (click)="removeConnection(i)">删除</button>
+	</div>
+</mat-expansion-panel>

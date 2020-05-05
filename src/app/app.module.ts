@@ -25,9 +25,7 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {DimFormComponent} from "./edit-cad/dim-form.component";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
-import {AssembleCadComponent} from "./assemble-cad/assemble-cad.component";
 import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
@@ -48,8 +46,6 @@ import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assem
 		PageNotFoundComponent,
 		AlertComponent,
 		EditCadComponent,
-		DimFormComponent,
-		AssembleCadComponent,
 		PrintCadComponent,
 		ListCadComponent,
 		PlaygroundComponent,

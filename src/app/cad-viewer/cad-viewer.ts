@@ -60,7 +60,6 @@ export interface CadViewerConfig {
 	hoverColor?: number;
 	showLineLength?: number;
 	padding?: number[] | number;
-	selectMode?: "none" | "single" | "multiple";
 	fps?: number;
 	showStats?: boolean;
 	reverseSimilarColor?: true;
@@ -411,8 +410,8 @@ export class CadViewer {
 		if (!entity.entity1 || !entity.entity2 || !entity.entity1.id || !entity.entity2.id) {
 			canDraw = false;
 		}
-		const entity1 = this.data.findEntity(entity.entity1.id) as CadLine;
-		const entity2 = this.data.findEntity(entity.entity2.id) as CadLine;
+		const entity1 = this.data.findEntity(entity.entity1?.id) as CadLine;
+		const entity2 = this.data.findEntity(entity.entity2?.id) as CadLine;
 		if (!entity1 || !entity1.visible || !entity2 || !entity2.visible) {
 			canDraw = false;
 		}

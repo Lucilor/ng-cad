@@ -12,6 +12,7 @@ import {CadLineComponent} from "../cad-menu/cad-line/cad-line.component";
 import {CadDimensionComponent} from "../cad-menu/cad-dimension/cad-dimension.component";
 import {CadSubcadComponent} from "../cad-menu/cad-subcad/cad-subcad.component";
 import {trigger, transition, style, animate} from "@angular/animations";
+import {CadAssembleComponent} from "../cad-menu/cad-assemble/cad-assemble.component";
 
 const title = "编辑CAD";
 @Component({
@@ -31,6 +32,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	@ViewChild("cadLine", {read: CadLineComponent}) cadLine: CadLineComponent;
 	@ViewChild("cadDimension", {read: CadDimensionComponent}) cadDimension: CadDimensionComponent;
 	@ViewChild("subcad", {read: CadSubcadComponent}) subcad: CadSubcadComponent;
+	@ViewChild("cadAssemble", {read: CadAssembleComponent}) cadAssemble: CadAssembleComponent;
 	cad: CadViewer;
 	rotateAngle = 0;
 	drawDimensions = true;
@@ -54,13 +56,15 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	async ngOnInit() {
-		const join = this.route.snapshot.queryParams.join;
+		const {partners, components} = this.route.snapshot.queryParams;
 		const data = await this.dataService.getCadData();
 		data.forEach((d) => this.cad.data.addComponent(d));
 		this.cad.render(true);
 		this.menu.initData();
-		if (join) {
+		if (partners) {
 			this.menu.focus(0, 0, "partners");
+		} else if (components) {
+			this.menu.focus(0, 0, "components");
 		} else {
 			this.menu.focus(0, -1, "normal");
 		}

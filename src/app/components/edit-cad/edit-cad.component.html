@@ -14,8 +14,9 @@
 <div class="menu right">
 	<mat-accordion multi>
 		<app-cad-subcad #subcad [menu]="menu"></app-cad-subcad>
-		<app-cad-info #cadInfo [menu]="menu"></app-cad-info>
-		<app-cad-line #cadLine [menu]="menu"></app-cad-line>
+		<app-cad-info #cadInfo [menu]="menu" [hidden]="menu.viewMode==='components'"></app-cad-info>
+		<app-cad-line #cadLine [menu]="menu" [hidden]="menu.viewMode==='components'"></app-cad-line>
+		<app-cad-assemble #cadAssemble [menu]="menu" *ngIf="menu.viewMode==='components'"></app-cad-assemble>
 		<app-cad-dimension #cadDimension [menu]="menu"></app-cad-dimension>
 	</mat-accordion>
 </div>
@@ -32,7 +33,7 @@
 	<button
 		mat-raised-button
 		[color]="menu.viewMode === 'components' ? 'accent' : 'primary'"
-		[disabled]="true || menu.cadIdx === -1"
+		[disabled]="menu.cadIdx === -1"
 		(click)="setViewMode('components')"
 	>
 		装配
