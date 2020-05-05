@@ -268,12 +268,11 @@ export class CadViewer {
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects, config} = this;
 		const showLineLength = config.showLineLength;
-		const {start, end} = entity;
-		const length = start.distanceTo(end);
+		const {start, end, length} = entity;
 		const middle = start.clone().add(end).divideScalar(2);
 		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
 		const object = objects[entity.id] as Line;
-		if (!visible) {
+		if (!visible || length <= 0) {
 			scene.remove(object);
 			delete objects[entity.id];
 			return;
@@ -517,7 +516,6 @@ export class CadViewer {
 			text.split("").join("\n");
 		}
 		const sprite = new TextSprite({fontSize, fillStyle: colorStr, text});
-		// const sprite = new TextSprite({fontSize:200, fillStyle: "#ffffff", text: "AWEgw"});
 		const midPoint = new Vector3().add(p3).add(p4).divideScalar(2);
 		sprite.position.copy(midPoint);
 		sprite.center.set(0.5, 1);

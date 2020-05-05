@@ -1,6 +1,6 @@
 import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/core";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
-import {CadData, CadLine, CadDimension} from "@app/cad-viewer/cad-data";
+import {CadData, CadDimension} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
 import {ActivatedRoute} from "@angular/router";
 import {environment} from "@src/environments/environment";
@@ -46,7 +46,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
-			padding: [20, 20, 20, 100],
+			padding: [30, 370, 30, 125],
 			showLineLength: 8
 		});
 		this.cad.setControls({selectMode: "single"});
@@ -56,9 +56,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	async ngOnInit() {
 		const join = this.route.snapshot.queryParams.join;
 		const data = await this.dataService.getCadData();
-		data.forEach((d) => {
-			this.cad.data.addComponent(d);
-		});
+		data.forEach((d) => this.cad.data.addComponent(d));
 		this.cad.render(true);
 		this.menu.initData();
 		if (join) {
@@ -76,6 +74,9 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			} else {
 				this.showTopMenu = false;
 			}
+		});
+		window.addEventListener("resize", () => {
+			this.cad.resize(innerWidth, innerHeight);
 		});
 	}
 

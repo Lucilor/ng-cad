@@ -98,7 +98,7 @@ export class CadInfoComponent implements OnInit {
 	onJointPointClick(i: number) {
 		const menu = this.menu;
 		const {pointsMap, mode, cad} = menu;
-		const data = menu.getData();
+		const data = menu.getData(menu.cadIdx, -1);
 		pointsMap.forEach((v, j) => (v.selected = i === j));
 		const index = mode.index;
 		const point = pointsMap[i].point;
@@ -107,5 +107,6 @@ export class CadInfoComponent implements OnInit {
 		jointPoint.valueY = point.y;
 		data.updatePartners();
 		cad.render();
+		menu.generatePointsMap();
 	}
 }

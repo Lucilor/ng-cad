@@ -3,7 +3,6 @@ import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../alert/alert.component";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData} from "@app/cad-viewer/cad-data";
-import {CadDataService} from "@services/cad-data.service";
 import {environment} from "@src/environments/environment";
 import {timeout} from "@src/app/app.common";
 
@@ -20,7 +19,7 @@ export class PrintCadComponent implements AfterViewInit {
 	scale = 16;
 	miniMenu = false;
 	padding = [40, 110];
-	constructor(private dialog: MatDialog, private dataService: CadDataService) {
+	constructor(private dialog: MatDialog) {
 		// tslint:disable-next-line
 		window["view"] = this;
 	}

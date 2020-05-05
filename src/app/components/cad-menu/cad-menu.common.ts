@@ -71,6 +71,7 @@ export class CadMenu {
 			}
 		});
 		cad.controls.on("dragend", () => (button = NaN));
+		cad.controls.on("wheel", () => this.generatePointsMap());
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
 				this.blur();
@@ -109,7 +110,7 @@ export class CadMenu {
 	}
 
 	submit() {
-		this.dataService.postCadData([this.getData()]);
+		this.dataService.postCadData([this.getData(this.cadIdx, -1)]);
 	}
 
 	addOption(i: number, data = this.getData()) {

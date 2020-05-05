@@ -21,6 +21,7 @@ export class CadDataService {
 	baseURL: string;
 	encode: string;
 	data: string;
+	silent = false;
 	constructor(
 		private store: Store<State>,
 		private http: HttpClient,
@@ -35,6 +36,9 @@ export class CadDataService {
 	}
 
 	private alert(msg: any) {
+		if (this.silent) {
+			return;
+		}
 		if (msg instanceof Error) {
 			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: msg.message}});
 		} else if (msg) {
@@ -45,7 +49,12 @@ export class CadDataService {
 	async getCadData() {
 		const {baseURL, encode, data} = this;
 		if (!data) {
-			return [new CadData(this.loadCurrentCad())];
+			try {
+				return [new CadData(this.loadCurrentCad())];
+			} catch (error) {
+				this.alert(error);
+				return null;
+			}
 		}
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadData"});
 		try {

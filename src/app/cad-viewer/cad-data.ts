@@ -39,7 +39,7 @@ export class CadData {
 	jointPoints: CadJointPoint[];
 	parent: string;
 	partners: CadData[];
-	components: Components;
+	components: CadComponents;
 	readonly visible: boolean;
 	constructor(data: any = {}) {
 		if (typeof data !== "object") {
@@ -76,7 +76,7 @@ export class CadData {
 		}
 		this.parent = data.parent || "";
 		this.partners = [];
-		this.components = new Components(data.components || {});
+		this.components = new CadComponents(data.components || {});
 		if (Array.isArray(data.partners)) {
 			data.partners.forEach((v) => {
 				this.addPartner(new CadData(v));
@@ -89,7 +89,7 @@ export class CadData {
 		this.updateBaseLines();
 		const exLayers = {};
 		this.layers.forEach((v) => {
-			exLayers[v.id] = {id: v.id, color: v._indexColor, name: v.name};
+			exLayers[v.id] = v.export();
 		});
 		const exOptions = {};
 		this.options.forEach((v) => {
@@ -105,8 +105,8 @@ export class CadData {
 			type: this.type,
 			conditions: this.conditions.filter((v) => v),
 			options: exOptions,
-			baseLines: _.cloneDeep(this.baseLines),
-			jointPoints: _.cloneDeep(this.jointPoints),
+			baseLines: this.baseLines.map((v) => v.export()).filter((v) => v.idX && v.idY),
+			jointPoints: this.jointPoints.map((v) => v.export()),
 			parent: this.parent,
 			partners: this.partners.map((v) => v.export()),
 			components: this.components.export()
@@ -255,7 +255,9 @@ export class CadData {
 	}
 
 	updatePartners() {
-		this.partners.forEach((v) => this.addPartner(v));
+		const partners = this.partners.slice();
+		this.partners.length = 0;
+		partners.forEach((v) => this.addPartner(v));
 		this.partners.forEach((v) => v.updatePartners());
 		this.components.data.forEach((v) => v.updatePartners());
 	}
@@ -390,8 +392,7 @@ export class CadEntities {
 		});
 		this.arc.forEach((entity) => {
 			if (entity.visible) {
-				const arcEntity = entity;
-				const {center, radius, start_angle, end_angle, clockwise} = arcEntity;
+				const {center, radius, start_angle, end_angle, clockwise} = entity;
 				const arc = new ArcCurve(
 					center.x,
 					center.y,
@@ -768,6 +769,10 @@ export class CadBaseLine {
 		this.valueX = data.valueX || NaN;
 		this.valueY = data.valueY || NaN;
 	}
+
+	export() {
+		return {name: this.name, idX: this.idX, idY: this.idY, valueX: this.valueX, valueY: this.valueY};
+	}
 }
 
 export class CadJointPoint {
@@ -778,6 +783,10 @@ export class CadJointPoint {
 		this.name = data.name || "";
 		this.valueX = data.valueX || NaN;
 		this.valueY = data.valueY || NaN;
+	}
+
+	export() {
+		return {name: this.name, valueX: this.valueX, valueY: this.valueY};
 	}
 }
 
@@ -801,7 +810,7 @@ export interface Connection {
 		y?: number;
 	};
 }
-export class Components {
+export class CadComponents {
 	data: CadData[];
 	connections: Connection[];
 	constructor(data: any = {}) {

@@ -38,7 +38,7 @@ import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-
 import {CadDimensionComponent} from "./components/cad-menu/cad-dimension/cad-dimension.component";
 import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-form/cad-dimension-form.component";
 import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
-import { CadAssembleComponent } from './components/cad-menu/cad-assemble/cad-assemble.component';
+import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assemble.component";
 
 @NgModule({
 	declarations: [
