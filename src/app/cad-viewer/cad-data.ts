@@ -1,4 +1,4 @@
-import {MathUtils, Vector2, ArcCurve, Vector3} from "three";
+import {MathUtils, Vector2, ArcCurve, Vector3, Box3} from "three";
 import {index2RGB, Line, Point, Angle, Arc} from "@lucilor/utils";
 import _ from "lodash";
 
@@ -331,8 +331,6 @@ export class CadData {
 		// 		}
 		// 	});
 		// }
-		const c1Entities = c1.getAllEntities();
-		const c2Entities = c2.getAllEntities();
 		if (position === "absolute") {
 			const e1 = c1.findEntity(lines[0]);
 			const e2 = c2.findEntity(lines[1]);
@@ -626,20 +624,11 @@ export class CadEntities {
 	}
 
 	getBounds() {
-		let maxX = -Infinity;
-		let minX = Infinity;
-		let maxY = -Infinity;
-		let minY = Infinity;
-		const calc = (point: Vector2 | Vector3) => {
-			maxX = Math.max(point.x, maxX);
-			maxY = Math.max(point.y, maxY);
-			minX = Math.min(point.x, minX);
-			minY = Math.min(point.y, minY);
-		};
+		const box = new Box3();
 		this.line.forEach((entity) => {
 			if (entity.visible) {
-				calc(entity.start);
-				calc(entity.end);
+				box.expandByPoint(entity.start);
+				box.expandByPoint(entity.end);
 			}
 		});
 		this.arc.forEach((entity) => {
@@ -653,21 +642,24 @@ export class CadEntities {
 					MathUtils.degToRad(end_angle),
 					clockwise
 				);
-				calc(arc.getPoint(0));
-				calc(arc.getPoint(1));
+				const start = arc.getPoint(0);
+				const end = arc.getPoint(1);
+				box.expandByPoint(new Vector3(start.x, start.y));
+				box.expandByPoint(new Vector3(end.x, end.y));
 			}
 		});
 		this.circle.forEach((entity) => {
 			if (entity.visible) {
 				const {center, radius} = entity;
-				calc(center.addScalar(radius));
-				calc(center.subScalar(radius));
+				box.expandByPoint(center.addScalar(radius));
+				box.expandByPoint(center.subScalar(radius));
 			}
 		});
-		if (!isFinite(maxX + minX) || !isFinite(maxY + minY)) {
-			return {x: 0, y: 0, width: 0, height: 0};
-		}
-		return {x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY};
+		const center = new Vector3();
+		const size = new Vector3();
+		box.getCenter(center);
+		box.getSize(size);
+		return {x: center.x, y: center.y, width: size.x, height: size.y};
 	}
 
 	forEach(callback: (value: CadEntity, index: number, array: CadEntity[]) => void) {

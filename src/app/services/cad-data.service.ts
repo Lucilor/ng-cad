@@ -144,6 +144,39 @@ export class CadDataService {
 		});
 	}
 
+	async getCadDataPage(page: number, limit: number, search?: string) {
+		const {baseURL, encode} = this;
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
+		try {
+			const data = RSAEncrypt({page, limit, search, xiaodaohang: "CAD"});
+			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
+			if (response.code === 0 && response.data) {
+				const result: CadData[] = [];
+				response.data.forEach((d) => {
+					const {_id, 分类, 名字, 条件, 选项} = d;
+					if (d.json && typeof d.json === "object") {
+						const json = d.json;
+						json.name = 名字;
+						json.type = 分类;
+						json.options = 选项;
+						json.conditions = 条件;
+						result.push(new CadData(json));
+					} else {
+						result.push(new CadData({id: _id, name: 名字, type: 分类, options: 选项, conditions: 条件}));
+					}
+				});
+				return {data: result, count: response.count};
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alert(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
+		}
+	}
+
 	async replaceData(source: CadData, target: string) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
 		const {baseURL, encode} = this;

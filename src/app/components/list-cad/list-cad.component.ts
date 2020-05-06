@@ -1,9 +1,9 @@
 import {Component, OnInit, Inject, ViewChild} from "@angular/core";
-import {CadDataService} from "../../cad-data.service";
-import {ActivatedRoute} from "@angular/router";
 import {PageEvent, MatPaginator} from "@angular/material/paginator";
-import {CadViewer, CadData} from "@lucilor/cad-viewer";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
+import {CadData} from "@app/cad-viewer/cad-data";
+import {CadViewer} from "@app/cad-viewer/cad-viewer";
+import {CadDataService} from "@services/cad-data.service";
 
 @Component({
 	selector: "app-list-cad",
@@ -15,8 +15,8 @@ export class ListCadComponent implements OnInit {
 	pageSizeOptions = [1, 10, 20, 30, 40, 50];
 	pageSize = 10;
 	pageData: {data: CadData; img: string; checked: boolean}[] = [];
-	width: 300;
-	height: 150;
+	width = 300;
+	height = 150;
 	searchInput: "";
 	searchValue: "";
 	checkedIndex = -1;
@@ -24,8 +24,7 @@ export class ListCadComponent implements OnInit {
 	constructor(
 		public dialogRef: MatDialogRef<ListCadComponent, CadData | CadData[]>,
 		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"},
-		private dataService: CadDataService,
-		private route: ActivatedRoute
+		private dataService: CadDataService
 	) {}
 
 	ngOnInit() {
@@ -39,18 +38,19 @@ export class ListCadComponent implements OnInit {
 	}
 
 	async getData(page: number) {
-		const params = this.route.snapshot.queryParams;
-		const data = await this.dataService.getCadDataPage(params.encode, page, this.paginator.pageSize, this.searchValue);
+		const data = await this.dataService.getCadDataPage(page, this.paginator.pageSize, this.searchValue);
 		this.length = data.count;
 		this.pageData.length = 0;
 		data.data.forEach((d) => {
 			try {
-				const cad = new CadViewer(d, this.width, this.height, {drawDimensions: false, drawMTexts: false}).render(true);
+				d.entities.dimension = [];
+				d.entities.mtext = [];
+				const cad = new CadViewer(d, {width: this.width, height: this.height});
 				this.pageData.push({data: cad.data, img: cad.exportImage().src, checked: false});
 				cad.destroy();
 			} catch (e) {
 				this.pageData.push({
-					data: {id: d.id, name: d.name, entities: {line: [], arc: [], circle: [], mtext: [], dimension: [], hatch: []}},
+					data: new CadData({id: d.id, name: d.name}),
 					img: "",
 					checked: false
 				});

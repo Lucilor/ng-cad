@@ -1,4 +1,4 @@
-import {Component, OnInit, Input, Output, EventEmitter} from "@angular/core";
+import {Component, OnInit, Input} from "@angular/core";
 import {CadData} from "@app/cad-viewer/cad-data";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadMenu} from "../cad-menu.common";
@@ -37,7 +37,7 @@ export class CadSubcadComponent implements OnInit {
 	updateList() {
 		this.list = [];
 		const data = this.data;
-		data?.forEach((d, i) => {
+		data?.forEach((d) => {
 			const cad = new CadViewer(d, {width: 300, height: 150, padding: 10});
 			const src = cad.exportImage().src;
 			this.list.push({id: d.id, name: d.name, src});

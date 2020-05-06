@@ -2,8 +2,7 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {CadLine} from "@app/cad-viewer/cad-data";
 import {Vector2} from "three";
-import {CadInfoComponent} from "../cad-info/cad-info.component";
-import {Point, getColorLightness} from "@lucilor/utils";
+import {getColorLightness} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
 
 @Component({
