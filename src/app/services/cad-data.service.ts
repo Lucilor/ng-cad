@@ -108,7 +108,7 @@ export class CadDataService {
 						json.type = 分类;
 						json.options = 选项;
 						json.conditions = 条件;
-						result[i] = json;
+						result[i] = new CadData(json);
 						successCounter++;
 					} else {
 						throw new Error(response.msg);

@@ -116,8 +116,12 @@ export class CadMenu {
 		d.components.data.forEach((v) => this.setData(v));
 	}
 
-	submit() {
-		this.dataService.postCadData([this.getData(this.cadIdx, -1)]);
+	async submit() {
+		const {cadIdx, dataService, cad} = this;
+		const data = this.getData(cadIdx, -1);
+		const resData = (await dataService.postCadData([data]))[0];
+		cad.data.components.data[cadIdx] = resData;
+		cad.reset();
 	}
 
 	addOption(i: number, data = this.getData()) {

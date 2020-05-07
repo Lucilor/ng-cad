@@ -32,10 +32,14 @@ export class CadStyle {
 		cad?: CadViewer,
 		entity?: CadEntity
 	) {
-		const selected = cad.objects[entity?.id]?.userData.selected;
+		const {selectable, selected, hover} = cad.objects[entity?.id]?.userData || {};
 		this.color = params.color || entity?.color || 0;
-		if (selected && typeof cad.config.selectedColor === "number") {
-			this.color = cad.config.selectedColor;
+		if (selectable) {
+			if (selected && typeof cad.config.selectedColor === "number") {
+				this.color = cad.config.selectedColor;
+			} else if (hover && typeof cad.config.hoverColor === "number") {
+				this.color = cad.config.hoverColor;
+			}
 		}
 		if (cad.config.reverseSimilarColor) {
 			this.color = cad.correctColor(this.color);
@@ -607,11 +611,15 @@ export class CadViewer {
 		}
 	}
 
-	reset(data: CadData) {
+	reset(data?: CadData) {
 		this.scene.remove(...Object.values(this.objects));
 		this.objects = {};
-		this.data = data;
-		return this.render();
+		if (data instanceof CadData) {
+			this.data = data;
+		} else if (data) {
+			this.data = new CadData(data);
+		}
+		return this.render(true);
 	}
 
 	translatePoint(point: Vector2 | Vector3) {

@@ -1,6 +1,6 @@
-import {Component, OnInit, Input} from "@angular/core";
+import {Component, OnInit, Input, Output, EventEmitter} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {CadEntity, CadLine} from "@app/cad-viewer/cad-data";
+import {CadLine} from "@app/cad-viewer/cad-data";
 import {Mesh, Line, Material} from "three";
 import {MatDialog} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
@@ -13,6 +13,7 @@ import {CadDataService} from "@services/cad-data.service";
 })
 export class CadInfoComponent implements OnInit {
 	@Input() menu: CadMenu;
+	@Output() update = new EventEmitter<boolean>();
 	get data() {
 		return this.menu.getData();
 	}

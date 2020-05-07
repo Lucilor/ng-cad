@@ -6,4 +6,7 @@
 		<div class="title">{{ v.name }}</div>
 		<img [src]="v.src" (click)="clickItem(i)" />
 	</div>
+	<button mat-raised-button color="primary" (click)="editSubcads('partners')">编辑关联</button>
+	<span style="margin-left: 10px;"></span>
+	<button mat-raised-button color="primary" (click)="editSubcads('components')">编辑装配</button>
 </mat-expansion-panel>

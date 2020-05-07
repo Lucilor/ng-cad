@@ -17,7 +17,13 @@ export class DrawCadComponent implements AfterViewInit {
 	get checkedCads() {
 		return this.cads.filter((v) => v.checked);
 	}
-	tooltipText = ["移动：shift+左键 或 中键 或 wasd 或 方向键", "缩放：滚轮 或 [键 + ]键", "全选：ctrl+a", "全不选：esc"].join("\n");
+	tooltipText = [
+		"移动：shift+左键 或 中键 或 wasd 或 方向键",
+		"缩放：滚轮 或 [键 + ]键",
+		"全选：ctrl+a",
+		"全不选：esc",
+		"锁定下一次鼠标触碰的线：按住Ctrl直至松开"
+	].join("\n");
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	constructor(private dataService: CadDataService, private route: ActivatedRoute) {}
 
@@ -39,9 +45,6 @@ export class DrawCadComponent implements AfterViewInit {
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Enter") {
 				this.selectLines();
-			}
-			if (event.key === "Escape") {
-				this.cad.unselectAll();
 			}
 		});
 		window.addEventListener("beforeunload", () => {

@@ -97,18 +97,19 @@ export class CadAssembleComponent implements OnInit {
 		const {cad} = menu;
 		this.assembling = !this.assembling;
 		if (this.assembling) {
-			// cad.traverse((o) => {
-			// 	o.userData.selectable = true;
-			// });
 			menu.blur(menu.cadIdx, menu.cadIdx2);
 			menu.selectLineBegin("assemble", -1);
 		} else {
-			// cad.traverse((o) => {
-			// 	o.visible = false;
-			// }, data.getAllEntities());
+			cad.traverse((o) => {
+				o.userData.selected = false;
+			}, data.getAllEntities());
+			this.names = [];
+			this.lines = [];
 			menu.focus();
 		}
 	}
 
-	removeConnection(index: number) {}
+	removeConnection(index: number) {
+		this.data.components.connections.splice(index, 1);
+	}
 }

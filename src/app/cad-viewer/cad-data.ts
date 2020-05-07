@@ -1,16 +1,6 @@
-import {MathUtils, Vector2, ArcCurve, Vector3, Box3} from "three";
+import {MathUtils, ArcCurve, Vector3, Box3} from "three";
 import {index2RGB, Line, Point, Angle, Arc} from "@lucilor/utils";
 import _ from "lodash";
-
-export const enum CadTypes {
-	Line = "LINE",
-	MText = "MTEXT",
-	Dimension = "DIMENSION",
-	Arc = "ARC",
-	Circle = "CIRCLE",
-	LWPolyline = "LWPOLYLINE",
-	Hatch = "HATCH"
-}
 
 export const cadTypes = {
 	line: "LINE",
@@ -287,6 +277,7 @@ export class CadData {
 		this.components.data.length = 0;
 		this.components.connections.length = 0;
 		data.forEach((v) => this.addComponent(v));
+		connections.forEach((c) => this.assembleComponents(c));
 		this.partners.forEach((v) => v.updateComponents());
 		this.components.data.forEach((v) => v.updateComponents());
 	}
@@ -384,6 +375,7 @@ export class CadData {
 			const spParent = Number(match[1]) / 100;
 			const op = match[2];
 			const spChildren = Number(match[3]) / 100;
+			console.log(match);
 			if (["+", "-"].includes(op) && isNaN(spChildren)) {
 				throw new Error("相对定位的距离格式错误");
 			}
@@ -407,8 +399,8 @@ export class CadData {
 				const end = new Point(e3.end.toArray());
 				l3 = new Line(start, end);
 			}
-			if (e3.type === CadTypes.Circle) {
-				l3 = getLine(e3 as CadCircle, l1);
+			if (e3 instanceof CadCircle) {
+				l3 = getLine(e3, l1);
 			}
 			if (!(l1.slope === l2.slope && l2.slope === l3.slope)) {
 				throw new Error("三条线必须相互平行");
@@ -666,6 +658,18 @@ export class CadEntities {
 		Object.keys(cadTypes).forEach((type) => {
 			(this[type] as CadEntity[]).forEach(callback);
 		});
+	}
+
+	add(entity: CadEntity) {
+		if (entity instanceof CadEntity) {
+			const type = entity.type;
+			for (const key in cadTypes) {
+				if (cadTypes[key] === type) {
+					(this[key] as CadEntity[]).push(entity);
+				}
+			}
+		}
+		return this;
 	}
 }
 

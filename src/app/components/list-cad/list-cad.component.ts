@@ -23,7 +23,7 @@ export class ListCadComponent implements OnInit {
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;
 	constructor(
 		public dialogRef: MatDialogRef<ListCadComponent, CadData | CadData[]>,
-		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"},
+		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems: string[]},
 		private dataService: CadDataService
 	) {}
 
@@ -46,7 +46,8 @@ export class ListCadComponent implements OnInit {
 				d.entities.dimension = [];
 				d.entities.mtext = [];
 				const cad = new CadViewer(d, {width: this.width, height: this.height});
-				this.pageData.push({data: cad.data, img: cad.exportImage().src, checked: false});
+				const checked = this.data.checkedItems.includes(d.id);
+				this.pageData.push({data: cad.data, img: cad.exportImage().src, checked});
 				cad.destroy();
 			} catch (e) {
 				this.pageData.push({
