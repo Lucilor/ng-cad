@@ -934,6 +934,7 @@ export class CadDimension extends CadEntity {
 }
 
 export class CadHatch extends CadEntity {
+	bgcolor: number[];
 	paths: {
 		edges: {
 			start: Vector3;
@@ -943,6 +944,7 @@ export class CadHatch extends CadEntity {
 	}[];
 	constructor(data: any = {type: cadTypes.hatch}, layers: CadLayer[] = []) {
 		super(data, layers);
+		this.bgcolor = Array.isArray(data.bgcolor)?data.bgcolor:[0,0,0]
 		this.paths = [];
 		if (Array.isArray(data.paths)) {
 			data.paths.forEach((path) => {

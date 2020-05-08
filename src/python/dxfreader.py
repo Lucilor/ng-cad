@@ -192,6 +192,10 @@ class DxfReader:
             dimensions.append(data)
         if dxftype in ["HATCH"]:
             data['paths'] = []
+            try:
+                data['bgcolor'] = entity.bgcolor
+            except:
+                data['bgcolor'] = (0, 0, 0)
             for i in range(len(entity.paths)):
                 if getattr(entity.paths[i], 'edges', None):
                     path = {'edges': []}
@@ -243,10 +247,10 @@ def debug():
     reader = DxfReader()
     data = reader.parseDxf('./python/test/input.dxf')
     # data = reader.parseDxf('/Users/bfchen/Desktop/shared/n/sd/index/cached/0a77ff12fa711385d23bd6bffde3cd38.dxf')
-    file = open('./python/test/output.json', 'w+')
-    file.write(data)
-    file.close()
-    print('done')
+    with open('./python/test/output.json', 'w+') as file:
+        file = open('./python/test/output.json', 'w+')
+        file.write(data)
+        print('done')
 
 
 if len(sys.argv) < 2:
