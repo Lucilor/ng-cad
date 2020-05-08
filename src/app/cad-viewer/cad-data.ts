@@ -1,5 +1,5 @@
 import {MathUtils, ArcCurve, Vector3, Box3, Matrix4} from "three";
-import {index2RGB, Line, Point, Angle, Arc} from "@lucilor/utils";
+import {index2RGB, Line, Point} from "@lucilor/utils";
 import _ from "lodash";
 
 export const cadTypes = {

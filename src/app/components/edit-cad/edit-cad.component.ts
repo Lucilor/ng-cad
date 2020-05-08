@@ -2,7 +2,7 @@ import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData, CadTransformation} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router, UrlTree} from "@angular/router";
 import {environment} from "@src/environments/environment";
 import {Angle} from "@lucilor/utils";
 import {CadMenu} from "../cad-menu/cad-menu.common";
@@ -33,6 +33,20 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	@ViewChild("cadDimension", {read: CadDimensionComponent}) cadDimension: CadDimensionComponent;
 	@ViewChild("subcad", {read: CadSubcadComponent}) subcad: CadSubcadComponent;
 	@ViewChild("cadAssemble", {read: CadAssembleComponent}) cadAssemble: CadAssembleComponent;
+	tooltipText = [
+		"移动：shift+左键 或 中键 或 wasd 或 方向键",
+		"缩放：滚轮 或 [键 + ]键",
+		"全选：ctrl+a",
+		"全不选：esc",
+		"锁定下一次鼠标触碰的线：按住Ctrl直至松开"
+	].join("\n");
+	menuMap: {[key: string]: CadMenu["viewMode"][]} = {
+		subcad: ["normal", "components", "partners", "slice"],
+		cadInfo: ["normal", "partners"],
+		cadLine: ["normal", "partners"],
+		cadAssemble: ["components"],
+		cadDimension: ["normal", "components", "partners"]
+	};
 	cad: CadViewer;
 	rotateAngle = 0;
 	drawDimensions = true;
@@ -40,7 +54,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	menu: CadMenu;
 	showTopMenu = false;
 
-	constructor(private route: ActivatedRoute, private dataService: CadDataService, dialog: MatDialog) {
+	constructor(private route: ActivatedRoute, private dataService: CadDataService, dialog: MatDialog,private router:Router) {
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
 		document.title = title;
@@ -51,12 +65,11 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			padding: [30, 370, 30, 125],
 			showLineLength: 8
 		});
-		this.cad.setControls({selectMode: "single"});
-		this.menu = new CadMenu(dialog, this.cad, true, dataService);
+		this.cad.setControls();
+		this.menu = new CadMenu(dialog, this.cad, dataService);
 	}
 
 	async ngOnInit() {
-		console.log(new CadTransformation());
 		const {partners, components} = this.route.snapshot.queryParams;
 		const data = await this.dataService.getCadData();
 		data.forEach((d) => this.cad.data.addComponent(d));
@@ -135,8 +148,20 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	setViewMode(mode: CadMenu["viewMode"]) {
-		this.menu.focus(this.menu.cadIdx, 0, mode);
+		if (mode==="slice") {
+			// const tree = this.router.parseUrl(this.route.snapshot);
+			// tree.fragment = "ddd";
+			// tree.queryParams = this.route.snapshot.queryParams;
+			// console.log(tree.toString());
+			// this.router.navigateByUrl("draw-cad")
+		} else {
+			this.menu.focus(this.menu.cadIdx, 0, mode);
 		this.subcad.updateList();
+		}
+	}
+
+	isMenuHidden(name: string) {
+		return !this.menuMap[name].includes(this.menu.viewMode);
 	}
 
 	submitAll() {}

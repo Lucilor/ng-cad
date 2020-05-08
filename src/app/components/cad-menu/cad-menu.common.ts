@@ -39,12 +39,13 @@ export class CadMenu {
 	cadIdx2 = -1;
 	partner: string;
 	cadLength = 0;
-	readonly accuracy = 1;
 	pointsMap: LinesAtPoint[];
-	viewMode: "normal" | "partners" | "components" = "normal";
+	viewMode: "normal" | "partners" | "components" | "slice" = "normal";
+	readonly accuracy = 1;
+	readonly selectedColor = 0xffff00;
+	readonly hoverColor = 0x00ffff;
 
-	constructor(dialog: MatDialog, cad: CadViewer, multi = false, dataService: CadDataService) {
-		cad.config.selectedColor = null;
+	constructor(dialog: MatDialog, cad: CadViewer, dataService: CadDataService) {
 		this.cad = cad;
 		this.dialog = dialog;
 		this.mode = {type: "normal", index: 0};
@@ -80,21 +81,29 @@ export class CadMenu {
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
 				this.blur();
+				cad.unselectAll();
+			}
+			if (event.key === "Enter") {
+				console.log(cad.selectedEntities);
 			}
 		});
 	}
 
 	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2) {
 		const {cad, viewMode} = this;
-		if (viewMode === "normal" || cadIdx2 < 0) {
-			return cad.data.components.data[cadIdx];
+		let result: CadData;
+		if (viewMode === "normal" || viewMode === "slice" || cadIdx2 < 0) {
+			result = cad.data.components.data[cadIdx];
+		} else if (viewMode === "partners") {
+			result = cad.data.components.data[cadIdx].partners[cadIdx2];
+		} else if (viewMode === "components") {
+			result = cad.data.components.data[cadIdx].components.data[cadIdx2];
 		}
-		if (viewMode === "partners") {
-			return cad.data.components.data[cadIdx].partners[cadIdx2];
+		if (!result) {
+			result = new CadData();
 		}
-		if (viewMode === "components") {
-			return cad.data.components.data[cadIdx].components.data[cadIdx2];
-		}
+		result.entities.forEach((e) => (e.visible = viewMode !== "components"));
+		return result;
 	}
 
 	setData(d: CadData) {
@@ -200,8 +209,8 @@ export class CadMenu {
 		const cad = this.cad;
 		this.mode.type = type;
 		this.mode.index = index;
-		cad.config.selectedColor = 0x0000ff;
-		cad.config.hoverColor = 0x00ffff;
+		cad.config.selectedColor = this.selectedColor;
+		cad.config.hoverColor = this.hoverColor;
 		cad.render();
 	}
 
@@ -311,9 +320,8 @@ export class CadMenu {
 					d.hide();
 				}
 			});
-			cad.render();
 		}
-		if (viewMode === "normal") {
+		if (viewMode === "normal" || viewMode === "slice") {
 			const data = this.getData();
 			cad.data.components.data.forEach((d) => {
 				const opacity = d.id === data.id ? 1 : 0.3;
@@ -356,8 +364,16 @@ export class CadMenu {
 				}, data.getAllEntities());
 			}
 		}
+		if (viewMode === "slice") {
+			cad.controls.config.selectMode = "multiple";
+			cad.config.selectedColor = this.selectedColor;
+		} else {
+			cad.controls.config.selectMode = "single";
+			cad.config.selectedColor = null;
+		}
 		cad.controls.config.dragAxis = "";
 		this.updateCadLength();
+		cad.render();
 	}
 
 	blur(cadIdx = -1, cadIdx2 = -1) {

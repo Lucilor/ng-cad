@@ -12,12 +12,15 @@
 	<button mat-raised-button color="accent" *ngIf="cad.data.components.data.length > 1" (click)="submitAll()">修改全部</button>
 </div>
 <div class="menu right">
+	<div class="tooltip-container">
+		<mat-icon matTooltipPosition="left" [matTooltip]="tooltipText" matTooltipClass="tooltip">help</mat-icon>
+	</div>
 	<mat-accordion multi>
-		<app-cad-subcad #subcad [menu]="menu"></app-cad-subcad>
-		<app-cad-info #cadInfo [menu]="menu" [hidden]="menu.viewMode==='components'"></app-cad-info>
-		<app-cad-line #cadLine [menu]="menu" [hidden]="menu.viewMode==='components'"></app-cad-line>
-		<app-cad-assemble #cadAssemble [menu]="menu" *ngIf="menu.viewMode==='components'"></app-cad-assemble>
-		<app-cad-dimension #cadDimension [menu]="menu"></app-cad-dimension>
+		<app-cad-subcad #subcad [menu]="menu" [hidden]="isMenuHidden('subcad')"></app-cad-subcad>
+		<app-cad-info #cadInfo [menu]="menu" [hidden]="isMenuHidden('cadInfo')"></app-cad-info>
+		<app-cad-line #cadLine [menu]="menu" [hidden]="isMenuHidden('cadLine')"></app-cad-line>
+		<app-cad-assemble #cadAssemble [menu]="menu" [hidden]="isMenuHidden('cadAssemble')"></app-cad-assemble>
+		<app-cad-dimension #cadDimension [menu]="menu" [hidden]="isMenuHidden('cadDimension')"></app-cad-dimension>
 	</mat-accordion>
 </div>
 <div class="menu top" *ngIf="showTopMenu" @topMenuTrigger>
@@ -37,6 +40,14 @@
 		(click)="setViewMode('components')"
 	>
 		装配
+	</button>
+	<button
+		mat-raised-button
+		[color]="menu.viewMode === 'slice' ? 'accent' : 'primary'"
+		[disabled]="menu.cadIdx === -1"
+		(click)="setViewMode('slice')"
+	>
+		选取
 	</button>
 </div>
 

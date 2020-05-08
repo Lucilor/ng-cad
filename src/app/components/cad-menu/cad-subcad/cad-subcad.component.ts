@@ -31,6 +31,10 @@ export class CadSubcadComponent implements OnInit {
 			this.listName = `${d.name} 的装配CAD`;
 			data = d.components.data;
 		}
+		if (menu.viewMode === "slice") {
+			this.listName = `${d.name} 的装配CAD`;
+			data = d.components.data;
+		}
 		return data;
 	}
 	constructor(private dialog: MatDialog, private dataService: CadDataService) {}
