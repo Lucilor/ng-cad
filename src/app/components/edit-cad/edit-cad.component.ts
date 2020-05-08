@@ -1,6 +1,6 @@
 import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/core";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
-import {CadData} from "@app/cad-viewer/cad-data";
+import {CadData, CadTransformation} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
 import {ActivatedRoute} from "@angular/router";
 import {environment} from "@src/environments/environment";
@@ -56,6 +56,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	async ngOnInit() {
+		console.log(new CadTransformation());
 		const {partners, components} = this.route.snapshot.queryParams;
 		const data = await this.dataService.getCadData();
 		data.forEach((d) => this.cad.data.addComponent(d));
@@ -102,7 +103,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 
 	flip(vertical: boolean, horizontal: boolean) {
 		const {cad, menu} = this;
-		menu.getData().transform({flip: {vertical, horizontal}});
+		menu.getData().transform(new CadTransformation().setFlip(vertical, horizontal));
 		cad.data.updatePartners();
 		cad.data.updateComponents();
 		cad.render(true);
@@ -127,7 +128,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 				}
 			});
 		}
-		menu.getData().transform({rotate: {angle}});
+		menu.getData().transform(new CadTransformation().setRotate(angle));
 		cad.data.updatePartners();
 		cad.data.updateComponents();
 		cad.render(true);

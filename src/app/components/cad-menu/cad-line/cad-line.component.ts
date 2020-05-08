@@ -1,6 +1,6 @@
 import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {CadLine} from "@app/cad-viewer/cad-data";
+import {CadLine, CadTransformation} from "@app/cad-viewer/cad-data";
 import {Vector2} from "three";
 import {getColorLightness} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
@@ -42,7 +42,7 @@ export class CadLineComponent implements OnInit {
 		line.end.y += offset.y;
 		menu.generatePointsMap();
 		const entities = menu.findAllAdjacentLines(line, line.end);
-		entities.transform({translate: offset.toArray()});
+		entities.transform(new CadTransformation().setTranslate(offset.x, offset.y));
 		menu.getData().updatePartners();
 		menu.cad.render();
 		menu.updateCadLength();

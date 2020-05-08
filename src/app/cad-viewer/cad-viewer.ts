@@ -267,7 +267,7 @@ export class CadViewer {
 
 	private _setAnchor(sprite: TextSprite, position: Vector3, anchor: Vector3) {
 		sprite.position.copy(position);
-		const offset = anchor.subScalar(0.5).multiply(new Vector3(-sprite.width, sprite.height));
+		const offset = anchor.clone().subScalar(0.5).multiply(new Vector3(-sprite.width, sprite.height));
 		sprite.position.add(new Vector3(offset.x, offset.y, 0));
 	}
 
@@ -396,6 +396,7 @@ export class CadViewer {
 			object.text = entity.text;
 			object.fontSize = fontSize * 1.25;
 			object.fillStyle = colorStr;
+			this._setAnchor(object, entity.insert, entity.anchor);
 		} else {
 			const sprite = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text});
 			sprite.userData.selectable = false;
@@ -569,7 +570,10 @@ export class CadViewer {
 			object.geometry = geometry;
 			object.material = material;
 		} else {
-			scene.add(new Mesh(geometry, material));
+			const mesh = new Mesh(geometry, material);
+			mesh.name = entity.id;
+			objects[entity.id] = mesh;
+			scene.add(mesh);
 		}
 	}
 

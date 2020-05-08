@@ -7,7 +7,8 @@ import {
 	CadJointPoint,
 	CadDimension,
 	CadArc,
-	CadEntities
+	CadEntities,
+	CadTransformation
 } from "@app/cad-viewer/cad-data";
 import {AlertComponent} from "../alert/alert.component";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
@@ -68,7 +69,7 @@ export class CadMenu {
 				if (this.viewMode === "components") {
 					data.moveComponent(this.getData(), offset.toArray());
 				} else {
-					data.transform({translate: offset.toArray()});
+					data.transform(new CadTransformation().setTranslate(offset.x, offset.y));
 				}
 				cad.render();
 				start.set(event.clientX, event.clientY);

@@ -272,7 +272,7 @@ export class CadViewerControls {
 		if (selectable && object.userData.selected !== true) {
 			cad.dom.style.cursor = "pointer";
 			object.userData.hover = true;
-			cad.render(false, new CadEntities().add(cad.data.findEntity(object.name)));
+			cad.render();
 			this.currentObject = object;
 			if (event.ctrlKey) {
 				this._status.pointerLock = true;
@@ -285,7 +285,7 @@ export class CadViewerControls {
 		cad.dom.style.cursor = "default";
 		if (currentObject) {
 			currentObject.userData.hover = false;
-			cad.render(false, new CadEntities().add(cad.data.findEntity(currentObject.name)));
+			cad.render();
 			this.currentObject = null;
 		}
 	}
