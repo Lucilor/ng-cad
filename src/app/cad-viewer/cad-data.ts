@@ -95,11 +95,12 @@ export class CadData {
 		}
 		this.parent = data.parent || "";
 		this.partners = [];
+		this.components = new CadComponents();
 		if (Array.isArray(data.partners)) {
 			(data.partners as []).forEach((v) => this.partners.push(new CadData(v)));
 		}
-		this.components = new CadComponents(data.components || {});
 		this.updatePartners();
+		this.components = new CadComponents(data.components || {});
 		this.updateComponents();
 		this.visible = data.visible === false ? false : true;
 	}
