@@ -5,18 +5,19 @@
 	<button mat-raised-button color="primary" (click)="resetData()">还原数据</button>
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale + 0.1">放大</button>
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale - 0.1">缩小</button>
+	<button mat-raised-button color="accent" (click)="back()">确定并返回</button>
 </div>
 <div class="menu right">
 	<div class="tooltip-container">
 		<mat-icon matTooltipPosition="left" [matTooltip]="tooltipText" matTooltipClass="tooltip">help</mat-icon>
 	</div>
-	<div class="btn-group" *ngIf="checkedCads.length > 0">
+	<!-- <div class="btn-group" *ngIf="checkedCads.length > 0">
 		<button mat-raised-button color="primary" (click)="assenbleCads()">组合</button>
 		<button mat-raised-button color="primary" (click)="removeCads()">删除</button>
-	</div>
+	</div> -->
 	<div class="checkbox-group">
 		<div class="data-container" *ngFor="let item of cads; let i = index">
-			<mat-checkbox class="example-margin" [(ngModel)]="item.checked">{{ item.data.name }}</mat-checkbox>
+			<!-- <mat-checkbox class="example-margin" [(ngModel)]="item.checked">{{ item.data.name }}</mat-checkbox> -->
 			<img [src]="item.src" (click)="item.checked = !item.checked" />
 			<div class="btn-group" *ngIf="checkedCads.length < 1">
 				<button mat-raised-button color="primary" (click)="editCad(i)">查看</button>

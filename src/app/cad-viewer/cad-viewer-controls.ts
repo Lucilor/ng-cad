@@ -181,7 +181,7 @@ export class CadViewerControls {
 			const name: keyof CadEvents = "wheel";
 			this._emitter.emit(name, event);
 		});
-		window.addEventListener("keydown", (event) => {
+		dom.addEventListener("keydown", (event) => {
 			const {cad} = this;
 			const position = cad.position;
 			const step = 10 / cad.scale;
@@ -222,12 +222,14 @@ export class CadViewerControls {
 			const name: keyof CadEvents = "keyboard";
 			this._emitter.emit(name, event);
 		});
-		window.addEventListener("keyup", (event) => {
+		dom.addEventListener("keyup", (event) => {
 			if (event.key === "Control") {
 				this._status.pointerLock = false;
 				this._unHover();
 			}
 		});
+		dom.tabIndex = 0;
+		dom.focus();
 	}
 
 	on<K extends keyof CadEvents>(

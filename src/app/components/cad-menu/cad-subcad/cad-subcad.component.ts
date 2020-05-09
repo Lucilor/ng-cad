@@ -48,6 +48,7 @@ export class CadSubcadComponent implements OnInit {
 			const cad = new CadViewer(d, {width: 300, height: 150, padding: 10});
 			const src = cad.exportImage().src;
 			this.list.push({id: d.id, name: d.name, src});
+			cad.destroy();
 		});
 	}
 

@@ -54,7 +54,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	menu: CadMenu;
 	showTopMenu = false;
 
-	constructor(private route: ActivatedRoute, private dataService: CadDataService, dialog: MatDialog,private router:Router) {
+	constructor(private route: ActivatedRoute, private dataService: CadDataService, dialog: MatDialog, private router: Router) {
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
 		document.title = title;
@@ -148,15 +148,17 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	setViewMode(mode: CadMenu["viewMode"]) {
-		if (mode==="slice") {
+		if (mode === "slice") {
 			// const tree = this.router.parseUrl(this.route.snapshot);
 			// tree.fragment = "ddd";
 			// tree.queryParams = this.route.snapshot.queryParams;
 			// console.log(tree.toString());
-			// this.router.navigateByUrl("draw-cad")
+			const queryParams = this.route.snapshot.queryParams;
+			queryParams.back=true;
+			this.router.navigate(["draw-cad"], {queryParams});
 		} else {
 			this.menu.focus(this.menu.cadIdx, 0, mode);
-		this.subcad.updateList();
+			this.subcad.updateList();
 		}
 	}
 

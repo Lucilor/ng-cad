@@ -1,16 +1,17 @@
-import {Component, OnInit, Inject, ViewChild} from "@angular/core";
+import {Component, OnInit, Inject, ViewChild, AfterViewInit} from "@angular/core";
 import {PageEvent, MatPaginator} from "@angular/material/paginator";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {CadData} from "@app/cad-viewer/cad-data";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadDataService} from "@services/cad-data.service";
+import {timeout} from "@src/app/app.common";
 
 @Component({
 	selector: "app-list-cad",
 	templateUrl: "./list-cad.component.html",
 	styleUrls: ["./list-cad.component.scss"]
 })
-export class ListCadComponent implements OnInit {
+export class ListCadComponent implements AfterViewInit {
 	length = 100;
 	pageSizeOptions = [1, 10, 20, 30, 40, 50];
 	pageSize = 10;
@@ -20,17 +21,20 @@ export class ListCadComponent implements OnInit {
 	searchInput: "";
 	searchValue: "";
 	checkedIndex = -1;
+	checkedItems: string[] = [];
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;
 	constructor(
 		public dialogRef: MatDialogRef<ListCadComponent, CadData | CadData[]>,
-		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems: string[]},
+		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems?: string[]},
 		private dataService: CadDataService
 	) {}
 
-	ngOnInit() {
-		setTimeout(() => {
-			this.getData(1);
-		}, 0);
+	async ngAfterViewInit() {
+		await this.paginator.initialized.toPromise();
+		if (Array.isArray(this.data.checkedItems)) {
+			this.checkedItems = this.data.checkedItems;
+		}
+		this.getData(1);
 	}
 
 	changePage(event: PageEvent) {
@@ -45,11 +49,13 @@ export class ListCadComponent implements OnInit {
 			try {
 				d.entities.dimension = [];
 				d.entities.mtext = [];
-				const cad = new CadViewer(d, {width: this.width, height: this.height});
-				const checked = this.data.checkedItems.includes(d.id);
-				this.pageData.push({data: cad.data, img: cad.exportImage().src, checked});
+				const cad = new CadViewer(d, {width: this.width, height: this.height, padding: 10});
+				const checked = this.checkedItems.includes(d.id);
+				const img = cad.exportImage().src;
+				this.pageData.push({data: cad.data, img, checked});
 				cad.destroy();
 			} catch (e) {
+				console.warn(e);
 				this.pageData.push({
 					data: new CadData({id: d.id, name: d.name}),
 					img: "",

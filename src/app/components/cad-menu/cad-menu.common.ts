@@ -102,7 +102,6 @@ export class CadMenu {
 		if (!result) {
 			result = new CadData();
 		}
-		result.entities.forEach((e) => (e.visible = viewMode !== "components"));
 		return result;
 	}
 
@@ -132,6 +131,7 @@ export class CadMenu {
 		const resData = (await dataService.postCadData([data]))[0];
 		cad.data.components.data[cadIdx] = resData;
 		cad.reset();
+		this.focus();
 	}
 
 	addOption(i: number, data = this.getData()) {
@@ -310,6 +310,7 @@ export class CadMenu {
 	focus(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2, viewMode: CadMenu["viewMode"] = this.viewMode) {
 		this.cadIdx = cadIdx;
 		this.cadIdx2 = cadIdx2;
+		const viewModeChanged = this.viewMode !== viewMode;
 		this.viewMode = viewMode;
 		const cad = this.cad;
 		if (cadIdx2 >= 0) {
@@ -326,10 +327,11 @@ export class CadMenu {
 			cad.data.components.data.forEach((d) => {
 				const opacity = d.id === data.id ? 1 : 0.3;
 				const selectable = d.id === data.id ? true : false;
-				cad.traverse((o) => {
+				cad.traverse((o, e) => {
 					o.userData.selectable = selectable;
 					const m = (o as Mesh).material as Material;
 					m.setValues({opacity, transparent: true});
+					e.visible = true;
 				}, d.getAllEntities());
 			});
 		} else {
@@ -338,9 +340,21 @@ export class CadMenu {
 				let subData: CadData[];
 				if (viewMode === "partners") {
 					subData = data.partners;
+					data.components.data.forEach((d) => {
+						d.getAllEntities().forEach((e) => (e.visible = false));
+					});
+					cad.traverse((o) => {
+						o.userData.selectable = false;
+						const m = (o as Mesh).material as Material;
+						m.setValues({opacity: 0.3, transparent: true});
+					}, data.entities);
 				}
 				if (viewMode === "components") {
 					subData = data.components.data;
+					data.partners.forEach((d) => {
+						d.getAllEntities().forEach((e) => (e.visible = false));
+					});
+					data.entities.forEach((e) => (e.visible = false));
 				}
 				subData.forEach((d, i) => {
 					const opacity = i === cadIdx2 ? 1 : 0.3;
@@ -351,11 +365,6 @@ export class CadMenu {
 						m.setValues({opacity, transparent: true});
 					}, d.getAllEntities());
 				});
-				cad.traverse((o) => {
-					o.userData.selectable = false;
-					const m = (o as Mesh).material as Material;
-					m.setValues({opacity: 0.3, transparent: true});
-				}, data.entities);
 			} else {
 				cad.traverse((o) => {
 					o.userData.selectable = true;
@@ -373,7 +382,7 @@ export class CadMenu {
 		}
 		cad.controls.config.dragAxis = "";
 		this.updateCadLength();
-		cad.render();
+		cad.render(viewModeChanged);
 	}
 
 	blur(cadIdx = -1, cadIdx2 = -1) {

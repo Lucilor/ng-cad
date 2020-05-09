@@ -15,7 +15,8 @@ import {
 	ShapeGeometry,
 	Shape,
 	Mesh,
-	MeshBasicMaterial
+	MeshBasicMaterial,
+	Material
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
@@ -88,9 +89,9 @@ export class CadViewer {
 	scene: Scene;
 	camera: PerspectiveCamera;
 	renderer: WebGLRenderer;
-	objects: {[key: string]: Object3D} = {};
+	objects: {[key: string]: Mesh | Line} = {};
 	raycaster = new Raycaster();
-	currentObject: Object3D;
+	currentObject: Mesh | Line;
 	controls: CadViewerControls;
 	stats: Stats;
 	get width() {
@@ -123,11 +124,7 @@ export class CadViewer {
 	}
 
 	constructor(data: CadData, config: CadViewerConfig = {}) {
-		if (data instanceof CadData) {
-			this.data = data;
-		} else {
-			this.data = new CadData(data);
-		}
+		this.data = data;
 		this.config = {...this.config, ...config};
 		const {width, height, padding, backgroundColor, backgroundAlpha} = this.config;
 		if (typeof padding === "number") {
@@ -611,6 +608,11 @@ export class CadViewer {
 			this.scene.dispose();
 			this.renderer.dispose();
 			this.data = null;
+			for (const key in this.objects) {
+				this.objects[key].geometry.dispose();
+				(this.objects[key].material as Material).dispose();
+			}
+			this.objects = null;
 			this._destroyed = true;
 		}
 	}

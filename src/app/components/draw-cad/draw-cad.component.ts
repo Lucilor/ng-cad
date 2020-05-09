@@ -85,4 +85,8 @@ export class DrawCadComponent implements AfterViewInit {
 	removeCads() {
 		this.cads = this.cads.filter((v) => !v.checked);
 	}
+
+	back() {
+		console.log(this.cad.selectedEntities);
+	}
 }
