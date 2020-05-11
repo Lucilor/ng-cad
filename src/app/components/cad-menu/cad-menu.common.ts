@@ -6,14 +6,12 @@ import {
 	CadBaseLine,
 	CadJointPoint,
 	CadDimension,
-	CadArc,
-	CadEntities,
 	CadTransformation
 } from "@app/cad-viewer/cad-data";
 import {AlertComponent} from "../alert/alert.component";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
-import {Line, Material, Mesh, Vector2, Vector3} from "three";
+import {Material, Mesh, Vector2} from "three";
 import {Angle, Arc, Point} from "@lucilor/utils";
 import {CadDataService} from "@services/cad-data.service";
 
@@ -23,7 +21,7 @@ interface Mode {
 }
 
 interface LinesAtPoint {
-	point: Vector3;
+	point: Vector2;
 	tPoint: Vector2;
 	lines: CadEntity[];
 	selected: boolean;
@@ -68,7 +66,7 @@ export class CadMenu {
 				const offset = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
 				if (this.viewMode === "components") {
-					data.moveComponent(this.getData(), offset.toArray());
+					this.getData().moveComponent(data, offset.toArray());
 				} else {
 					data.transform(new CadTransformation().setTranslate(offset.x, offset.y));
 				}
@@ -230,7 +228,7 @@ export class CadMenu {
 			return;
 		}
 		const pointsMap: LinesAtPoint[] = [];
-		const addToMap = (point: Vector3, line: CadEntity) => {
+		const addToMap = (point: Vector2, line: CadEntity) => {
 			const linesAtPoint = pointsMap.find((v) => v.point.distanceTo(point) <= this.accuracy);
 			if (linesAtPoint) {
 				linesAtPoint.lines.push(line);
@@ -238,73 +236,24 @@ export class CadMenu {
 				pointsMap.push({point, lines: [line], tPoint: this.cad.translatePoint(point), selected: false});
 			}
 		};
-		data.entities.line.forEach((entity) => {
+		const entities = data.getAllEntities();
+		entities.line.forEach((entity) => {
 			const {start, end} = entity;
 			if (start.distanceTo(end) > 0) {
 				addToMap(start, entity);
 				addToMap(end, entity);
 			}
 		});
-		data.entities.arc.forEach((entity) => {
+		entities.arc.forEach((entity) => {
 			const start = new Angle(entity.start_angle, "deg");
 			const end = new Angle(entity.end_angle, "deg");
 			const arc = new Arc(new Point(entity.center.x, entity.center.y), entity.radius, start, end, entity.clockwise);
 			if (arc.length > 0) {
-				addToMap(new Vector3(arc.startPoint.x, arc.startPoint.y), entity);
-				addToMap(new Vector3(arc.endPoint.x, arc.endPoint.y), entity);
+				addToMap(new Vector2(arc.startPoint.x, arc.startPoint.y), entity);
+				addToMap(new Vector2(arc.endPoint.x, arc.endPoint.y), entity);
 			}
 		});
 		this.pointsMap = pointsMap;
-	}
-
-	findAdjacentLines(entity: CadEntity, point?: Vector3): CadEntity[] {
-		if (!point && entity instanceof CadLine) {
-			const adjStart = this.findAdjacentLines(entity, entity.start);
-			const adjEnd = this.findAdjacentLines(entity, entity.end);
-			return [...adjStart, ...adjEnd];
-		}
-		const pal = this.pointsMap.find((v) => v.point.distanceTo(point) <= this.accuracy);
-		if (pal) {
-			const lines = pal.lines.filter((v) => v.id !== entity.id);
-			return lines;
-		}
-		return [];
-	}
-
-	findAllAdjacentLines(entity: CadEntity, point: Vector3) {
-		const entities = new CadEntities();
-		while (entity && point) {
-			entity = this.findAdjacentLines(entity, point)[0];
-			if (entity) {
-				if (entity instanceof CadLine) {
-					entities.line.push(entity);
-					const {start, end} = entity;
-					if (start.distanceTo(point) <= this.accuracy) {
-						point = end;
-					} else if (end.distanceTo(point) < this.accuracy) {
-						point = start;
-					} else {
-						point = null;
-					}
-				}
-				if (entity instanceof CadArc) {
-					entities.arc.push(entity);
-					const starta = new Angle(entity.start_angle, "deg");
-					const enda = new Angle(entity.end_angle, "deg");
-					const arc = new Arc(new Point(entity.center.x, entity.center.y), entity.radius, starta, enda, entity.clockwise);
-					const start = new Vector3(arc.startPoint.x, arc.startPoint.y);
-					const end = new Vector3(arc.endPoint.x, arc.endPoint.y);
-					if (start.distanceTo(point) <= this.accuracy) {
-						point = end;
-					} else if (end.distanceTo(point) <= this.accuracy) {
-						point = start;
-					} else {
-						point = null;
-					}
-				}
-			}
-		}
-		return entities;
 	}
 
 	focus(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2, viewMode: CadMenu["viewMode"] = this.viewMode) {
@@ -348,6 +297,7 @@ export class CadMenu {
 						const m = (o as Mesh).material as Material;
 						m.setValues({opacity: 0.3, transparent: true});
 					}, data.entities);
+					console.log(data.entities.length);
 				}
 				if (viewMode === "components") {
 					subData = data.components.data;

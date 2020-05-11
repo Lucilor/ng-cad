@@ -1,7 +1,7 @@
 import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {CadLine, CadTransformation} from "@app/cad-viewer/cad-data";
-import {Vector2} from "three";
+import {CadLine, CadTransformation, CadEntity, CadEntities, CadArc} from "@app/cad-viewer/cad-data";
+import {Vector2, MathUtils} from "three";
 import {getColorLightness} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
 
@@ -34,19 +34,81 @@ export class CadLineComponent implements OnInit {
 
 	setLineLength(event: InputEvent) {
 		const {line, menu} = this;
-		const length = Number((event.target as HTMLInputElement).value);
-		const d = line.length - length;
-		const theta = line.theta;
-		const offset = new Vector2(Math.cos(theta), Math.sin(theta)).multiplyScalar(d);
-		line.end.x += offset.x;
-		line.end.y += offset.y;
 		menu.generatePointsMap();
-		const entities = menu.findAllAdjacentLines(line, line.end);
-		entities.transform(new CadTransformation().setTranslate(offset.x, offset.y));
-		menu.getData().updatePartners();
+		const {closed, entities} = this.findAllAdjacentLines(line, line.end);
+		if (closed) {
+			console.log(entities);
+		} else {
+			const length = Number((event.target as HTMLInputElement).value);
+			const d = line.length - length;
+			const theta = line.theta;
+			const offset = new Vector2(Math.cos(theta), Math.sin(theta)).multiplyScalar(d);
+			entities.transform(new CadTransformation().setTranslate(offset.x, offset.y));
+			line.end.x += offset.x;
+			line.end.y += offset.y;
+		}
+		menu.getData().updatePartners().updateComponents();
 		menu.cad.render();
 		menu.updateCadLength();
 		this.updateTLine();
+	}
+
+	findAdjacentLines(entity: CadEntity, point?: Vector2): CadEntity[] {
+		const {pointsMap, accuracy} = this.menu;
+		if (!point && entity instanceof CadLine) {
+			const adjStart = this.findAdjacentLines(entity, entity.start);
+			const adjEnd = this.findAdjacentLines(entity, entity.end);
+			return [...adjStart, ...adjEnd];
+		}
+		const pal = pointsMap.find((v) => v.point.distanceTo(point) <= accuracy);
+		if (pal) {
+			const lines = pal.lines.filter((v) => v.id !== entity.id);
+			return lines;
+		}
+		return [];
+	}
+
+	findAllAdjacentLines(entity: CadEntity, point: Vector2) {
+		const entities = new CadEntities();
+		const result = {closed: false, entities};
+		const id = entity.id;
+		const accuracy = this.menu.accuracy;
+		const startEntity = entity;
+		while (entity && point) {
+			entity = this.findAdjacentLines(entity, point)[0];
+			if (entity?.id === id) {
+				result.closed = true;
+				result.entities.add(startEntity);
+				return result;
+			}
+			if (entity) {
+				if (entity instanceof CadLine) {
+					entities.line.push(entity);
+					const {start, end} = entity;
+					if (start.distanceTo(point) <= accuracy) {
+						point = end;
+					} else if (end.distanceTo(point) < accuracy) {
+						point = start;
+					} else {
+						point = null;
+					}
+				}
+				if (entity instanceof CadArc) {
+					entities.arc.push(entity);
+					const curve = entity.curve;
+					const start = curve.getPoint(0);
+					const end = curve.getPoint(1);
+					if (start.distanceTo(point) <= accuracy) {
+						point = end;
+					} else if (end.distanceTo(point) <= accuracy) {
+						point = start;
+					} else {
+						point = null;
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	getCssColor(color?: string) {

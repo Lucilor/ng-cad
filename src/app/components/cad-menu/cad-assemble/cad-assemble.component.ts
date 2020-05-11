@@ -56,6 +56,7 @@ export class CadAssembleComponent implements OnInit {
 								lines.forEach((l) => (cad.objects[l].userData.selected = true));
 							}
 							if ((lines.length === 2 && position === "absolute") || (lines.length === 3 && position === "relative")) {
+								console.log(lines);
 								cad.objects[found.id].userData.selected = false;
 								try {
 									data.assembleComponents({names, lines, space, position});

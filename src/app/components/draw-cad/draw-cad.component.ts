@@ -3,7 +3,7 @@ import {CadDataService} from "@services/cad-data.service";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData} from "@app/cad-viewer/cad-data";
 import {environment} from "@src/environments/environment";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 
 const title = "选取CAD";
 @Component({
@@ -25,13 +25,15 @@ export class DrawCadComponent implements AfterViewInit {
 		"锁定下一次鼠标触碰的线：按住Ctrl直至松开"
 	].join("\n");
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
-	constructor(private dataService: CadDataService, private route: ActivatedRoute) {}
+	fromEdit = false;
+	constructor(private dataService: CadDataService, private route: ActivatedRoute, private router: Router) {}
 
 	async ngAfterViewInit() {
 		document.title = title;
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
 		const data = (await this.dataService.getCadData())[0];
+		console.log(data.entities.length);
 		this.cad = new CadViewer(data, {
 			width: innerWidth,
 			height: innerHeight,
@@ -41,6 +43,7 @@ export class DrawCadComponent implements AfterViewInit {
 		this.cad.setControls({selectMode: "multiple"});
 		this.cadContainer.nativeElement.append(this.cad.dom);
 		this.dataService.loadCadStatus(this.cad, title);
+		this.fromEdit = this.route.snapshot.queryParams.fromEdit || false;
 
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Enter") {
@@ -59,6 +62,12 @@ export class DrawCadComponent implements AfterViewInit {
 		const cad = new CadViewer(data, {padding: 10});
 		this.cads.push({src: cad.exportImage().src, data, checked: false});
 		cad.destroy();
+		if (this.fromEdit) {
+			data.type = this.cad.data.type;
+			data.conditions = this.cad.data.conditions;
+			data.options = this.cad.data.options;
+			this.cad.removeEntities(entities);
+		}
 	}
 
 	resetData() {
@@ -72,21 +81,26 @@ export class DrawCadComponent implements AfterViewInit {
 	}
 
 	removeCad(index: number) {
+		this.cad.addEntities(this.cads[index].data.entities);
 		this.cads.splice(index, 1);
 	}
 
-	assenbleCads() {
-		const data = new CadData({name: "装配"});
-		data.components.data = this.checkedCads.map((v) => v.data);
-		this.dataService.saveCurrentCad(data);
-		window.open("edit-cad?components=true&encode=" + this.route.snapshot.queryParams.encode);
-	}
+	// assembleCads() {
+	// 	const data = new CadData({name: "装配"});
+	// 	data.components.data = this.checkedCads.map((v) => v.data);
+	// 	this.dataService.saveCurrentCad(data);
+	// 	window.open("edit-cad?components=true&encode=" + this.route.snapshot.queryParams.encode);
+	// }
 
 	removeCads() {
 		this.cads = this.cads.filter((v) => !v.checked);
 	}
 
-	back() {
-		console.log(this.cad.selectedEntities);
+	async back() {
+		const {cads, cad, dataService} = this;
+		const resDataArr = await dataService.postCadData(cads.map((v) => v.data));
+		cad.data.components.data = resDataArr;
+		await dataService.postCadData([cad.data]);
+		this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});
 	}
 }

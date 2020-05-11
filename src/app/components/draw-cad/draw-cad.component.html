@@ -5,7 +5,7 @@
 	<button mat-raised-button color="primary" (click)="resetData()">还原数据</button>
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale + 0.1">放大</button>
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale - 0.1">缩小</button>
-	<button mat-raised-button color="accent" (click)="back()">确定并返回</button>
+	<button mat-raised-button color="accent" (click)="back()" *ngIf="fromEdit">确定并返回</button>
 </div>
 <div class="menu right">
 	<div class="tooltip-container">
@@ -18,9 +18,25 @@
 	<div class="checkbox-group">
 		<div class="data-container" *ngFor="let item of cads; let i = index">
 			<!-- <mat-checkbox class="example-margin" [(ngModel)]="item.checked">{{ item.data.name }}</mat-checkbox> -->
+			<mat-form-field>
+				<mat-label>名字</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.name" placeholder="请输入名字" />
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>展开宽</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.zhankaikuan" placeholder="请输入名字" />
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>展开高</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.zhankaigao" placeholder="请输入名字" />
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>数量</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.shuliang" placeholder="请输入名字" />
+			</mat-form-field>
 			<img [src]="item.src" (click)="item.checked = !item.checked" />
-			<div class="btn-group" *ngIf="checkedCads.length < 1">
-				<button mat-raised-button color="primary" (click)="editCad(i)">查看</button>
+			<div class="btn-group">
+				<button mat-raised-button color="primary" (click)="editCad(i)" *ngIf="!fromEdit">查看</button>
 				<button mat-raised-button color="primary" (click)="removeCad(i)">删除</button>
 			</div>
 		</div>

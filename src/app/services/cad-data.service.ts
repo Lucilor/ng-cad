@@ -170,6 +170,7 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
+			console.warn(error);
 			this.alert(error);
 			return null;
 		} finally {

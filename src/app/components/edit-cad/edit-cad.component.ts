@@ -42,7 +42,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	].join("\n");
 	menuMap: {[key: string]: CadMenu["viewMode"][]} = {
 		subcad: ["normal", "components", "partners", "slice"],
-		cadInfo: ["normal", "partners"],
+		cadInfo: ["normal", "partners", "components"],
 		cadLine: ["normal", "partners"],
 		cadAssemble: ["components"],
 		cadDimension: ["normal", "components", "partners"]
@@ -154,8 +154,8 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			// tree.queryParams = this.route.snapshot.queryParams;
 			// console.log(tree.toString());
 			const queryParams = this.route.snapshot.queryParams;
-			queryParams.back=true;
-			this.router.navigate(["draw-cad"], {queryParams});
+			// queryParams.back=true;
+			this.router.navigate(["draw-cad"], {queryParams: {...queryParams, fromEdit: true}});
 		} else {
 			this.menu.focus(this.menu.cadIdx, 0, mode);
 			this.subcad.updateList();

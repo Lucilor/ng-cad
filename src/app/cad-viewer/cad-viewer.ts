@@ -3,10 +3,9 @@ import {
 	PerspectiveCamera,
 	WebGLRenderer,
 	LineBasicMaterial,
-	Vector3,
+	Vector2,
 	Line,
 	Object3D,
-	Vector2,
 	MathUtils,
 	Raycaster,
 	Geometry,
@@ -89,9 +88,9 @@ export class CadViewer {
 	scene: Scene;
 	camera: PerspectiveCamera;
 	renderer: WebGLRenderer;
-	objects: {[key: string]: Mesh | Line} = {};
+	objects: {[key: string]: CadViewer["currentObject"]} = {};
 	raycaster = new Raycaster();
-	currentObject: Mesh | Line;
+	currentObject: Mesh | Line | TextSprite;
 	controls: CadViewerControls;
 	stats: Stats;
 	get width() {
@@ -262,10 +261,10 @@ export class CadViewer {
 		return entities.getBounds();
 	}
 
-	private _setAnchor(sprite: TextSprite, position: Vector3, anchor: Vector3) {
+	private _setAnchor(sprite: TextSprite, position: Vector2, anchor: Vector2) {
 		sprite.position.copy(position);
-		const offset = anchor.clone().subScalar(0.5).multiply(new Vector3(-sprite.width, sprite.height));
-		sprite.position.add(new Vector3(offset.x, offset.y, 0));
+		const offset = anchor.clone().subScalar(0.5).multiply(new Vector2(-sprite.width, sprite.height));
+		sprite.position.add(offset);
 	}
 
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
@@ -274,15 +273,15 @@ export class CadViewer {
 		const {start, end, length} = entity;
 		const middle = start.clone().add(end).divideScalar(2);
 		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
-		const object = objects[entity.id] as Line;
-		if (!visible || length <= 0) {
+		let object = objects[entity.id] as Line;
+		if (length <= 0) {
 			scene.remove(object);
 			delete objects[entity.id];
 			return;
 		}
 		const colorStr = new Color(color).getStyle();
 		const slope = (start.y - end.y) / (start.x - end.x);
-		const anchor = new Vector3(0.5, 0.5);
+		const anchor = new Vector2(0.5, 0.5);
 		if (slope === 0) {
 			anchor.y = 1;
 		}
@@ -299,21 +298,23 @@ export class CadViewer {
 				lengthText.fillStyle = colorStr;
 				this._setAnchor(lengthText, middle, anchor);
 			}
+			object.visible = visible;
 		} else {
 			const geometry = new Geometry().setFromPoints([start, end]);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
-			const line = new Line(geometry, material);
-			line.userData.selectable = true;
-			line.name = entity.id;
-			objects[entity.id] = line;
-			scene.add(line);
+			object = new Line(geometry, material);
+			object.userData.selectable = true;
+			object.name = entity.id;
+			objects[entity.id] = object;
+			scene.add(object);
 			if (showLineLength > 0) {
 				const lengthText = new TextSprite({fontSize: showLineLength, fillStyle: colorStr, text: Math.round(length).toString()});
 				lengthText.padding = 0;
 				this._setAnchor(lengthText, middle, anchor);
-				line.add(lengthText);
+				object.add(lengthText);
 			}
 		}
+		object.visible = visible;
 	}
 
 	private _drawCircle(entity: CadCircle, style: CadStyle = {}) {
@@ -323,24 +324,20 @@ export class CadViewer {
 		const curve = new EllipseCurve(center.x, center.y, radius, radius, 0, Math.PI * 2, true, 0);
 		const points = curve.getPoints(50);
 		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
-		const object = objects[entity.id] as Line;
-		if (!visible) {
-			scene.remove(object);
-			delete objects[entity.id];
-			return;
-		}
+		let object = objects[entity.id] as Line;
 		if (object) {
 			object.geometry = new Geometry().setFromPoints(points);
 			(object.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
-			const line = new Line(geometry, material);
-			line.userData.selectable = true;
-			line.name = entity.id;
-			objects[entity.id] = line;
-			scene.add(line);
+			object = new Line(geometry, material);
+			object.userData.selectable = true;
+			object.name = entity.id;
+			objects[entity.id] = object;
+			scene.add(object);
 		}
+		object.visible = visible;
 	}
 
 	private _drawArc(entity: CadArc, style: CadStyle = {}) {
@@ -358,7 +355,7 @@ export class CadViewer {
 		);
 		const points = curve.getPoints(50);
 		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
-		const object = objects[entity.id] as Line;
+		let object = objects[entity.id] as Line;
 		if (!visible) {
 			scene.remove(object);
 			delete objects[entity.id];
@@ -370,46 +367,42 @@ export class CadViewer {
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
-			const line = new Line(geometry, material);
-			line.userData.selectable = true;
-			line.name = entity.id;
-			objects[entity.id] = line;
-			scene.add(line);
+			object = new Line(geometry, material);
+			object.userData.selectable = true;
+			object.name = entity.id;
+			objects[entity.id] = object;
+			scene.add(object);
 		}
+		object.visible = visible;
 	}
 
 	private _drawMtext(entity: CadMtext, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {fontSize, color, visible} = new CadStyle(style, this, entity);
-		const object = objects[entity.id] as TextSprite;
-		if (!visible) {
-			scene.remove(object);
-			delete objects[entity.id];
-			return;
-		}
+		let object = objects[entity.id] as TextSprite;
 		const colorStr = "#" + new Color(color).getHexString();
 		const text = entity.text || "";
 		if (object) {
 			object.text = entity.text;
 			object.fontSize = fontSize * 1.25;
 			object.fillStyle = colorStr;
-			this._setAnchor(object, entity.insert, entity.anchor);
 		} else {
-			const sprite = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text});
-			sprite.userData.selectable = false;
-			sprite.name = entity.id;
-			sprite.padding = 0;
-			this._setAnchor(sprite, entity.insert, entity.anchor);
-			objects[entity.id] = sprite;
-			scene.add(sprite);
+			object = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text});
+			object.userData.selectable = false;
+			object.name = entity.id;
+			object.padding = 0;
+			objects[entity.id] = object;
+			scene.add(object);
 		}
+		this._setAnchor(object, entity.insert, entity.anchor);
+		object.visible = visible;
 	}
 
 	private _drawDimension(entity: CadDimension, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {mingzi, qujian, axis, distance} = entity;
 		const {lineWidth, color, fontSize, visible} = new CadStyle(style, this, entity);
-		const object = objects[entity.id] as TextSprite;
+		let object = objects[entity.id] as Line;
 		const colorStr = "#" + new Color(color).getHexString();
 		let canDraw = true;
 		if (!entity.entity1 || !entity.entity2 || !entity.entity1.id || !entity.entity2.id) {
@@ -423,7 +416,7 @@ export class CadViewer {
 		if (!(entity1 instanceof CadLine) || !(entity2 instanceof CadLine)) {
 			canDraw = false;
 		}
-		if (!visible || !canDraw) {
+		if (!canDraw) {
 			scene.remove(object);
 			delete objects[entity.id];
 			return;
@@ -444,8 +437,8 @@ export class CadViewer {
 		let p2 = getPoint(entity2, entity.entity2.location);
 		let p3 = p1.clone();
 		let p4 = p2.clone();
-		const arrow1: Vector3[] = [];
-		const arrow2: Vector3[] = [];
+		const arrow1: Vector2[] = [];
+		const arrow2: Vector2[] = [];
 		const arrowSize = 1;
 		const arrowLength = arrowSize * Math.sqrt(3);
 		if (axis === "x") {
@@ -457,11 +450,11 @@ export class CadViewer {
 				[p1, p2] = [p2, p1];
 			}
 			arrow1[0] = p3.clone();
-			arrow1[1] = arrow1[0].clone().add(new Vector3(arrowLength, -arrowSize));
-			arrow1[2] = arrow1[0].clone().add(new Vector3(arrowLength, arrowSize));
+			arrow1[1] = arrow1[0].clone().add(new Vector2(arrowLength, -arrowSize));
+			arrow1[2] = arrow1[0].clone().add(new Vector2(arrowLength, arrowSize));
 			arrow2[0] = p4.clone();
-			arrow2[1] = arrow2[0].clone().add(new Vector3(-arrowLength, -arrowSize));
-			arrow2[2] = arrow2[0].clone().add(new Vector3(-arrowLength, arrowSize));
+			arrow2[1] = arrow2[0].clone().add(new Vector2(-arrowLength, -arrowSize));
+			arrow2[2] = arrow2[0].clone().add(new Vector2(-arrowLength, arrowSize));
 		}
 		if (axis === "y") {
 			const x = Math.max(p3.x, p4.x);
@@ -472,28 +465,29 @@ export class CadViewer {
 				[p1, p2] = [p2, p1];
 			}
 			arrow1[0] = p3.clone();
-			arrow1[1] = arrow1[0].clone().add(new Vector3(-arrowSize, -arrowLength));
-			arrow1[2] = arrow1[0].clone().add(new Vector3(arrowSize, -arrowLength));
+			arrow1[1] = arrow1[0].clone().add(new Vector2(-arrowSize, -arrowLength));
+			arrow1[2] = arrow1[0].clone().add(new Vector2(arrowSize, -arrowLength));
 			arrow2[0] = p4.clone();
-			arrow2[1] = arrow2[0].clone().add(new Vector3(-arrowSize, arrowLength));
-			arrow2[2] = arrow2[0].clone().add(new Vector3(arrowSize, arrowLength));
+			arrow2[1] = arrow2[0].clone().add(new Vector2(-arrowSize, arrowLength));
+			arrow2[2] = arrow2[0].clone().add(new Vector2(arrowSize, arrowLength));
 		}
 
-		let line: Line;
-		if (objects[entity.id]) {
-			line = objects[entity.id] as Line;
-			line.remove(...line.children);
-			line.geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
+		if (object) {
+			object = objects[entity.id] as Line;
+			object.remove(...object.children);
+			object.geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 		} else {
 			const geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
-			line = new Line(geometry, material);
-			line.renderOrder = -1;
-			line.userData.selectable = false;
-			line.name = entity.id;
-			objects[entity.id] = line;
-			scene.add(line);
+			object = new Line(geometry, material);
+			object.renderOrder = -1;
+			object.userData.selectable = false;
+			object.name = entity.id;
+			objects[entity.id] = object;
+			scene.add(object);
 		}
+		object.visible = visible;
+
 		const arrowShape1 = new Shape();
 		arrowShape1.moveTo(arrow1[0].x, arrow1[0].y);
 		arrowShape1.lineTo(arrow1[1].x, arrow1[1].y);
@@ -504,7 +498,7 @@ export class CadViewer {
 		arrowShape2.lineTo(arrow2[1].x, arrow2[1].y);
 		arrowShape2.lineTo(arrow2[2].x, arrow2[2].y);
 		arrowShape2.closePath();
-		line.add(new Mesh(new ShapeGeometry([arrowShape1, arrowShape2]), new MeshBasicMaterial({color})));
+		object.add(new Mesh(new ShapeGeometry([arrowShape1, arrowShape2]), new MeshBasicMaterial({color})));
 		let text = "";
 		if (mingzi) {
 			text = mingzi;
@@ -520,28 +514,23 @@ export class CadViewer {
 			text = text.split("").join("\n");
 		}
 		const sprite = new TextSprite({fontSize, fillStyle: colorStr, text});
-		const midPoint = new Vector3().add(p3).add(p4).divideScalar(2);
+		const midPoint = new Vector2().add(p3).add(p4).divideScalar(2);
 		sprite.position.copy(midPoint);
 		if (axis === "x") {
-			this._setAnchor(sprite, midPoint, new Vector3(0.5, 1));
+			this._setAnchor(sprite, midPoint, new Vector2(0.5, 1));
 		}
 		if (axis === "y") {
 			sprite.lineGap = 0;
-			this._setAnchor(sprite, midPoint, new Vector3(0, 0.5));
+			this._setAnchor(sprite, midPoint, new Vector2(0, 0.5));
 		}
-		line.add(sprite);
+		object.add(sprite);
 	}
 
 	private _drawHatch(entity: CadHatch, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {paths} = entity;
 		const {color, visible} = new CadStyle(style, this, entity);
-		const object = objects[entity.id] as Mesh;
-		if (!visible) {
-			scene.remove(object);
-			delete objects[entity.id];
-			return;
-		}
+		let object = objects[entity.id] as Mesh;
 		const shapes = [];
 		paths.forEach((path) => {
 			const shape = new Shape();
@@ -567,11 +556,12 @@ export class CadViewer {
 			object.geometry = geometry;
 			object.material = material;
 		} else {
-			const mesh = new Mesh(geometry, material);
-			mesh.name = entity.id;
-			objects[entity.id] = mesh;
-			scene.add(mesh);
+			object = new Mesh(geometry, material);
+			object.name = entity.id;
+			objects[entity.id] = object;
+			scene.add(object);
 		}
+		object.visible = visible;
 	}
 
 	moveComponent(curr: CadData, translate: Vector2, prev?: CadData) {}
@@ -623,12 +613,12 @@ export class CadViewer {
 		if (data instanceof CadData) {
 			this.data = data;
 		} else if (data) {
-			this.data = new CadData(data);
+			// this.data = new CadData(data);
 		}
 		return this.render(true);
 	}
 
-	translatePoint(point: Vector2 | Vector3) {
+	translatePoint(point: Vector2 | Vector2) {
 		const result = new Vector2();
 		const {scale, width, height} = this;
 		result.x = (point.x - this.position.x) * scale + width / 2;
@@ -638,5 +628,21 @@ export class CadViewer {
 
 	traverse(callback: (o: Object3D, e: CadEntity) => void, entities = this.data.getAllEntities()) {
 		entities.forEach((e) => this.objects[e.id]?.traverse((o) => callback(o, e)));
+	}
+
+	addEntities(entities: CadEntities) {
+		this.data.entities.merge(entities);
+		return this.render();
+	}
+
+	removeEntities(entities: CadEntities) {
+		this.data.entities.separate(entities);
+		this.data.partners.forEach((d) => d.entities.separate(entities));
+		this.data.components.data.forEach((d) => d.entities.separate(entities));
+		entities.forEach((e) => {
+			this.scene.remove(this.objects[e.id]);
+			delete this.objects[e.id];
+		});
+		return this.render();
 	}
 }
