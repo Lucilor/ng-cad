@@ -2,7 +2,7 @@ import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData, CadTransformation} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
-import {ActivatedRoute, Router, UrlTree} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {environment} from "@src/environments/environment";
 import {Angle} from "@lucilor/utils";
 import {CadMenu} from "../cad-menu/cad-menu.common";
@@ -149,12 +149,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 
 	setViewMode(mode: CadMenu["viewMode"]) {
 		if (mode === "slice") {
-			// const tree = this.router.parseUrl(this.route.snapshot);
-			// tree.fragment = "ddd";
-			// tree.queryParams = this.route.snapshot.queryParams;
-			// console.log(tree.toString());
 			const queryParams = this.route.snapshot.queryParams;
-			// queryParams.back=true;
 			this.router.navigate(["draw-cad"], {queryParams: {...queryParams, fromEdit: true}});
 		} else {
 			this.menu.focus(this.menu.cadIdx, 0, mode);

@@ -597,12 +597,14 @@ export class CadViewer {
 		} else {
 			this.scene.dispose();
 			this.renderer.dispose();
-			this.data = null;
 			for (const key in this.objects) {
 				this.objects[key].geometry.dispose();
 				(this.objects[key].material as Material).dispose();
 			}
-			this.objects = null;
+			this.dom.remove();
+			for (const key in this) {
+				this[key] = null;
+			}
 			this._destroyed = true;
 		}
 	}

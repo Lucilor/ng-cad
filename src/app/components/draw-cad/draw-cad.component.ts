@@ -4,6 +4,7 @@ import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData} from "@app/cad-viewer/cad-data";
 import {environment} from "@src/environments/environment";
 import {ActivatedRoute, Router} from "@angular/router";
+import {RSAEncrypt} from "@lucilor/utils";
 
 const title = "选取CAD";
 @Component({
@@ -33,7 +34,6 @@ export class DrawCadComponent implements AfterViewInit {
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
 		const data = (await this.dataService.getCadData())[0];
-		console.log(data.entities.length);
 		this.cad = new CadViewer(data, {
 			width: innerWidth,
 			height: innerHeight,
@@ -98,7 +98,10 @@ export class DrawCadComponent implements AfterViewInit {
 
 	async back() {
 		const {cads, cad, dataService} = this;
-		const resDataArr = await dataService.postCadData(cads.map((v) => v.data));
+		const resDataArr = await dataService.postCadData(
+			cads.map((v) => v.data),
+			RSAEncrypt({collection: "cad"})
+		);
 		cad.data.components.data = resDataArr;
 		await dataService.postCadData([cad.data]);
 		this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});

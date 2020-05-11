@@ -2,6 +2,7 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../../alert/alert.component";
+import {CadData, CadConnection} from "@src/app/cad-viewer/cad-data";
 
 @Component({
 	selector: "app-cad-assemble",
@@ -15,6 +16,7 @@ export class CadAssembleComponent implements OnInit {
 	}
 	options = {space: "0", position: "absolute"};
 	assembling = false;
+	ids: string[] = [];
 	names: string[] = [];
 	lines: string[] = [];
 	constructor(private dialog: MatDialog) {}
@@ -24,17 +26,20 @@ export class CadAssembleComponent implements OnInit {
 		cad.controls.on("entityselect", (event, entity, object) => {
 			if (this.assembling) {
 				const data = this.data;
-				for (const component of data.components.data) {
-					const {names, lines} = this;
+				const fakeComponent = new CadData({id: data.id, name: data.name});
+				fakeComponent.entities = data.entities;
+				for (const component of [...data.components.data, fakeComponent]) {
+					const {ids, lines, names} = this;
 					const found = component.findEntity(entity.id);
 					if (found) {
-						const prev = names.findIndex((n) => n === component.name);
+						const prev = ids.findIndex((n) => n === component.name);
 						const {space, position} = this.options;
 						if (object.userData.selected) {
 							if (position === "absolute") {
 								if (prev > -1) {
 									lines[prev] = found.id;
 								} else {
+									ids.push(component.id);
 									names.push(component.name);
 									lines.push(found.id);
 								}
@@ -50,20 +55,19 @@ export class CadAssembleComponent implements OnInit {
 										lines[prev] = found.id;
 									}
 								} else {
+									ids.push(component.id);
 									names.push(component.name);
 									lines.push(found.id);
 								}
 								lines.forEach((l) => (cad.objects[l].userData.selected = true));
 							}
 							if ((lines.length === 2 && position === "absolute") || (lines.length === 3 && position === "relative")) {
-								console.log(lines);
-								cad.objects[found.id].userData.selected = false;
 								try {
-									data.assembleComponents({names, lines, space, position});
+									data.assembleComponents(new CadConnection({ids, names, lines, space, position}));
 								} catch (error) {
 									this.dialog.open(AlertComponent, {data: {content: error.message}});
 								} finally {
-									names.length = 0;
+									ids.length = 0;
 									lines.length = 0;
 									cad.unselectAll();
 								}
@@ -74,14 +78,14 @@ export class CadAssembleComponent implements OnInit {
 									const idx = lines.findIndex((l) => l === found.id);
 									lines.splice(idx, -1);
 									if (lines.length < 1) {
-										names.splice(prev, 1);
+										ids.splice(prev, 1);
 									}
 								} else {
-									names.splice(prev, 1);
+									ids.splice(prev, 1);
 									lines.splice(prev + 1, 1);
 								}
 							} else {
-								names.splice(prev, 1);
+								ids.splice(prev, 1);
 								lines.splice(prev, 1);
 							}
 						}
@@ -97,15 +101,18 @@ export class CadAssembleComponent implements OnInit {
 		const {data, menu} = this;
 		const {cad} = menu;
 		this.assembling = !this.assembling;
+		this.ids = [];
+		this.names = [];
+		this.lines = [];
+		menu.cad.unselectAll();
 		if (this.assembling) {
 			menu.blur(menu.cadIdx, menu.cadIdx2);
 			menu.selectLineBegin("assemble", -1);
+			cad.controls.config.dragAxis = "";
 		} else {
 			cad.traverse((o) => {
 				o.userData.selected = false;
 			}, data.getAllEntities());
-			this.names = [];
-			this.lines = [];
 			menu.focus();
 		}
 	}

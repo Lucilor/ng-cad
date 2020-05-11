@@ -32,21 +32,21 @@ export class CadLineComponent implements OnInit {
 		cad.controls.on("wheel", () => this.updateTLine());
 	}
 
+	expandLine(line: CadLine, d: number) {
+		const theta = line.theta;
+		const translate = new Vector2(Math.cos(theta), Math.sin(theta)).multiplyScalar(d);
+		line.end.add(translate);
+		return translate;
+	}
+
 	setLineLength(event: InputEvent) {
 		const {line, menu} = this;
-		menu.generatePointsMap();
-		const {closed, entities} = this.findAllAdjacentLines(line, line.end);
-		if (closed) {
-			console.log(entities);
-		} else {
-			const length = Number((event.target as HTMLInputElement).value);
-			const d = line.length - length;
-			const theta = line.theta;
-			const offset = new Vector2(Math.cos(theta), Math.sin(theta)).multiplyScalar(d);
-			entities.transform(new CadTransformation().setTranslate(offset.x, offset.y));
-			line.end.x += offset.x;
-			line.end.y += offset.y;
-		}
+		menu.updatePointsMap();
+		const entities = this.findAllAdjacentLines(line, line.end);
+		const length = Number((event.target as HTMLInputElement).value);
+		const d = line.length - length;
+		const translate = this.expandLine(line, d);
+		entities.transform(new CadTransformation({translate}));
 		menu.getData().updatePartners().updateComponents();
 		menu.cad.render();
 		menu.updateCadLength();
@@ -70,16 +70,12 @@ export class CadLineComponent implements OnInit {
 
 	findAllAdjacentLines(entity: CadEntity, point: Vector2) {
 		const entities = new CadEntities();
-		const result = {closed: false, entities};
 		const id = entity.id;
 		const accuracy = this.menu.accuracy;
-		const startEntity = entity;
 		while (entity && point) {
 			entity = this.findAdjacentLines(entity, point)[0];
 			if (entity?.id === id) {
-				result.closed = true;
-				result.entities.add(startEntity);
-				return result;
+				break;
 			}
 			if (entity) {
 				if (entity instanceof CadLine) {
@@ -108,7 +104,7 @@ export class CadLineComponent implements OnInit {
 				}
 			}
 		}
-		return result;
+		return entities;
 	}
 
 	getCssColor(color?: string) {

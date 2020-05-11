@@ -36,6 +36,24 @@ export class CadTransformation {
 		return matrix;
 	}
 
+	constructor(
+		params: {
+			translate?: CadTransformation["translate"];
+			flip?: CadTransformation["flip"];
+			rotate?: CadTransformation["rotate"];
+		} = {}
+	) {
+		if (params.translate) {
+			this.translate = params.translate;
+		}
+		if (params.flip) {
+			this.flip = params.flip;
+		}
+		if (params.rotate) {
+			this.rotate = params.rotate;
+		}
+	}
+
 	setTranslate(x = 0, y = 0) {
 		this.translate.set(x, y);
 		return this;
@@ -317,30 +335,40 @@ export class CadData {
 			}
 			this.addComponent(v);
 		});
-		connections.forEach((c) => this.assembleComponents(c));
+		try {
+			connections.forEach((c) => this.assembleComponents(c));
+		} catch (error) {}
 		this.partners.forEach((v) => v.updateComponents());
 		this.components.data.forEach((v) => v.updateComponents());
 		return this;
 	}
 
 	assembleComponents(connection: CadConnection) {
-		const {names, lines, space, position, offset} = connection;
+		const {ids, lines, space, position} = connection;
 		const components = this.components;
 		let c1: CadData;
 		let c2: CadData;
 		for (const c of components.data) {
-			if (c.name === names[0]) {
+			if (c.id === ids[0]) {
 				c1 = c;
 			}
-			if (c.name === names[1]) {
+			if (c.id === ids[1]) {
 				c2 = c;
 			}
 			if (c1 && c2) {
 				break;
 			}
 		}
-		if (!c1 || !c2) {
+		if (!c1 && !c2) {
 			throw new Error("未找到配件");
+		}
+		if (!c1) {
+			c1 = new CadData();
+			c1.entities = this.entities;
+		}
+		if (!c2) {
+			c2 = new CadData();
+			c2.entities = this.entities;
 		}
 		let axis: "x" | "y";
 		const getLine = (e: CadCircle, l: Line) => {
@@ -355,18 +383,12 @@ export class CadData {
 				return new Line(o, o.clone().add(new Point(1, 0)));
 			}
 		};
-		const translate = [0, 0];
-		// if (typeof offset === "object") {
-		// 	["x", "y"].forEach(a => {
-		// 		if (typeof offset[a] === "number") {
-		// 			translate[a] += offset[a];
-		// 		}
-		// 	});
-		// }
+		const translate = new Vector2();
 		if (position === "absolute") {
 			const e1 = c1.findEntity(lines[0]);
 			const e2 = c2.findEntity(lines[1]);
 			if (!e1 || !e2) {
+				console.log(c1, c2);
 				throw new Error("未找到对应实体");
 			}
 			let spaceNum = Number(space);
@@ -396,10 +418,10 @@ export class CadData {
 			}
 			if (l1.slope === l2.slope) {
 				if (!isFinite(l1.slope)) {
-					translate[0] = l1.start.x - l2.start.x + spaceNum;
+					translate.x = l1.start.x - l2.start.x + spaceNum;
 					axis = "x";
 				} else if (l1.slope === 0) {
-					translate[1] = l1.start.y - l2.start.y + spaceNum;
+					translate.y = l1.start.y - l2.start.y + spaceNum;
 					axis = "y";
 				} else {
 					throw new Error("两条线不是横线或者竖线");
@@ -416,7 +438,6 @@ export class CadData {
 			const spParent = Number(match[1]) / 100;
 			const op = match[2];
 			const spChildren = Number(match[3]) / 100;
-			console.log(spParent, op, spChildren);
 			if (["+", "-"].includes(op) && isNaN(spChildren)) {
 				throw new Error("相对定位的距离格式错误");
 			}
@@ -451,20 +472,20 @@ export class CadData {
 				const d = (l2.start.x - l1.start.x) * spParent;
 				translate[0] = l1.start.x + d - l3.start.x;
 				if (op === "+") {
-					translate[0] += rect.width * spChildren;
+					translate.x += rect.width * spChildren;
 				}
 				if (op === "-") {
-					translate[0] -= rect.width * spChildren;
+					translate.x -= rect.width * spChildren;
 				}
 				axis = "x";
 			} else if (l1.slope === 0) {
 				const d = (l2.start.y - l1.start.y) * spParent;
 				translate[1] = l1.start.y + d - l3.start.y;
 				if (op === "+") {
-					translate[1] += rect.height * spChildren;
+					translate.y += rect.height * spChildren;
 				}
 				if (op === "-") {
-					translate[1] -= rect.height * spChildren;
+					translate.y -= rect.height * spChildren;
 				}
 				axis = "y";
 			} else {
@@ -477,23 +498,23 @@ export class CadData {
 		const connectedToC1: string[] = [];
 		const connectedToC2: string[] = [];
 		components.connections.forEach((conn) => {
-			if (conn.names[0] === c1.name) {
-				connectedToC1.push(conn.names[1]);
+			if (conn.ids[0] === c1.id) {
+				connectedToC1.push(conn.ids[1]);
 			}
-			if (conn.names[1] === c1.name) {
-				connectedToC1.push(conn.names[0]);
+			if (conn.ids[1] === c1.id) {
+				connectedToC1.push(conn.ids[0]);
 			}
-			if (conn.names[0] === c2.name) {
-				connectedToC2.push(conn.names[1]);
+			if (conn.ids[0] === c2.id) {
+				connectedToC2.push(conn.ids[1]);
 			}
-			if (conn.names[1] === c2.name) {
-				connectedToC2.push(conn.names[0]);
+			if (conn.ids[1] === c2.id) {
+				connectedToC2.push(conn.ids[0]);
 			}
 		});
 		const connectedToBoth = intersection(connectedToC1, connectedToC2);
 		components.connections.forEach((conn, i) => {
-			const arr = intersection(conn.names, [c1.name, c2.name]);
-			if (conn.names.includes(c2.name) && intersection(conn.names, connectedToBoth).length) {
+			const arr = intersection(conn.ids, [c1.id, c2.id]);
+			if (conn.ids.includes(c2.id) && intersection(conn.ids, connectedToBoth).length) {
 				toRemove.push(i);
 			}
 			if (arr.length === 2 && conn.axis === axis) {
@@ -517,47 +538,44 @@ export class CadData {
 		});
 	}
 
-	moveComponent(curr: CadData, translate: number[], prev?: CadData) {
-		curr.transform(new CadTransformation().setTranslate(...translate));
+	moveComponent(curr: CadData, translate: Vector2, prev?: CadData) {
 		const map: object = {};
 		this.components.connections.forEach((conn) => {
-			if (conn.names.includes(curr.name)) {
-				conn.names.forEach((n) => {
-					if (n !== curr.name && n !== prev?.name) {
-						if (!map[n]) {
-							map[n] = {};
-						}
-						map[n][conn.axis] = conn.space;
-						if (typeof conn.offset !== "object") {
-							conn.offset = {};
-						}
+			if (conn.ids.includes(curr.id)) {
+				conn.ids.forEach((id) => {
+					if (id === this.id) {
 						if (conn.axis === "x") {
-							if (typeof conn.offset.y === "number") {
-								conn.offset.y += translate[1];
-							} else {
-								conn.offset.y = translate[1];
-							}
+							translate.x = 0;
 						}
 						if (conn.axis === "y") {
-							if (typeof conn.offset.x === "number") {
-								conn.offset.x += translate[0];
-							} else {
-								conn.offset.x = translate[0];
-							}
+							translate.y = 0;
+						}
+					}
+					if (id !== curr.id && id !== prev?.id) {
+						if (!map[id]) {
+							map[id] = {};
+						}
+						map[id][conn.axis] = conn.space;
+						if (conn.axis === "x") {
+							conn.offset.y += translate.y;
+						}
+						if (conn.axis === "y") {
+							conn.offset.x = translate.x;
 						}
 					}
 				});
 			}
 		});
-		for (const name in map) {
-			const next = this.components.data.find((v) => v.name === name);
+		curr.transform(new CadTransformation({translate}));
+		for (const id in map) {
+			const next = this.components.data.find((v) => v.id === id);
 			if (next) {
-				const newTranslate = translate.slice();
-				if (map[name].x === undefined) {
-					newTranslate[0] = 0;
+				const newTranslate = translate.clone();
+				if (map[id].x === undefined) {
+					newTranslate.x = 0;
 				}
-				if (map[name].y === undefined) {
-					newTranslate[1] = 0;
+				if (map[id].y === undefined) {
+					newTranslate.y = 0;
 				}
 				this.moveComponent(next, newTranslate, curr);
 			}
@@ -709,9 +727,9 @@ export class CadEntities {
 		return {x: center.x, y: center.y, width: size.x, height: size.y};
 	}
 
-	forEachType(callback: (array: CadEntity[], type: keyof CadTypes, object: CadEntities) => void) {
+	forEachType(callback: (array: CadEntity[], type: keyof CadTypes, TYPE: string) => void) {
 		for (const type in CAD_TYPES) {
-			callback(this[type], type as keyof CadTypes, this);
+			callback(this[type], type as keyof CadTypes, CAD_TYPES[type]);
 		}
 	}
 
@@ -721,8 +739,8 @@ export class CadEntities {
 
 	add(entity: CadEntity) {
 		if (entity instanceof CadEntity) {
-			this.forEachType((array, type) => {
-				if (type === entity.type) {
+			this.forEachType((array, type, TYPE) => {
+				if (TYPE === entity.type) {
 					array.push(entity);
 				}
 			});
@@ -1095,16 +1113,24 @@ export class CadOption {
 	}
 }
 
-export interface CadConnection {
+export class CadConnection {
+	ids: string[];
 	names: string[];
 	lines: string[];
 	space: string;
 	position: "absolute" | "relative";
-	axis?: "x" | "y";
-	offset?: {
-		x?: number;
-		y?: number;
-	};
+	axis: "x" | "y";
+	offset: Vector2;
+
+	constructor(data: any) {
+		this.ids = Array.isArray(data.ids) ? data.ids : [];
+		this.names = Array.isArray(data.names) ? data.names : [];
+		this.lines = Array.isArray(data.lines) ? data.lines : [];
+		this.space = data.space || "0";
+		this.position = data.position || "absolute";
+		this.axis = data.axis || "x";
+		this.offset = getVectorFromArray(data.offset);
+	}
 }
 export class CadComponents {
 	data: CadData[];
@@ -1114,12 +1140,13 @@ export class CadComponents {
 			throw new Error("Invalid data.");
 		}
 		this.data = [];
+		this.connections = [];
 		if (Array.isArray(data.data)) {
-			data.data.forEach((d) => {
-				this.data.push(new CadData(d));
-			});
+			data.data.forEach((d) => this.data.push(new CadData(d)));
 		}
-		this.connections = data.connections || [];
+		if (Array.isArray(data.connections)) {
+			data.connections.forEach((c) => this.connections.push(new CadConnection(c)));
+		}
 	}
 
 	export() {

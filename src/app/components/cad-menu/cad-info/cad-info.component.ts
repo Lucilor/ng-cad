@@ -92,7 +92,7 @@ export class CadInfoComponent implements OnInit {
 		} else {
 			mode.type = "jointPoint";
 			mode.index = i;
-			menu.generatePointsMap();
+			menu.updatePointsMap();
 		}
 	}
 
@@ -108,6 +108,6 @@ export class CadInfoComponent implements OnInit {
 		jointPoint.valueY = point.y;
 		data.updatePartners();
 		cad.render();
-		menu.generatePointsMap();
+		menu.updatePointsMap();
 	}
 }

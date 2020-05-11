@@ -6,13 +6,13 @@ import {
 	CadBaseLine,
 	CadJointPoint,
 	CadDimension,
-	CadTransformation
+	CadTransformation,
+	CadEntities
 } from "@app/cad-viewer/cad-data";
 import {AlertComponent} from "../alert/alert.component";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
 import {Material, Mesh, Vector2} from "three";
-import {Angle, Arc, Point} from "@lucilor/utils";
 import {CadDataService} from "@services/cad-data.service";
 
 interface Mode {
@@ -63,19 +63,19 @@ export class CadMenu {
 			if (this.cadIdx >= 0 && (button === 1 || (event.shiftKey && button === 0))) {
 				const scale = cad.scale;
 				const end = new Vector2(event.clientX, event.clientY);
-				const offset = end.sub(start).divide(new Vector2(scale, -scale));
+				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
 				if (this.viewMode === "components") {
-					this.getData().moveComponent(data, offset.toArray());
+					data.moveComponent(this.getData(), translate);
 				} else {
-					data.transform(new CadTransformation().setTranslate(offset.x, offset.y));
+					data.transform(new CadTransformation({translate}));
 				}
 				cad.render();
 				start.set(event.clientX, event.clientY);
 			}
 		});
 		cad.controls.on("dragend", () => (button = NaN));
-		cad.controls.on("wheel", () => this.generatePointsMap());
+		cad.controls.on("wheel", () => this.updatePointsMap());
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
 				this.blur();
@@ -221,9 +221,8 @@ export class CadMenu {
 		this.mode.type = "normal";
 	}
 
-	generatePointsMap() {
-		const data = this.getData();
-		if (!data) {
+	generatePointsMap(entities: CadEntities) {
+		if (!entities) {
 			this.pointsMap = [];
 			return;
 		}
@@ -236,7 +235,6 @@ export class CadMenu {
 				pointsMap.push({point, lines: [line], tPoint: this.cad.translatePoint(point), selected: false});
 			}
 		};
-		const entities = data.getAllEntities();
 		entities.line.forEach((entity) => {
 			const {start, end} = entity;
 			if (start.distanceTo(end) > 0) {
@@ -245,15 +243,17 @@ export class CadMenu {
 			}
 		});
 		entities.arc.forEach((entity) => {
-			const start = new Angle(entity.start_angle, "deg");
-			const end = new Angle(entity.end_angle, "deg");
-			const arc = new Arc(new Point(entity.center.x, entity.center.y), entity.radius, start, end, entity.clockwise);
-			if (arc.length > 0) {
-				addToMap(new Vector2(arc.startPoint.x, arc.startPoint.y), entity);
-				addToMap(new Vector2(arc.endPoint.x, arc.endPoint.y), entity);
+			const curve = entity.curve;
+			if (curve.getLength() > 0) {
+				addToMap(curve.getPoint(0), entity);
+				addToMap(curve.getPoint(1), entity);
 			}
 		});
-		this.pointsMap = pointsMap;
+		return pointsMap;
+	}
+
+	updatePointsMap() {
+		this.pointsMap = this.generatePointsMap(this.getData().getAllEntities());
 	}
 
 	focus(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2, viewMode: CadMenu["viewMode"] = this.viewMode) {
@@ -297,14 +297,12 @@ export class CadMenu {
 						const m = (o as Mesh).material as Material;
 						m.setValues({opacity: 0.3, transparent: true});
 					}, data.entities);
-					console.log(data.entities.length);
 				}
 				if (viewMode === "components") {
 					subData = data.components.data;
 					data.partners.forEach((d) => {
 						d.getAllEntities().forEach((e) => (e.visible = false));
 					});
-					data.entities.forEach((e) => (e.visible = false));
 				}
 				subData.forEach((d, i) => {
 					const opacity = i === cadIdx2 ? 1 : 0.3;

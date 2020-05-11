@@ -35,14 +35,15 @@ export class CadDataService {
 		this.data = params.data ? encodeURIComponent(params.data) : "";
 	}
 
-	private alert(msg: any) {
+	private alertError(err: any) {
 		if (this.silent) {
 			return;
 		}
-		if (msg instanceof Error) {
-			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: msg.message}});
-		} else if (msg) {
-			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: JSON.stringify(msg)}});
+		console.warn(err);
+		if (err instanceof Error) {
+			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: err.message}});
+		} else if (err) {
+			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: JSON.stringify(err)}});
 		}
 	}
 
@@ -52,8 +53,8 @@ export class CadDataService {
 			try {
 				return [new CadData(this.loadCurrentCad())];
 			} catch (error) {
-				this.alert(error);
-				return null;
+				this.alertError(error);
+				return [new CadData()];
 			}
 		}
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadData"});
@@ -72,15 +73,18 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
-			this.alert(error);
-			return null;
+			this.alertError(error);
+			return [new CadData()];
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadData"});
 		}
 	}
 
-	async postCadData(cadData: CadData[]) {
-		const {baseURL, encode, data} = this;
+	async postCadData(cadData: CadData[], data?: string) {
+		const {baseURL, encode} = this;
+		if (!data) {
+			data = this.data;
+		}
 		const result: CadData[] = [];
 		let counter = 0;
 		let successCounter = 0;
@@ -99,22 +103,13 @@ export class CadDataService {
 				try {
 					const response = await this.http.post<Response>(`${baseURL}/peijian/cad/setCAD/${encode}`, formData).toPromise();
 					if (response.code === 0) {
-						const {json, 分类, 名字, 条件, 选项} = response.data;
-						if (!json) {
-							return null;
-						}
-						// TODO 返回格式
-						json.name = 名字;
-						json.type = 分类;
-						json.options = 选项;
-						json.conditions = 条件;
-						result[i] = new CadData(json);
+						result[i] = new CadData(response.data);
 						successCounter++;
 					} else {
 						throw new Error(response.msg);
 					}
 				} catch (error) {
-					result[i] = null;
+					result[i] = new CadData();
 				} finally {
 					counter++;
 				}
@@ -170,8 +165,7 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
-			console.warn(error);
-			this.alert(error);
+			this.alertError(error);
 			return null;
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
@@ -192,7 +186,7 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
-			this.alert(error);
+			this.alertError(error);
 			return null;
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});

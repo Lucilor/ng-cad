@@ -24,15 +24,19 @@
 			</mat-form-field>
 			<mat-form-field>
 				<mat-label>展开宽</mat-label>
-				<input matInput type="text" [(ngModel)]="item.data.zhankaikuan" placeholder="请输入名字" />
+				<input matInput type="text" [(ngModel)]="item.data.zhankaikuan" placeholder="请输入展开宽" />
 			</mat-form-field>
 			<mat-form-field>
 				<mat-label>展开高</mat-label>
-				<input matInput type="text" [(ngModel)]="item.data.zhankaigao" placeholder="请输入名字" />
+				<input matInput type="text" [(ngModel)]="item.data.zhankaigao" placeholder="请输入展开高" />
 			</mat-form-field>
 			<mat-form-field>
 				<mat-label>数量</mat-label>
-				<input matInput type="text" [(ngModel)]="item.data.shuliang" placeholder="请输入名字" />
+				<input matInput type="text" [(ngModel)]="item.data.shuliang" placeholder="请输入数量" />
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>花件</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.huajian" placeholder="请输入花件" />
 			</mat-form-field>
 			<img [src]="item.src" (click)="item.checked = !item.checked" />
 			<div class="btn-group">
