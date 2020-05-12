@@ -1,10 +1,10 @@
 import {Component, OnInit, Input, Output, EventEmitter} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {CadLine} from "@app/cad-viewer/cad-data";
 import {Mesh, Line, Material} from "three";
 import {MatDialog} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CadDataService} from "@services/cad-data.service";
+import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 
 @Component({
 	selector: "app-cad-info",

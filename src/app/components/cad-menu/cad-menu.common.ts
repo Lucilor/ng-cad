@@ -1,19 +1,15 @@
-import {
-	CadData,
-	CadLine,
-	CadEntity,
-	CadOption,
-	CadBaseLine,
-	CadJointPoint,
-	CadDimension,
-	CadTransformation,
-	CadEntities
-} from "@app/cad-viewer/cad-data";
 import {AlertComponent} from "../alert/alert.component";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
 import {Material, Mesh, Vector2} from "three";
 import {CadDataService} from "@services/cad-data.service";
+import {CAD_TYPES} from "@src/app/cad-viewer/cad-data/cad-types";
+import {CadEntity} from "@src/app/cad-viewer/cad-data/cad-entity";
+import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
+import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
+import {CadData, CadOption, CadBaseLine, CadJointPoint} from "@src/app/cad-viewer/cad-data";
+import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
+import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension" | "jointPoint" | "assemble";
@@ -39,6 +35,8 @@ export class CadMenu {
 	cadLength = 0;
 	pointsMap: LinesAtPoint[];
 	viewMode: "normal" | "partners" | "components" | "slice" = "normal";
+	drawDimensions = true;
+	drawMTexts = true;
 	readonly accuracy = 1;
 	readonly selectedColor = 0xffff00;
 	readonly hoverColor = 0x00ffff;
@@ -80,9 +78,6 @@ export class CadMenu {
 			if (event.key === "Escape") {
 				this.blur();
 				cad.unselectAll();
-			}
-			if (event.key === "Enter") {
-				console.log(cad.selectedEntities);
 			}
 		});
 	}
@@ -330,6 +325,19 @@ export class CadMenu {
 		}
 		cad.controls.config.dragAxis = "";
 		this.updateCadLength();
+		cad.traverse(
+			(o, e) => {
+				if (e.type === CAD_TYPES.mtext) {
+					e.visible = this.drawMTexts;
+				}
+				if (e.type === CAD_TYPES.dimension) {
+					e.visible = this.drawDimensions;
+				}
+				o.userData.selectable = false;
+			},
+			cad.data.getAllEntities(),
+			["mtext", "dimension"]
+		);
 		cad.render(viewModeChanged);
 	}
 
@@ -360,6 +368,18 @@ export class CadMenu {
 			});
 			this.cadLength = Number(this.cadLength.toFixed(2));
 		}
+	}
+
+	toggleDimensions() {
+		this.drawDimensions = !this.drawDimensions;
+		this.cad.data.getAllEntities().dimension.forEach((e) => (e.visible = this.drawDimensions));
+		this.cad.render();
+	}
+
+	toggleMtexts() {
+		this.drawMTexts = !this.drawMTexts;
+		this.cad.data.getAllEntities().mtext.forEach((e) => (e.visible = this.drawMTexts));
+		this.cad.render();
 	}
 
 	private _beforeRemove() {

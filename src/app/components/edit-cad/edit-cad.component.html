@@ -7,8 +7,8 @@
 	<button mat-raised-button color="primary" (click)="rotate(false)">逆时针旋转</button>
 	<input matInput type="number" [(ngModel)]="rotateAngle" />
 	<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
-	<button mat-raised-button color="primary" (click)="toggleDimensions()">{{ drawDimensions ? "隐藏" : "显示" }}标注</button>
-	<button mat-raised-button color="primary" (click)="toggleMtexts()">{{ drawMTexts ? "隐藏" : "显示" }}MTexts</button>
+	<button mat-raised-button color="primary" (click)="menu.toggleDimensions()">{{ menu.drawDimensions ? "隐藏" : "显示" }}标注</button>
+	<button mat-raised-button color="primary" (click)="menu.toggleMtexts()">{{ menu.drawMTexts ? "隐藏" : "显示" }}MTexts</button>
 	<button mat-raised-button color="accent" *ngIf="cad.data.components.data.length > 1" (click)="submitAll()">修改全部</button>
 </div>
 <div class="menu right">

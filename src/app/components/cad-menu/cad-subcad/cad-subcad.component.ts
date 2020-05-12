@@ -1,5 +1,5 @@
 import {Component, OnInit, Input} from "@angular/core";
-import {CadData} from "@app/cad-viewer/cad-data";
+import {CadData} from "@src/app/cad-viewer/cad-data";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialog} from "@angular/material/dialog";

@@ -2,8 +2,10 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialogRef, MatDialog} from "@angular/material/dialog";
 import {CadDimensionFormComponent} from "../cad-dimension-form/cad-dimension-form.component";
-import {CadDimension, CadLine, CadData} from "@app/cad-viewer/cad-data";
-import {Line, Mesh, Material} from "three";
+import {Mesh, Material} from "three";
+import {CadData} from "@src/app/cad-viewer/cad-data";
+import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
+import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 
 @Component({
 	selector: "app-cad-dimension",
@@ -20,7 +22,7 @@ export class CadDimensionComponent implements OnInit {
 
 	ngOnInit() {
 		const {cad, mode} = this.menu;
-		cad.controls.on("entityselect", (event, entity, object) => {
+		cad.controls.on("entityselect", (event, entity) => {
 			const {type, index} = mode;
 			const data = this.data;
 			if (type === "dimension") {

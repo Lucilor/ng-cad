@@ -1,6 +1,5 @@
 import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/core";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
-import {CadData, CadTransformation} from "@app/cad-viewer/cad-data";
 import {CadDataService} from "@services/cad-data.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {environment} from "@src/environments/environment";
@@ -13,6 +12,8 @@ import {CadDimensionComponent} from "../cad-menu/cad-dimension/cad-dimension.com
 import {CadSubcadComponent} from "../cad-menu/cad-subcad/cad-subcad.component";
 import {trigger, transition, style, animate} from "@angular/animations";
 import {CadAssembleComponent} from "../cad-menu/cad-assemble/cad-assemble.component";
+import {CadData} from "@src/app/cad-viewer/cad-data";
+import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
 
 const title = "编辑CAD";
 @Component({
@@ -49,8 +50,6 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	};
 	cad: CadViewer;
 	rotateAngle = 0;
-	drawDimensions = true;
-	drawMTexts = true;
 	menu: CadMenu;
 	showTopMenu = false;
 
@@ -100,18 +99,6 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 
 	ngAfterViewInit() {
 		this.cadContainer.nativeElement.appendChild(this.cad.dom);
-	}
-
-	toggleDimensions() {
-		this.drawDimensions = !this.drawDimensions;
-		this.cad.data.getAllEntities().dimension.forEach((e) => (e.visible = this.drawDimensions));
-		this.cad.render();
-	}
-
-	toggleMtexts() {
-		this.drawMTexts = !this.drawMTexts;
-		this.cad.data.getAllEntities().mtext.forEach((e) => (e.visible = this.drawMTexts));
-		this.cad.render();
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {

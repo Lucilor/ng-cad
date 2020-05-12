@@ -32,7 +32,7 @@ export class CadAssembleComponent implements OnInit {
 					const {ids, lines, names} = this;
 					const found = component.findEntity(entity.id);
 					if (found) {
-						const prev = ids.findIndex((n) => n === component.name);
+						const prev = ids.findIndex((id) => id === component.id);
 						const {space, position} = this.options;
 						if (object.userData.selected) {
 							if (position === "absolute") {
@@ -63,6 +63,7 @@ export class CadAssembleComponent implements OnInit {
 							}
 							if ((lines.length === 2 && position === "absolute") || (lines.length === 3 && position === "relative")) {
 								try {
+									console.log(ids, names, lines);
 									data.assembleComponents(new CadConnection({ids, names, lines, space, position}));
 								} catch (error) {
 									this.dialog.open(AlertComponent, {data: {content: error.message}});

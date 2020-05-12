@@ -9,18 +9,28 @@ import {
 	MathUtils,
 	Raycaster,
 	Geometry,
-	EllipseCurve,
 	Color,
 	ShapeGeometry,
 	Shape,
 	Mesh,
 	MeshBasicMaterial,
-	Material
+	Material,
+	BufferGeometry,
+	Vector3
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
-import {CadData, CadEntity, CadLine, CadArc, CadCircle, CadEntities, CadMtext, CadDimension, CadHatch} from "./cad-data";
 import TextSprite from "@seregpie/three.text-sprite";
+import {CadTypes} from "./cad-data/cad-types";
+import {CadEntity} from "./cad-data/cad-entity";
+import {CadMtext} from "./cad-data/cad-entity/cad-mtext";
+import {CadDimension} from "./cad-data/cad-entity/cad-dimension";
+import {CadData} from "./cad-data";
+import {CadEntities} from "./cad-data/cad-entities";
+import {CadLine} from "./cad-data/cad-entity/cad-line";
+import {CadCircle} from "./cad-data/cad-entity/cad-circle";
+import {CadArc} from "./cad-data/cad-entity/cad-arc";
+import {CadHatch} from "./cad-data/cad-entity/cad-hatch";
 
 export class CadStyle {
 	color?: number;
@@ -67,6 +77,7 @@ export interface CadViewerConfig {
 	showStats?: boolean;
 	reverseSimilarColor?: true;
 }
+
 export class CadViewer {
 	private _renderTimer = {id: null, time: 0};
 	private _destroyed = false;
@@ -169,8 +180,9 @@ export class CadViewer {
 			if (!this._destroyed) {
 				requestAnimationFrame(animate.bind(this));
 				const {renderer, camera, scene} = this;
-				renderer.render(scene, camera);
+				renderer?.render(scene, camera);
 				this.stats?.update();
+				this.controls?.update();
 			}
 		};
 		animate();
@@ -212,18 +224,19 @@ export class CadViewer {
 	}
 
 	render(center = false, entities?: CadEntities, style?: CadStyle) {
-		if (this._destroyed) {
+		const {_destroyed, _renderTimer, config} = this;
+		if (_destroyed) {
 			console.warn("This instance has already been destroyed.");
 			return this;
 		}
 		const now = new Date().getTime();
-		const then = this._renderTimer.time + (1 / this.config.fps) * 1000;
+		const then = _renderTimer.time + (1 / config.fps) * 1000;
 		if (now < then) {
-			window.clearTimeout(this._renderTimer.id);
-			this._renderTimer.id = setTimeout(() => this.render(center, entities, style), then - now);
+			window.clearTimeout(_renderTimer.id);
+			_renderTimer.id = setTimeout(() => this.render(center, entities, style), then - now);
 			return this;
 		}
-		this._renderTimer.time = now;
+		_renderTimer.time = now;
 		if (!entities) {
 			entities = this.data.getAllEntities();
 		}
@@ -262,9 +275,9 @@ export class CadViewer {
 	}
 
 	private _setAnchor(sprite: TextSprite, position: Vector2, anchor: Vector2) {
-		sprite.position.copy(position);
+		sprite.position.copy(new Vector3(position.x, position.y));
 		const offset = anchor.clone().subScalar(0.5).multiply(new Vector2(-sprite.width, sprite.height));
-		sprite.position.add(offset);
+		sprite.position.add(new Vector3(offset.x, offset.y));
 	}
 
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
@@ -289,7 +302,7 @@ export class CadViewer {
 			anchor.x = 1;
 		}
 		if (object) {
-			object.geometry = new Geometry().setFromPoints([start, end]);
+			object.geometry = new BufferGeometry().setFromPoints([start, end]);
 			(object.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
 			const lengthText = object.children.find((o) => (o as any).isTextSprite) as TextSprite;
 			if (lengthText) {
@@ -298,9 +311,8 @@ export class CadViewer {
 				lengthText.fillStyle = colorStr;
 				this._setAnchor(lengthText, middle, anchor);
 			}
-			object.visible = visible;
 		} else {
-			const geometry = new Geometry().setFromPoints([start, end]);
+			const geometry = new BufferGeometry().setFromPoints([start, end]);
 			const material = new LineBasicMaterial({color, linewidth: lineWidth});
 			object = new Line(geometry, material);
 			object.userData.selectable = true;
@@ -319,9 +331,7 @@ export class CadViewer {
 
 	private _drawCircle(entity: CadCircle, style: CadStyle = {}) {
 		const {scene, objects} = this;
-		const {radius} = entity;
-		const center = entity.center;
-		const curve = new EllipseCurve(center.x, center.y, radius, radius, 0, Math.PI * 2, true, 0);
+		const {curve} = entity;
 		const points = curve.getPoints(50);
 		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
 		let object = objects[entity.id] as Line;
@@ -342,17 +352,7 @@ export class CadViewer {
 
 	private _drawArc(entity: CadArc, style: CadStyle = {}) {
 		const {scene, objects} = this;
-		const {center, radius, start_angle, end_angle, clockwise} = entity;
-		const curve = new EllipseCurve(
-			center.x,
-			center.y,
-			radius,
-			radius,
-			MathUtils.degToRad(start_angle),
-			MathUtils.degToRad(end_angle),
-			clockwise,
-			0
-		);
+		const {curve} = entity;
 		const points = curve.getPoints(50);
 		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
 		let object = objects[entity.id] as Line;
@@ -564,8 +564,6 @@ export class CadViewer {
 		object.visible = visible;
 	}
 
-	moveComponent(curr: CadData, translate: Vector2, prev?: CadData) {}
-
 	correctColor(color: number, threshold = 5) {
 		if (typeof color === "number" && Math.abs(color - this.config.backgroundColor) <= threshold) {
 			return 0xfffffff - color;
@@ -603,7 +601,9 @@ export class CadViewer {
 			}
 			this.dom.remove();
 			for (const key in this) {
-				this[key] = null;
+				try {
+					this[key] = null;
+				} catch (error) {}
 			}
 			this._destroyed = true;
 		}
@@ -628,8 +628,8 @@ export class CadViewer {
 		return result;
 	}
 
-	traverse(callback: (o: Object3D, e: CadEntity) => void, entities = this.data.getAllEntities()) {
-		entities.forEach((e) => this.objects[e.id]?.traverse((o) => callback(o, e)));
+	traverse(callback: (o: Object3D, e: CadEntity) => void, entities = this.data.getAllEntities(), include?: (keyof CadTypes)[]) {
+		entities.forEach((e) => this.objects[e.id]?.traverse((o) => callback(o, e)), include);
 	}
 
 	addEntities(entities: CadEntities) {

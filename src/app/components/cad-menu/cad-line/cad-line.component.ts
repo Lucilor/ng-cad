@@ -1,9 +1,13 @@
 import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {CadLine, CadTransformation, CadEntity, CadEntities, CadArc} from "@app/cad-viewer/cad-data";
-import {Vector2, MathUtils} from "three";
+import {Vector2} from "three";
 import {getColorLightness} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
+import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
+import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
+import {CadEntity} from "@src/app/cad-viewer/cad-data/cad-entity";
+import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
+import {CadArc} from "@src/app/cad-viewer/cad-data/cad-entity/cad-arc";
 
 @Component({
 	selector: "app-cad-line",
