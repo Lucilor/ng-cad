@@ -31,6 +31,8 @@ import {CadLine} from "./cad-data/cad-entity/cad-line";
 import {CadCircle} from "./cad-data/cad-entity/cad-circle";
 import {CadArc} from "./cad-data/cad-entity/cad-arc";
 import {CadHatch} from "./cad-data/cad-entity/cad-hatch";
+import {BezierCurve} from "../bezier-curve";
+import {Point} from "@lucilor/utils";
 
 export class CadStyle {
 	color?: number;
@@ -134,6 +136,7 @@ export class CadViewer {
 	}
 
 	constructor(data: CadData, config: CadViewerConfig = {}) {
+		console.log(new BezierCurve([new Point(0, 0), new Point(10, 10), new Point(20, 0)]));
 		this.data = data;
 		this.config = {...this.config, ...config};
 		const {width, height, padding, backgroundColor, backgroundAlpha} = this.config;

@@ -5,7 +5,7 @@ import {CadEntities} from "./cad-entities";
 import {CadLayer} from "./cad-layer";
 import {CadTransformation} from "./cad-transformation";
 import {CadLine} from "./cad-entity/cad-line";
-import {getVectorFromArray} from "./utils";
+import {getVectorFromArray, isLinesParallel} from "./utils";
 import {CadCircle} from "./cad-entity/cad-circle";
 
 export class CadData {
@@ -352,7 +352,7 @@ export class CadData {
 			if (!l2) {
 				l2 = getLine(e2 as CadCircle, l1);
 			}
-			if (l1.slope === l2.slope) {
+			if (isLinesParallel([l1, l2])) {
 				if (!isFinite(l1.slope)) {
 					translate.x = l1.start.x - l2.start.x + spaceNum;
 					axis = "x";
@@ -400,7 +400,7 @@ export class CadData {
 			if (e3 instanceof CadCircle) {
 				l3 = getLine(e3, l1);
 			}
-			if (!(l1.slope === l2.slope && l2.slope === l3.slope)) {
+			if (!isLinesParallel([l1, l2, l3])) {
 				throw new Error("三条线必须相互平行");
 			}
 			const rect = c2.entities.getBounds();

@@ -10,6 +10,7 @@ import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation
 import {CadData, CadOption, CadBaseLine, CadJointPoint} from "@src/app/cad-viewer/cad-data";
 import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
 import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
+import {environment} from "@src/environments/environment";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension" | "jointPoint" | "assemble";
@@ -78,6 +79,12 @@ export class CadMenu {
 			if (event.key === "Escape") {
 				this.blur();
 				cad.unselectAll();
+			}
+		});
+
+		cad.controls.on("entityselect", (event, entity) => {
+			if (!environment.production) {
+				console.log(entity);
 			}
 		});
 	}
