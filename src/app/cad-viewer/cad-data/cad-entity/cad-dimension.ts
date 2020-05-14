@@ -1,4 +1,4 @@
-import {CadEntity} from ".";
+import {CadEntity} from "./cad-entity";
 import {CAD_TYPES} from "../cad-types";
 import {CadLayer} from "../cad-layer";
 

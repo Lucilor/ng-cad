@@ -3,7 +3,7 @@ import {CadMenu} from "../cad-menu.common";
 import {MatDialogRef, MatDialog} from "@angular/material/dialog";
 import {CadDimensionFormComponent} from "../cad-dimension-form/cad-dimension-form.component";
 import {Mesh, Material} from "three";
-import {CadData} from "@src/app/cad-viewer/cad-data";
+import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 

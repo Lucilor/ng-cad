@@ -6,7 +6,7 @@ import {CadDimension} from "./cad-entity/cad-dimension";
 import {CadHatch} from "./cad-entity/cad-hatch";
 import {CadLayer} from "./cad-layer";
 import {CAD_TYPES, CadTypes} from "./cad-types";
-import {CadEntity} from "./cad-entity";
+import {CadEntity} from "./cad-entity/cad-entity";
 import {CadTransformation} from "./cad-transformation";
 import {Box2, ArcCurve, MathUtils, Vector2} from "three";
 

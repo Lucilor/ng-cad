@@ -1,5 +1,5 @@
 import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
-import {BezierCurve} from "@src/app/bezier-curve";
+import {BezierCurve} from "@src/app/bezier-drawer/bezier-curve";
 import {Point} from "@lucilor/utils";
 import {
 	Scene,
@@ -62,11 +62,13 @@ export class PlaygroundComponent implements AfterViewInit {
 		const points = curve.getPoints(50).map((p) => new Vector3(p.x, p.y, 0));
 		console.log(points);
 		const geometry = new BufferGeometry().setFromPoints(points);
-		const material = new MeshPhongMaterial({color: 0xffffff});
-		const line = new Mesh(geometry, material);
+		const material = new LineBasicMaterial({color: 0xffffff});
+		const line = new Line(geometry, material);
 		scene.add(line);
 		console.log(line);
 		camera.position.set(0, 0, 50);
 		camera.lookAt(0, 0, 0);
 	}
+
+	addPoint() {}
 }

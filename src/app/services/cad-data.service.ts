@@ -8,7 +8,7 @@ import {AlertComponent} from "../components/alert/alert.component";
 import {ActivatedRoute} from "@angular/router";
 import {LoadingAction, ActionTypes} from "../store/actions";
 import {Response} from "../app.common";
-import {CadData} from "../cad-viewer/cad-data";
+import {CadData} from "../cad-viewer/cad-data/cad-data";
 import {CadViewer} from "../cad-viewer/cad-viewer";
 import {SessionStorage, RSAEncrypt} from "@lucilor/utils";
 

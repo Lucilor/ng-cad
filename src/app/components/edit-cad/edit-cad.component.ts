@@ -12,7 +12,7 @@ import {CadDimensionComponent} from "../cad-menu/cad-dimension/cad-dimension.com
 import {CadSubcadComponent} from "../cad-menu/cad-subcad/cad-subcad.component";
 import {trigger, transition, style, animate} from "@angular/animations";
 import {CadAssembleComponent} from "../cad-menu/cad-assemble/cad-assemble.component";
-import {CadData} from "@src/app/cad-viewer/cad-data";
+import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
 
 const title = "编辑CAD";

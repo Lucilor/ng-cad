@@ -1,7 +1,7 @@
 import {CadViewer} from "./cad-viewer";
 import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, Mesh, Geometry} from "three";
 import {EventEmitter} from "events";
-import {CadEntity} from "./cad-data/cad-entity";
+import {CadEntity} from "./cad-data/cad-entity/cad-entity";
 
 export interface CadViewerControlsConfig {
 	dragAxis?: "x" | "y" | "xy" | "";

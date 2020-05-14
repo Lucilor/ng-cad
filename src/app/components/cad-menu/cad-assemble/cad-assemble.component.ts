@@ -2,7 +2,7 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../../alert/alert.component";
-import {CadData, CadConnection} from "@src/app/cad-viewer/cad-data";
+import {CadData, CadConnection} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 

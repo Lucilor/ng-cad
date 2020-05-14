@@ -5,7 +5,7 @@ import {getColorLightness} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
-import {CadEntity} from "@src/app/cad-viewer/cad-data/cad-entity";
+import {CadEntity} from "@src/app/cad-viewer/cad-data/cad-entity/cad-entity";
 import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 import {CadArc} from "@src/app/cad-viewer/cad-data/cad-entity/cad-arc";
 

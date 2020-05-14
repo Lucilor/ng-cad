@@ -6,7 +6,7 @@
 	</mat-form-field>
 </form>
 
-<div class="checkbox-group">
+<div class="checkbox-group add-empty-msg">
 	<div class="data-container" *ngFor="let item of pageData; let i = index">
 		<mat-checkbox [(ngModel)]="item.checked">{{ item.value }}</mat-checkbox>
 	</div>

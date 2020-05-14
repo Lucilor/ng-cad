@@ -1,7 +1,7 @@
 import {Component, AfterViewInit, ViewChild, ElementRef} from "@angular/core";
 import {CadDataService} from "@services/cad-data.service";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
-import {CadData} from "@src/app/cad-viewer/cad-data";
+import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {environment} from "@src/environments/environment";
 import {ActivatedRoute, Router} from "@angular/router";
 import {RSAEncrypt} from "@lucilor/utils";

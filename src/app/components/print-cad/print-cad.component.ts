@@ -2,7 +2,7 @@ import {Component, AfterViewInit, ViewChild, ElementRef} from "@angular/core";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../alert/alert.component";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
-import {CadData} from "@src/app/cad-viewer/cad-data";
+import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {environment} from "@src/environments/environment";
 import {timeout} from "@src/app/app.common";
 

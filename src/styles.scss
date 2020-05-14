@@ -230,3 +230,9 @@ app-edit-cad {
 		margin-right: 10px;
 	}
 }
+
+.add-empty-msg:empty::after {
+	content: "空空如也";
+	color: #888888;
+	font-size: 1rem;
+}

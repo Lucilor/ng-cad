@@ -5,7 +5,7 @@ import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CadDataService} from "@services/cad-data.service";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
-import {CadOption} from "@src/app/cad-viewer/cad-data";
+import {CadOption} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadOptionsComponent} from "../cad-options/cad-options.component";
 
 @Component({
