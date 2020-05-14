@@ -5,6 +5,8 @@ import {CadData} from "@src/app/cad-viewer/cad-data";
 import {environment} from "@src/environments/environment";
 import {ActivatedRoute, Router} from "@angular/router";
 import {RSAEncrypt} from "@lucilor/utils";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
+import {CadOptionsComponent} from "../cad-menu/cad-options/cad-options.component";
 
 const title = "选取CAD";
 @Component({
@@ -27,7 +29,7 @@ export class DrawCadComponent implements AfterViewInit {
 	].join("\n");
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	fromEdit = false;
-	constructor(private dataService: CadDataService, private route: ActivatedRoute, private router: Router) {}
+	constructor(private dataService: CadDataService, private route: ActivatedRoute, private router: Router, private dialog: MatDialog) {}
 
 	async ngAfterViewInit() {
 		document.title = title;
@@ -105,5 +107,18 @@ export class DrawCadComponent implements AfterViewInit {
 		cad.data.components.data = resDataArr;
 		await dataService.postCadData([cad.data]);
 		this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});
+	}
+
+	selectOptions(i: number) {
+		const data = this.cads[i].data;
+		const checkedItems = data.huajian.split(",");
+		const ref: MatDialogRef<CadOptionsComponent, string[]> = this.dialog.open(CadOptionsComponent, {
+			data: {name: "花件", checkedItems}
+		});
+		ref.afterClosed().subscribe((v) => {
+			if (Array.isArray(v)) {
+				data.huajian = v.join(",");
+			}
+		});
 	}
 }

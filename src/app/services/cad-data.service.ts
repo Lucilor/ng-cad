@@ -218,4 +218,24 @@ export class CadDataService {
 	loadCurrentCad() {
 		return session.load("currentCad", true);
 	}
+
+	async getOptions(name: string, search: string, page: number, limit: number) {
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getOptions"});
+		const {baseURL, encode} = this;
+		try {
+			const data = new FormData();
+			data.append("data", RSAEncrypt({name, search, page, limit}));
+			const response = await this.http.post<Response>(`${baseURL}/peijian/cad/getOptions/${encode}`, data).toPromise();
+			if (response.code === 0 && response.data) {
+				return {data: response.data as string[], count: response.count};
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alertError(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getOptions"});
+		}
+	}
 }

@@ -18,8 +18,8 @@ export class ListCadComponent implements AfterViewInit {
 	pageData: {data: CadData; img: string; checked: boolean}[] = [];
 	width = 300;
 	height = 150;
-	searchInput: "";
-	searchValue: "";
+	searchInput =  "";
+	searchValue = "";
 	checkedIndex = -1;
 	checkedItems: string[] = [];
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;

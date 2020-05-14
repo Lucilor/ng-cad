@@ -1,10 +1,12 @@
 import {Component, OnInit, Input, Output, EventEmitter} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {Mesh, Line, Material} from "three";
-import {MatDialog} from "@angular/material/dialog";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CadDataService} from "@services/cad-data.service";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
+import {CadOption} from "@src/app/cad-viewer/cad-data";
+import {CadOptionsComponent} from "../cad-options/cad-options.component";
 
 @Component({
 	selector: "app-cad-info",
@@ -109,5 +111,17 @@ export class CadInfoComponent implements OnInit {
 		data.updatePartners();
 		cad.render();
 		menu.updatePointsMap();
+	}
+
+	selectOptions(option: CadOption) {
+		const checkedItems = option.value.split(",");
+		const ref: MatDialogRef<CadOptionsComponent, string[]> = this.dialog.open(CadOptionsComponent, {
+			data: {name: option.name, checkedItems}
+		});
+		ref.afterClosed().subscribe((v) => {
+			if (Array.isArray(v)) {
+				option.value = v.join(",");
+			}
+		});
 	}
 }

@@ -283,10 +283,10 @@ export class CadViewer {
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects, config} = this;
 		const showLineLength = config.showLineLength;
-		const {start, end, length} = entity;
+		const {start, end, length, theta} = entity;
 		const middle = start.clone().add(end).divideScalar(2);
 		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
-		let object = objects[entity.id] as Line;
+		let object = objects[entity.id] as Mesh|Line;
 		if (length <= 0) {
 			scene.remove(object);
 			delete objects[entity.id];
@@ -301,6 +301,16 @@ export class CadViewer {
 		if (!isFinite(slope)) {
 			anchor.x = 1;
 		}
+		const dx = Math.cos(Math.PI / 2 - theta) * lineWidth;
+		const dy = Math.sin(Math.PI / 2 - theta) * lineWidth;
+		const shape = new Shape();
+		shape.moveTo(start.x + dx, start.y - dy);
+		shape.lineTo(end.x + dx, end.y - dy);
+		shape.lineTo(end.x - dx, end.y + dy);
+		shape.lineTo(start.x - dx, start.y + dy);
+		shape.closePath();
+		const geometry = new ShapeGeometry(shape);
+		const material = new MeshBasicMaterial({color});
 		if (object) {
 			object.geometry = new BufferGeometry().setFromPoints([start, end]);
 			(object.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});

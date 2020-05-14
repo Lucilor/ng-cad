@@ -1,0 +1,12 @@
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    height: calc(15rem + 110px);
+    width: 70vw;
+
+	.data-container {
+        margin: 5px 0;
+        height: 1.5rem;
+	}
+}

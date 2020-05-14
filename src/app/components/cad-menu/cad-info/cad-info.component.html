@@ -25,6 +25,7 @@
 		<mat-form-field>
 			<mat-label></mat-label>
 			<input matInput type="text" [(ngModel)]="o.value" placeholder="选项" />
+			<mat-icon matSuffix color="primary" (click)="selectOptions(o)">list</mat-icon>
 			<mat-icon matSuffix color="primary" (click)="menu.addOption(i)">add_circle</mat-icon>
 			<mat-icon matSuffix color="primary" (click)="menu.removeOption(i)">remove_circle</mat-icon>
 		</mat-form-field>

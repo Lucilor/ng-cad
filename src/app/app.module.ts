@@ -37,6 +37,7 @@ import {CadDimensionComponent} from "./components/cad-menu/cad-dimension/cad-dim
 import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-form/cad-dimension-form.component";
 import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
 import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assemble.component";
+import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options.component";
 
 @NgModule({
 	declarations: [
@@ -55,7 +56,8 @@ import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assem
 		CadDimensionComponent,
 		CadDimensionFormComponent,
 		CadSubcadComponent,
-		CadAssembleComponent
+		CadAssembleComponent,
+		CadOptionsComponent
 	],
 	imports: [
 		BrowserModule,

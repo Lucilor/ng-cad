@@ -17,6 +17,7 @@ export interface Response {
 	msg?: string;
 	data?: any;
 	count?: number;
+	importance?: number;
 }
 
 export function checkLogout(response: string, execute = true) {
