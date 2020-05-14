@@ -2,7 +2,6 @@ import {CadViewer} from "./cad-viewer";
 import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, Mesh, Geometry} from "three";
 import {EventEmitter} from "events";
 import {CadEntity} from "./cad-data/cad-entity";
-import {CadLine} from "./cad-data/cad-entity/cad-line";
 
 export interface CadViewerControlsConfig {
 	dragAxis?: "x" | "y" | "xy" | "";
@@ -252,15 +251,15 @@ export class CadViewerControls {
 	private _getInterSection(pointer: Vector2) {
 		const {raycaster, camera, objects} = this.cad;
 		const points = [pointer];
-		const d = 1;
-		points.push(pointer.clone().add(new Vector2(d, 0)));
-		points.push(pointer.clone().add(new Vector2(0, d)));
-		points.push(pointer.clone().add(new Vector2(-d, 0)));
-		points.push(pointer.clone().add(new Vector2(0, -d)));
-		points.push(pointer.clone().add(new Vector2(2*d, 0)));
-		points.push(pointer.clone().add(new Vector2(0, 2*d)));
-		points.push(pointer.clone().add(new Vector2(-2*d, 0)));
-		points.push(pointer.clone().add(new Vector2(0, -2*d)));
+		// const d = 1;
+		// points.push(pointer.clone().add(new Vector2(d, 0)));
+		// points.push(pointer.clone().add(new Vector2(0, d)));
+		// points.push(pointer.clone().add(new Vector2(-d, 0)));
+		// points.push(pointer.clone().add(new Vector2(0, -d)));
+		// points.push(pointer.clone().add(new Vector2(2*d, 0)));
+		// points.push(pointer.clone().add(new Vector2(0, 2*d)));
+		// points.push(pointer.clone().add(new Vector2(-2*d, 0)));
+		// points.push(pointer.clone().add(new Vector2(0, -2*d)));
 		for (const p of points) {
 			console.log(performance.now());
 			raycaster.setFromCamera(this._getNDC(p), camera);
