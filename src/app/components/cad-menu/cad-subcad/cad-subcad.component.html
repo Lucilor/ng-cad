@@ -2,9 +2,19 @@
 	<mat-expansion-panel-header>
 		<mat-panel-title>{{ listName }}</mat-panel-title>
 	</mat-expansion-panel-header>
-	<div class="cad-image" *ngFor="let v of list; let i = index" [class.active]="isActive(i)">
-		<div class="title">{{ v.name }}</div>
-		<img [src]="v.src" (click)="clickItem(i)" />
+
+	<ng-container *ngIf="!multi">
+		<div class="cad-image" *ngFor="let v of list; let i = index" [class.active]="isActive(i)">
+			<div class="title">{{ v.name }}</div>
+			<img [src]="v.src" (click)="clickItem(i)" />
+		</div>
+	</ng-container>
+
+	<div class="checkbox-group" *ngIf="multi">
+		<div class="cad-image" *ngFor="let item of list; let i = index">
+			<mat-checkbox class="example-margin" [(ngModel)]="item.checked">{{ item.name }}</mat-checkbox>
+			<img [src]="item.src" (click)="item.checked = !item.checked" (click)="clickItem(i)" />
+		</div>
 	</div>
 	<button mat-raised-button color="primary" (click)="editSubcads('partners')">编辑关联</button>
 	<span style="margin-left: 10px;"></span>

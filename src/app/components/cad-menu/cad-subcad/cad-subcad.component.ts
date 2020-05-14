@@ -13,26 +13,26 @@ import {CadDataService} from "@services/cad-data.service";
 })
 export class CadSubcadComponent implements OnInit {
 	@Input() menu: CadMenu;
-	list: {id: string; name: string; src: string}[] = [];
+	list: {id: string; name: string; src: string; checked: boolean}[] = [];
 	listName = "CAD列表";
+	multi = false;
 	get data() {
 		const menu = this.menu;
 		const d = menu.cad.data.components.data[menu.cadIdx];
 		let data: CadData[];
 		if (menu.viewMode === "normal") {
 			this.listName = "CAD列表";
+			this.multi = false;
 			data = menu.cad.data.components.data;
 		}
 		if (menu.viewMode === "partners") {
 			this.listName = `${d.name} 的关联CAD`;
+			this.multi = false;
 			data = d.partners;
 		}
 		if (menu.viewMode === "components") {
 			this.listName = `${d.name} 的装配CAD`;
-			data = d.components.data;
-		}
-		if (menu.viewMode === "slice") {
-			this.listName = `${d.name} 的装配CAD`;
+			this.multi = true;
 			data = d.components.data;
 		}
 		return data;
@@ -47,7 +47,7 @@ export class CadSubcadComponent implements OnInit {
 		data?.forEach((d) => {
 			const cad = new CadViewer(d, {width: 300, height: 150, padding: 10});
 			const src = cad.exportImage().src;
-			this.list.push({id: d.id, name: d.name, src});
+			this.list.push({id: d.id, name: d.name, src, checked: false});
 			cad.destroy();
 		});
 	}
@@ -62,10 +62,24 @@ export class CadSubcadComponent implements OnInit {
 				menu.focus(index);
 			}
 		} else {
-			if (index === cadIdx2) {
-				menu.blur();
+			if (this.multi) {
+				menu.checkedIdx.length = 0;
+				this.list.forEach((v, i) => {
+					if (v.checked) {
+						menu.checkedIdx.push(i);
+					}
+				});
+				if (menu.checkedIdx.length > 0) {
+					menu.focus(cadIdx, menu.checkedIdx[0]);
+				} else {
+					menu.blur();
+				}
 			} else {
-				menu.focus(cadIdx, index);
+				if (index === cadIdx2) {
+					menu.blur();
+				} else {
+					menu.focus(cadIdx, index);
+				}
 			}
 		}
 	}
@@ -101,5 +115,9 @@ export class CadSubcadComponent implements OnInit {
 				this.updateList();
 			}
 		});
+	}
+
+	cadImageClick() {
+		this.menu.focus();
 	}
 }

@@ -22,13 +22,13 @@ export class BezierCurve {
 	}
 
 	getPoints(segments: number) {
-		const points = Array<Point>();
 		let t = 0;
 		const step = 1 / segments;
-		while (t <= 1) {
+		const points = [this.deCasteljau(0)];
+		while (t < 1) {
+			t = Math.min(1, t + step);
 			points.push(this.deCasteljau(t));
-			t += step;
-        }
-        return points;
+		}
+		return points;
 	}
 }

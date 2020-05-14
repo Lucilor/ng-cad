@@ -32,6 +32,7 @@ export class CadMenu {
 	mode: Mode;
 	cadIdx = -1;
 	cadIdx2 = -1;
+	checkedIdx = Array<number>();
 	partner: string;
 	cadLength = 0;
 	pointsMap: LinesAtPoint[];
@@ -65,7 +66,9 @@ export class CadMenu {
 				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
 				if (this.viewMode === "components") {
-					data.moveComponent(this.getData(), translate);
+					this.checkedIdx.forEach((i) => {
+						data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
+					});
 				} else {
 					data.transform(new CadTransformation({translate}));
 				}

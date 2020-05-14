@@ -581,7 +581,7 @@ export class CadConnection {
 	axis: "x" | "y";
 	offset: Vector2;
 
-	constructor(data: any) {
+	constructor(data: any = {}) {
 		this.ids = Array.isArray(data.ids) ? data.ids : [];
 		this.names = Array.isArray(data.names) ? data.names : [];
 		this.lines = Array.isArray(data.lines) ? data.lines : [];

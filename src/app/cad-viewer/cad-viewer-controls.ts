@@ -1,7 +1,8 @@
 import {CadViewer} from "./cad-viewer";
-import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2} from "three";
+import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, Mesh, Geometry} from "three";
 import {EventEmitter} from "events";
 import {CadEntity} from "./cad-data/cad-entity";
+import {CadLine} from "./cad-data/cad-entity/cad-line";
 
 export interface CadViewerControlsConfig {
 	dragAxis?: "x" | "y" | "xy" | "";
@@ -26,6 +27,7 @@ export interface CadEvents {
 }
 
 export class CadViewerControls {
+	line: Line;
 	cad: CadViewer;
 	config: CadViewerControlsConfig = {
 		dragAxis: "xy",
@@ -101,6 +103,9 @@ export class CadViewerControls {
 				}
 				const name: keyof CadEvents = "drag";
 				this._emitter.emit(name, event);
+			}
+			if (this.config.selectMode !== "none" && !this._status.pointerLock) {
+				this._hover();
 			}
 			_status.pTo.set(p.x, p.y);
 			_status.ctrl = event.ctrlKey;
@@ -220,13 +225,16 @@ export class CadViewerControls {
 		});
 		dom.tabIndex = 0;
 		dom.focus();
+
+		this.line = new Line(new Geometry(), new LineBasicMaterial({color: 0xff0000}));
+		cad.scene.add(this.line);
 	}
 
 	update() {
-		const {config, _status} = this;
-		if (config.selectMode !== "none" && !_status.pointerLock) {
-			this._hover();
-		}
+		// const {config, _status} = this;
+		// if (config.selectMode !== "none" && !_status.pointerLock) {
+		// 	this._hover();
+		// }
 	}
 
 	on<K extends keyof CadEvents>(
@@ -243,30 +251,47 @@ export class CadViewerControls {
 
 	private _getInterSection(pointer: Vector2) {
 		const {raycaster, camera, objects} = this.cad;
-		raycaster.setFromCamera(this._getNDC(pointer), camera);
-		const intersects = raycaster.intersectObjects(Object.values(objects));
-		const intersect = intersects[0]?.object;
-		if (intersect && intersect.visible) {
-			return intersect;
+		const points = [pointer];
+		const d = 1;
+		points.push(pointer.clone().add(new Vector2(d, 0)));
+		points.push(pointer.clone().add(new Vector2(0, d)));
+		points.push(pointer.clone().add(new Vector2(-d, 0)));
+		points.push(pointer.clone().add(new Vector2(0, -d)));
+		points.push(pointer.clone().add(new Vector2(2*d, 0)));
+		points.push(pointer.clone().add(new Vector2(0, 2*d)));
+		points.push(pointer.clone().add(new Vector2(-2*d, 0)));
+		points.push(pointer.clone().add(new Vector2(0, -2*d)));
+		for (const p of points) {
+			console.log(performance.now());
+			raycaster.setFromCamera(this._getNDC(p), camera);
+			const intersects = raycaster.intersectObjects(Object.values(objects));
+			const intersect = intersects[0]?.object;
+			if (intersect && intersect.visible) {
+				return intersect;
+			}
 		}
 		return null;
 	}
 
 	private _hover() {
 		const {cad, currentObject, _status} = this;
-		if (currentObject && currentObject.userData.selected !== true) {
-			this._unHover();
-		}
+		// if (currentObject && currentObject.userData.selected !== true) {
+		// 	this._unHover();
+		// }
 		const object = this._getInterSection(_status.pTo);
 		const selectable = object && object.userData.selectable;
-		if (selectable && object.userData.selected !== true) {
+		if (selectable) {
+			if (object.userData.selected !== true) {
+				object.userData.hover = true;
+				cad.render();
+			}
 			cad.dom.style.cursor = "pointer";
-			object.userData.hover = true;
-			cad.render();
 			this.currentObject = object;
 			if (_status.ctrl) {
 				this._status.pointerLock = true;
 			}
+		} else {
+			this._unHover();
 		}
 	}
 
@@ -311,6 +336,8 @@ export class CadViewerControls {
 				const name: keyof CadEvents = "entityselect";
 				this._emitter.emit(name, event, entity, object);
 			}
+			_status.pointerLock = false;
+			this._unHover();
 		}
 	}
 }

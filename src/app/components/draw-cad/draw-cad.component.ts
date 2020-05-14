@@ -23,7 +23,7 @@ export class DrawCadComponent implements AfterViewInit {
 		"缩放：滚轮 或 [键 + ]键",
 		"全选：ctrl+a",
 		"全不选：esc",
-		"锁定下一次鼠标触碰的线：按住Ctrl直至松开"
+		"锁定下一次鼠标触碰的线：按住Ctrl"
 	].join("\n");
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	fromEdit = false;
