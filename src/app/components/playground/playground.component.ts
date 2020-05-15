@@ -1,23 +1,6 @@
 import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
-import {BezierCurve} from "@src/app/bezier-drawer/bezier-curve";
-import {Point} from "@lucilor/utils";
-import {
-	Scene,
-	PerspectiveCamera,
-	WebGLRenderer,
-	BufferGeometry,
-	Vector3,
-	LineBasicMaterial,
-	Line,
-	MeshPhongMaterial,
-	Mesh,
-	PointLight,
-	AmbientLight,
-	BoxGeometry,
-	DirectionalLight
-} from "three";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import Stats from "three/examples/jsm/libs/stats.module";
+import {Vector2, Vector3} from "three";
+import {BezierDrawer} from "@src/app/bezier-drawer/bezier-drawer";
 
 @Component({
 	selector: "app-playground",
@@ -26,48 +9,30 @@ import Stats from "three/examples/jsm/libs/stats.module";
 })
 export class PlaygroundComponent implements AfterViewInit {
 	@ViewChild("container", {read: ElementRef}) container: ElementRef<HTMLElement>;
+	drawer: BezierDrawer;
+	ctrlPoints: Vector2[] = [];
 	constructor() {}
 
 	ngAfterViewInit() {
-		const scene = new Scene();
-		const camera = new PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
-		const renderer = new WebGLRenderer();
-		renderer.setSize(innerWidth, innerHeight);
+		const drawer = new BezierDrawer({width: innerWidth, height: innerHeight});
+		window["drawer"] = drawer;
+		this.drawer = drawer;
+		this.container.nativeElement.append(drawer.dom);
+		drawer.curve.ctrlPoints = [new Vector2(-20, -10), new Vector2(-5, 10), new Vector2(10, -10), new Vector2(25, 10)];
+		// this.updateCtrlPoints();
+		drawer.needsUpdate = true;
 
-		scene.add(new AmbientLight(0xcccccc));
-		scene.add(new DirectionalLight(0xffffff));
-		// const pointLight = new PointLight(0xffffff);
-		// pointLight.position.set(0, 0, 100);
-		// scene.add(pointLight);
+		drawer.dom.addEventListener("click", (event) => {
+			drawer.addCtrlPoint(new Vector2(event.clientX, event.clientY));
+		});
+	}
 
-		const orbit = new OrbitControls(camera, renderer.domElement);
-		const stats = Stats();
-
-		const animate = () => {
-			requestAnimationFrame(animate);
-			renderer.render(scene, camera);
-			orbit.update();
-			stats.update();
-		};
-		animate();
-
-		this.container.nativeElement.appendChild(renderer.domElement);
-		this.container.nativeElement.appendChild(orbit.domElement);
-		this.container.nativeElement.appendChild(stats.dom);
-
-		scene.add(new Mesh(new BoxGeometry(10, 10, 10), new MeshPhongMaterial({color: 0xffffff})));
-
-		const ctrlPoints = [new Point(10, 10), new Point(20, 20), new Point(30, 10)];
-		const curve = new BezierCurve(ctrlPoints);
-		const points = curve.getPoints(50).map((p) => new Vector3(p.x, p.y, 0));
-		console.log(points);
-		const geometry = new BufferGeometry().setFromPoints(points);
-		const material = new LineBasicMaterial({color: 0xffffff});
-		const line = new Line(geometry, material);
-		scene.add(line);
-		console.log(line);
-		camera.position.set(0, 0, 50);
-		camera.lookAt(0, 0, 0);
+	updateCtrlPoints() {
+		this.ctrlPoints.length = 0;
+		this.drawer.curve.ctrlPoints.forEach((p) => {
+			this.ctrlPoints.push(this.drawer.getScreenPoint(new Vector3(p.x, p.y, 0)));
+			// console.log(this.drawer.getWorldPoint(this.drawer.getScreenPoint(new Vector3(p.x, p.y, 0))));
+		});
 	}
 
 	addPoint() {}

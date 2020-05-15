@@ -113,15 +113,29 @@ export class CadInfoComponent implements OnInit {
 		menu.updatePointsMap();
 	}
 
-	selectOptions(option: CadOption) {
-		const checkedItems = option.value.split(",");
-		const ref: MatDialogRef<CadOptionsComponent, string[]> = this.dialog.open(CadOptionsComponent, {
-			data: {name: option.name, checkedItems}
-		});
-		ref.afterClosed().subscribe((v) => {
-			if (Array.isArray(v)) {
-				option.value = v.join(",");
-			}
-		});
+	selectOptions(option: CadOption | string) {
+		const data = this.menu.getData();
+		if (option instanceof CadOption) {
+			const checkedItems = option.value.split(",");
+			const ref: MatDialogRef<CadOptionsComponent, string[]> = this.dialog.open(CadOptionsComponent, {
+				data: {data, name: option.name, checkedItems}
+			});
+			ref.afterClosed().subscribe((v) => {
+				if (Array.isArray(v)) {
+					option.value = v.join(",");
+				}
+			});
+		} else if (option==="huajian") {
+			const checkedItems = data.huajian.split(",");
+			const ref: MatDialogRef<CadOptionsComponent, string[]> = this.dialog.open(CadOptionsComponent, {
+				data: {data, name: "花件", checkedItems}
+			});
+			ref.afterClosed().subscribe((v) => {
+				if (Array.isArray(v)) {
+					data.huajian = v.join(",");
+					data.name = data.huajian;
+				}
+			});
+		}
 	}
 }

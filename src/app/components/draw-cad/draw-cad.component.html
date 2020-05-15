@@ -5,6 +5,8 @@
 	<button mat-raised-button color="primary" (click)="resetData()">还原数据</button>
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale + 0.1">放大</button>
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale - 0.1">缩小</button>
+	<button mat-raised-button color="primary" (click)="toggleDimensions()">{{ drawDimensions ? "隐藏" : "显示" }}标注</button>
+	<button mat-raised-button color="primary" (click)="toggleMtexts()">{{ drawMTexts ? "隐藏" : "显示" }}MTexts</button>
 	<button mat-raised-button color="accent" (click)="back()" *ngIf="fromEdit">确定并返回</button>
 </div>
 <div class="menu right">

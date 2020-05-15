@@ -135,7 +135,7 @@ export class CadViewerControls {
 						const box = new Box2(new Vector2(x1, y1), new Vector2(x2, y2));
 						const toSelect = [];
 						for (const key in objects) {
-							const object = objects[key] as Line;
+							const object = objects[key];
 							object.geometry.computeBoundingBox();
 							const {min, max} = object.geometry.boundingBox;
 							const objBox = new Box2(new Vector2(min.x, min.y), new Vector2(max.x, max.y));
@@ -183,6 +183,7 @@ export class CadViewerControls {
 				if (event.key === "a") {
 					cad.selectAll();
 				}
+				event.preventDefault();
 			} else {
 				switch (event.key) {
 					case "w":
@@ -243,6 +244,7 @@ export class CadViewerControls {
 		this._emitter.on(event, listener);
 	}
 
+	// Normalized Device Coordinate
 	private _getNDC(point: Vector2) {
 		const rect = this.cad.dom.getBoundingClientRect();
 		return new Vector3(((point.x - rect.left) / rect.width) * 2 - 1, (-(point.y - rect.top) / rect.height) * 2 + 1, 0.5);
@@ -274,9 +276,9 @@ export class CadViewerControls {
 
 	private _hover() {
 		const {cad, currentObject, _status} = this;
-		// if (currentObject && currentObject.userData.selected !== true) {
-		// 	this._unHover();
-		// }
+		if (currentObject && currentObject.userData.selected !== true) {
+			this._unHover();
+		}
 		const object = this._getInterSection(_status.pTo);
 		const selectable = object && object.userData.selectable;
 		if (selectable) {
@@ -296,8 +298,8 @@ export class CadViewerControls {
 
 	private _unHover() {
 		const {cad, currentObject} = this;
-		cad.dom.style.cursor = "default";
 		if (currentObject) {
+			cad.dom.style.cursor = "default";
 			currentObject.userData.hover = false;
 			cad.render();
 			this.currentObject = null;

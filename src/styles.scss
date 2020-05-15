@@ -148,78 +148,42 @@ app-edit-cad {
 }
 
 .menu {
-	mat-form-field {
-		width: calc(100% - 42px);
-		margin-left: 10px;
+	.form-item {
+		display: flex;
+		align-items: center;
+		
+		mat-form-field {
+			width: 100%;
+			margin-left: 10px;
 
-		input {
-			@include font();
+			input {
+				@include font();
+			}
+
+			mat-icon {
+				cursor: pointer;
+				font-size: 1.5rem;
+				width: 1.5rem;
+			}
+
+			mat-hint {
+				font-size: 1rem;
+			}
+
+			mat-select {
+				@include font();
+			}
 		}
 
-		mat-icon {
-			cursor: pointer;
-			font-size: 1.5rem;
-			width: 1.5rem;
-		}
-
-		mat-hint {
+		label {
+			line-height: 1.5rem;
 			font-size: 1rem;
+			word-break: keep-all;
 		}
-
-		mat-select {
-			@include font();
-		}
-	}
-
-	label {
-		line-height: 1.5rem;
-		font-size: 1rem;
 	}
 
 	mat-accordion {
 		width: 100% !important;
-	}
-
-	.options {
-		mat-form-field {
-			&:nth-of-type(1) {
-				width: calc(100% - 200px);
-			}
-			&:nth-of-type(2) {
-				width: calc(100% - 140px);
-			}
-		}
-	}
-
-	.joint-points,
-	.baselines {
-		button {
-			width: 74px;
-		}
-
-		mat-form-field {
-			width: calc(100% - 84px);
-			margin-bottom: 10px;
-		}
-	}
-
-	.dimension-info {
-		mat-form-field {
-			width: calc(100% - 74px);
-			margin-bottom: 10px;
-		}
-
-		mat-hint {
-			button {
-				min-width: unset;
-				width: 40px;
-				height: 24px;
-				font-size: 0.8rem;
-				line-height: 24px;
-				margin: 0 5px;
-				padding: 0;
-			}
-		}
 	}
 }
 

@@ -139,11 +139,11 @@ export class CadDataService {
 		});
 	}
 
-	async getCadDataPage(page: number, limit: number, search?: string) {
+	async getCadDataPage(page: number, limit: number, search?: string, zhuangpei = false) {
 		const {baseURL, encode} = this;
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
 		try {
-			const data = RSAEncrypt({page, limit, search, xiaodaohang: "CAD"});
+			const data = RSAEncrypt({page, limit, search, xiaodaohang: "CAD", zhuangpei});
 			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
 			if (response.code === 0 && response.data) {
 				const result: CadData[] = [];
@@ -219,13 +219,26 @@ export class CadDataService {
 		return session.load("currentCad", true);
 	}
 
-	async getOptions(name: string, search: string, page: number, limit: number) {
+	async getOptions(data: CadData, name: string, search: string, page: number, limit: number) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getOptions"});
 		const {baseURL, encode} = this;
 		try {
-			const data = new FormData();
-			data.append("data", RSAEncrypt({name, search, page, limit}));
-			const response = await this.http.post<Response>(`${baseURL}/peijian/cad/getOptions/${encode}`, data).toPromise();
+			const formData = new FormData();
+			const exportData = data.export();
+			formData.append(
+				"data",
+				RSAEncrypt({
+					name,
+					search,
+					page,
+					limit,
+					mingzi: exportData.name,
+					fenlei: exportData.type,
+					xuanxiang: exportData.options,
+					tiaojian: exportData.conditions
+				})
+			);
+			const response = await this.http.post<Response>(`${baseURL}/peijian/cad/getOptions/${encode}`, formData).toPromise();
 			if (response.code === 0 && response.data) {
 				return {data: response.data as string[], count: response.count};
 			} else {

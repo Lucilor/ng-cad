@@ -648,13 +648,13 @@ export class CadViewer {
 	}
 
 	removeEntities(entities: CadEntities) {
-		this.data.entities.separate(entities);
-		this.data.partners.forEach((d) => d.entities.separate(entities));
-		this.data.components.data.forEach((d) => d.entities.separate(entities));
 		entities.forEach((e) => {
 			this.scene.remove(this.objects[e.id]);
 			delete this.objects[e.id];
 		});
+		this.data.entities.separate(entities);
+		this.data.partners.forEach((d) => d.entities.separate(entities));
+		this.data.components.data.forEach((d) => d.entities.separate(entities));
 		return this.render();
 	}
 }

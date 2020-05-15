@@ -266,7 +266,10 @@ export class CadMenu {
 		this.cadIdx2 = cadIdx2;
 		const viewModeChanged = this.viewMode !== viewMode;
 		this.viewMode = viewMode;
-		const cad = this.cad;
+		const {cad, checkedIdx} = this;
+		if(checkedIdx.length<1){
+			checkedIdx.push(cadIdx2);
+		}
 		if (cadIdx2 >= 0) {
 			cad.data.components.data.forEach((d, i) => {
 				if (cadIdx === i || viewMode === "normal") {
@@ -276,7 +279,7 @@ export class CadMenu {
 				}
 			});
 		}
-		if (viewMode === "normal" || viewMode === "slice") {
+		if (viewMode === "normal") {
 			const data = this.getData();
 			cad.data.components.data.forEach((d) => {
 				const opacity = d.id === data.id ? 1 : 0.3;
@@ -297,11 +300,6 @@ export class CadMenu {
 					data.components.data.forEach((d) => {
 						d.getAllEntities().forEach((e) => (e.visible = false));
 					});
-					cad.traverse((o) => {
-						o.userData.selectable = false;
-						const m = (o as Mesh).material as Material;
-						m.setValues({opacity: 0.3, transparent: true});
-					}, data.entities);
 				}
 				if (viewMode === "components") {
 					subData = data.components.data;
@@ -309,9 +307,15 @@ export class CadMenu {
 						d.getAllEntities().forEach((e) => (e.visible = false));
 					});
 				}
+				cad.traverse((o) => {
+					o.userData.selectable = false;
+					const m = (o as Mesh).material as Material;
+					m.setValues({opacity: 0.3, transparent: true});
+				}, data.entities);
 				subData.forEach((d, i) => {
-					const opacity = i === cadIdx2 ? 1 : 0.3;
-					const selectable = i === cadIdx2 ? true : false;
+					const isFocused = checkedIdx.includes(i);
+					const opacity = isFocused ? 1 : 0.3;
+					const selectable = isFocused ? true : false;
 					cad.traverse((o) => {
 						o.userData.selectable = selectable;
 						const m = (o as Mesh).material as Material;

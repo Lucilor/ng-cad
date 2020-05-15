@@ -7,6 +7,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {RSAEncrypt} from "@lucilor/utils";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {CadOptionsComponent} from "../cad-menu/cad-options/cad-options.component";
+import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 
 const title = "选取CAD";
 @Component({
@@ -29,6 +30,8 @@ export class DrawCadComponent implements AfterViewInit {
 	].join("\n");
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	fromEdit = false;
+	drawDimensions = true;
+	drawMTexts = true;
 	constructor(private dataService: CadDataService, private route: ActivatedRoute, private router: Router, private dialog: MatDialog) {}
 
 	async ngAfterViewInit() {
@@ -46,6 +49,15 @@ export class DrawCadComponent implements AfterViewInit {
 		this.cadContainer.nativeElement.append(this.cad.dom);
 		this.dataService.loadCadStatus(this.cad, title);
 		this.fromEdit = this.route.snapshot.queryParams.fromEdit || false;
+		if (this.fromEdit) {
+			data.components.data.forEach((d) => {
+				d = d.clone();
+				const cad = new CadViewer(d, {padding: 10});
+				this.cads.push({src: cad.exportImage().src, data: d, checked: false});
+				this.cad.removeEntities(d.entities);
+			});
+			data.components.data = [];
+		}
 
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Enter") {
@@ -57,8 +69,10 @@ export class DrawCadComponent implements AfterViewInit {
 		});
 	}
 
-	selectLines() {
-		const entities = this.cad.selectedEntities;
+	selectLines(entities = this.cad.selectedEntities) {
+		if (entities.length < 1) {
+			return;
+		}
 		const data = new CadData({entities: entities.export(), layers: this.cad.data.layers});
 		data.name = "CAD-" + (this.cads.length + 1);
 		const cad = new CadViewer(data, {padding: 10});
@@ -104,7 +118,7 @@ export class DrawCadComponent implements AfterViewInit {
 			cads.map((v) => v.data),
 			RSAEncrypt({collection: "cad"})
 		);
-		cad.data.components.data = resDataArr;
+		cad.data.components.data = cad.data.components.data.concat(resDataArr);
 		await dataService.postCadData([cad.data]);
 		this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});
 	}
@@ -113,12 +127,25 @@ export class DrawCadComponent implements AfterViewInit {
 		const data = this.cads[i].data;
 		const checkedItems = data.huajian.split(",");
 		const ref: MatDialogRef<CadOptionsComponent, string[]> = this.dialog.open(CadOptionsComponent, {
-			data: {name: "花件", checkedItems}
+			data: {data, name: "花件", checkedItems}
 		});
 		ref.afterClosed().subscribe((v) => {
 			if (Array.isArray(v)) {
 				data.huajian = v.join(",");
+				data.name = data.huajian;
 			}
 		});
+	}
+
+	toggleDimensions() {
+		this.drawDimensions = !this.drawDimensions;
+		this.cad.data.getAllEntities().dimension.forEach((e) => (e.visible = this.drawDimensions));
+		this.cad.render();
+	}
+
+	toggleMtexts() {
+		this.drawMTexts = !this.drawMTexts;
+		this.cad.data.getAllEntities().mtext.forEach((e) => (e.visible = this.drawMTexts));
+		this.cad.render();
 	}
 }

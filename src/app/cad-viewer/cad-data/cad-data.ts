@@ -99,7 +99,11 @@ export class CadData {
 			jointPoints: this.jointPoints.map((v) => v.export()),
 			parent: this.parent,
 			partners: this.partners.map((v) => v.export()),
-			components: this.components.export()
+			components: this.components.export(),
+			zhankaikuan: this.zhankaikuan,
+			zhankaigao: this.zhankaigao,
+			shuliang: this.shuliang,
+			huajian: this.huajian
 		};
 		return result;
 	}
@@ -241,14 +245,14 @@ export class CadData {
 	}
 
 	addComponent(component: CadData) {
-		const rect1 = this.getAllEntities().getBounds();
-		if (rect1.width && rect1.height) {
-			const rect2 = component.getAllEntities().getBounds();
-			const translate = [rect1.x - rect2.x, rect1.y - rect2.y];
-			translate[0] += (rect1.width + rect2.width) / 2 + 15;
-			// offset1[1] += (rect1.height - rect2.height) / 2;
-			component.transform(new CadTransformation().setTranslate(...translate));
-		}
+		// const rect1 = this.getAllEntities().getBounds();
+		// if (rect1.width && rect1.height) {
+		// 	const rect2 = component.getAllEntities().getBounds();
+		// 	const translate = [rect1.x - rect2.x, rect1.y - rect2.y];
+		// 	translate[0] += (rect1.width + rect2.width) / 2 + 15;
+		// 	// offset1[1] += (rect1.height - rect2.height) / 2;
+		// 	component.transform(new CadTransformation().setTranslate(...translate));
+		// }
 		const data = this.components.data;
 		const prev = data.findIndex((v) => v.id === component.id);
 		if (prev > -1) {

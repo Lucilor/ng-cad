@@ -2,6 +2,7 @@ import {Component, Inject, ViewChild, AfterViewInit} from "@angular/core";
 import {CadDataService} from "@src/app/services/cad-data.service";
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
+import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 
 @Component({
 	selector: "app-cad-options",
@@ -20,7 +21,7 @@ export class CadOptionsComponent implements AfterViewInit {
 	constructor(
 		private dataService: CadDataService,
 		public dialogRef: MatDialogRef<CadOptionsComponent, string[]>,
-		@Inject(MAT_DIALOG_DATA) public data: {name: string; checkedItems: string[]}
+		@Inject(MAT_DIALOG_DATA) public data: {data: CadData; name: string; checkedItems: string[]}
 	) {}
 
 	async ngAfterViewInit() {
@@ -53,7 +54,7 @@ export class CadOptionsComponent implements AfterViewInit {
 	}
 
 	async getData(page: number) {
-		const data = await this.dataService.getOptions(this.data.name, this.searchValue, page, this.paginator.pageSize);
+		const data = await this.dataService.getOptions(this.data.data, this.data.name, this.searchValue, page, this.paginator.pageSize);
 		this.length = data.count;
 		this.pageData.length = 0;
 		data.data.forEach((value) => {

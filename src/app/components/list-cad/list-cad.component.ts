@@ -18,7 +18,7 @@ export class ListCadComponent implements AfterViewInit {
 	pageData: {data: CadData; img: string; checked: boolean}[] = [];
 	width = 300;
 	height = 150;
-	searchInput =  "";
+	searchInput = "";
 	searchValue = "";
 	checkedIndex = -1;
 	checkedItems: string[] = [];
@@ -42,7 +42,7 @@ export class ListCadComponent implements AfterViewInit {
 	}
 
 	async getData(page: number) {
-		const data = await this.dataService.getCadDataPage(page, this.paginator.pageSize, this.searchValue);
+		const data = await this.dataService.getCadDataPage(page, this.paginator.pageSize, this.searchValue, true);
 		this.length = data.count;
 		this.pageData.length = 0;
 		data.data.forEach((d) => {
