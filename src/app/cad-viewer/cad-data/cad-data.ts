@@ -225,7 +225,7 @@ export class CadData {
 				translate = new Vector2();
 			}
 		}
-		partner.transform(new CadTransformation().setTranslate(translate.x, translate.y));
+		partner.transform(new CadTransformation({translate}));
 		const data = this.partners;
 		const prev = data.findIndex((v) => v.id === partner.id);
 		if (prev > -1) {
@@ -268,12 +268,7 @@ export class CadData {
 		const connections = this.components.connections.slice();
 		this.components.data.length = 0;
 		this.components.connections.length = 0;
-		data.forEach((v) => {
-			if (v.entities.length < 1 || (v.entities.length === 1 && v.entities.dimension.length)) {
-				return;
-			}
-			this.addComponent(v);
-		});
+		data.forEach((v) => this.addComponent(v));
 		try {
 			connections.forEach((c) => this.assembleComponents(c));
 		} catch (error) {}

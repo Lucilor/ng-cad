@@ -267,7 +267,7 @@ export class CadMenu {
 		const viewModeChanged = this.viewMode !== viewMode;
 		this.viewMode = viewMode;
 		const {cad, checkedIdx} = this;
-		if(checkedIdx.length<1){
+		if (checkedIdx.length < 1) {
 			checkedIdx.push(cadIdx2);
 		}
 		if (cadIdx2 >= 0) {
@@ -291,6 +291,8 @@ export class CadMenu {
 					e.visible = true;
 				}, d.getAllEntities());
 			});
+			this.cadIdx2 = -1;
+			this.checkedIdx = [];
 		} else {
 			const data = this.getData(this.cadIdx, -1);
 			if (cadIdx2 >= 0) {
@@ -329,13 +331,6 @@ export class CadMenu {
 					m.setValues({opacity: 1});
 				}, data.getAllEntities());
 			}
-		}
-		if (viewMode === "slice") {
-			cad.controls.config.selectMode = "multiple";
-			cad.config.selectedColor = this.selectedColor;
-		} else {
-			cad.controls.config.selectMode = "single";
-			cad.config.selectedColor = null;
 		}
 		cad.controls.config.dragAxis = "";
 		this.updateCadLength();

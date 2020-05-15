@@ -16,7 +16,8 @@ import {
 	Shape,
 	Mesh,
 	MeshBasicMaterial,
-	Raycaster
+	Raycaster,
+	Plane
 } from "three";
 import {BezierCurve} from "./bezier-curve";
 import Stats from "three/examples/jsm/libs/stats.module";
@@ -151,7 +152,7 @@ export class BezierDrawer {
 
 	getNDC(point: Vector2) {
 		const rect = this.dom.getBoundingClientRect();
-		return new Vector3(((point.x - rect.left) / rect.width) * 2 - 1, ((rect.top - point.y) / rect.height) * 2 + 1, -1);
+		return new Vector3(((point.x - rect.left) / rect.width) * 2 - 1, ((rect.top - point.y) / rect.height) * 2 + 1, 0.5);
 	}
 
 	getNDCReverse(point: Vector3) {
@@ -172,6 +173,11 @@ export class BezierDrawer {
 	addCtrlPoint(point: Vector2) {
 		const {_raycaster, camera} = this;
 		_raycaster.setFromCamera(this.getNDC(point), camera);
-		console.log(this.getNDC(point));
+		const plane = new Plane(new Vector3(0, 0, 1));
+		const p = new Vector3();
+		_raycaster.ray.intersectPlane(plane, p);
+		this.curve.ctrlPoints.push(new Vector2(p.x, p.y));
+		this.needsUpdate = true;
+		console.log(p, _raycaster.intersectObjects(Object.values(this.objects), true));
 	}
 }

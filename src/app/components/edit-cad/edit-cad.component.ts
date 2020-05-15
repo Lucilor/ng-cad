@@ -102,11 +102,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
-		const {cad, menu} = this;
-		menu.getData().transform(new CadTransformation().setFlip(vertical, horizontal));
-		cad.data.updatePartners();
-		cad.data.updateComponents();
-		cad.render(true);
+		this.transform(new CadTransformation({flip: {vertical, horizontal}}));
 	}
 
 	rotate(clockwise?: boolean) {
@@ -128,9 +124,19 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 				}
 			});
 		}
-		menu.getData().transform(new CadTransformation().setRotate(angle));
-		cad.data.updatePartners();
-		cad.data.updateComponents();
+		this.transform(new CadTransformation({rotate: {angle}}));
+	}
+
+	transform(trans: CadTransformation) {
+		const {cad, menu} = this;
+		if (menu.checkedIdx.length) {
+			menu.checkedIdx.forEach((i) => {
+				menu.getData(menu.cadIdx, i).transform(trans);
+			});
+		} else {
+			menu.getData().transform(new CadTransformation(trans));
+		}
+		cad.data.updatePartners().updateComponents();
 		cad.render(true);
 	}
 

@@ -1,9 +1,9 @@
 import {Vector2, Matrix3} from "three";
 
 export class CadTransformation {
-	translate = new Vector2();
-	flip = {vertical: false, horizontal: false, anchor: new Vector2()};
-	rotate = {angle: 0, anchor: new Vector2()};
+	translate: Vector2;
+	flip: {vertical: boolean; horizontal: boolean; anchor: Vector2};
+	rotate: {angle: number; anchor: Vector2};
 	get matrix() {
 		const matrix = new Matrix3();
 		const {translate, flip, rotate} = this;
@@ -18,37 +18,19 @@ export class CadTransformation {
 
 	constructor(
 		params: {
-			translate?: CadTransformation["translate"];
-			flip?: CadTransformation["flip"];
-			rotate?: CadTransformation["rotate"];
+			translate?: Vector2;
+			flip?: {vertical?: boolean; horizontal?: boolean; anchor?: Vector2};
+			rotate?: {angle?: number; anchor?: Vector2};
 		} = {}
 	) {
-		if (params.translate) {
-			this.translate = params.translate;
+		this.translate = params.translate || new Vector2();
+		{
+			const {vertical = false, horizontal = false, anchor = new Vector2()} = params.flip || {};
+			this.flip = {vertical, horizontal, anchor};
 		}
-		if (params.flip) {
-			this.flip = params.flip;
+		{
+			const {angle = 0, anchor = new Vector2()} = params.rotate || {};
+			this.rotate = {angle, anchor};
 		}
-		if (params.rotate) {
-			this.rotate = params.rotate;
-		}
-	}
-
-	setTranslate(x = 0, y = 0) {
-		this.translate.set(x, y);
-		return this;
-	}
-	setFlip(vertical = false, horizontal = false, anchor: number[] = []) {
-		this.flip.vertical = vertical;
-		this.flip.horizontal = horizontal;
-		this.flip.anchor.setX(anchor[0] || 0);
-		this.flip.anchor.setY(anchor[1] || 0);
-		return this;
-	}
-	setRotate(angle = 0, anchor: number[] = []) {
-		this.rotate.angle = angle;
-		this.rotate.anchor.setX(anchor[0] || 0);
-		this.rotate.anchor.setY(anchor[1] || 0);
-		return this;
 	}
 }
