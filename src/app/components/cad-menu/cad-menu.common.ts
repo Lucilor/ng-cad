@@ -78,12 +78,6 @@ export class CadMenu {
 		});
 		cad.controls.on("dragend", () => (button = NaN));
 		cad.controls.on("wheel", () => this.updatePointsMap());
-		window.addEventListener("keydown", (event) => {
-			if (event.key === "Escape") {
-				this.blur();
-				cad.unselectAll();
-			}
-		});
 
 		cad.controls.on("entityselect", (event, entity) => {
 			if (!environment.production) {
@@ -368,7 +362,7 @@ export class CadMenu {
 		const data = this.getData();
 		if (data) {
 			this.cadLength = 0;
-			const entities = data.entities;
+			const entities = data.getAllEntities();
 			entities.line.forEach((e) => (this.cadLength += e.length));
 			entities.arc.forEach((e) => {
 				const {radius, start_angle, end_angle} = e;
@@ -376,6 +370,9 @@ export class CadMenu {
 				this.cadLength += l;
 			});
 			this.cadLength = Number(this.cadLength.toFixed(2));
+			if(!data.zhankaikuan){
+				data.zhankaikuan = this.cadLength.toString();
+			}
 		}
 	}
 

@@ -1,13 +1,13 @@
-import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
-import {Vector2} from "three";
+import {Component, AfterViewInit, ViewChild, ElementRef} from "@angular/core";
 import {BezierDrawer} from "@src/app/bezier-drawer/bezier-drawer";
+import {Vector2} from "three";
 
 @Component({
-	selector: "app-playground",
-	templateUrl: "./playground.component.html",
-	styleUrls: ["./playground.component.scss"]
+	selector: "app-bezier",
+	templateUrl: "./bezier.component.html",
+	styleUrls: ["./bezier.component.scss"]
 })
-export class PlaygroundComponent implements AfterViewInit {
+export class BezierComponent implements AfterViewInit {
 	@ViewChild("container", {read: ElementRef}) container: ElementRef<HTMLElement>;
 	drawer: BezierDrawer;
 	ctrlPoints: Vector2[] = [];

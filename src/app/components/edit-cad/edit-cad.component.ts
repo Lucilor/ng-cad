@@ -64,7 +64,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			padding: [30, 370, 30, 125],
 			showLineLength: 8
 		});
-		this.cad.setControls();
+		this.cad.setControls({selectMode: "multiple"});
 		this.menu = new CadMenu(dialog, this.cad, dataService);
 	}
 
@@ -106,7 +106,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	rotate(clockwise?: boolean) {
-		const {cad, menu} = this;
+		const {cad} = this;
 		let angle = 0;
 		if (clockwise === true) {
 			angle = -Math.PI / 2;

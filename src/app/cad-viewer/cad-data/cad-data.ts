@@ -71,7 +71,7 @@ export class CadData {
 		this.visible = data.visible === false ? false : true;
 		this.zhankaikuan = data.zhankaikuan || "";
 		this.zhankaigao = data.zhankaigao || "";
-		this.shuliang = data.shuliang || "";
+		this.shuliang = data.shuliang || "1";
 		this.huajian = data.huajian || "";
 	}
 

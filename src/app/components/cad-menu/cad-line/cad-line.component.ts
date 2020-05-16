@@ -21,6 +21,9 @@ export class CadLineComponent implements OnInit {
 	get data() {
 		return this.menu.getData();
 	}
+	get selectedEntities() {
+		return this.menu.cad.selectedEntities;
+	}
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	constructor() {}
 
@@ -31,6 +34,10 @@ export class CadLineComponent implements OnInit {
 				this.line = entity;
 				this.updateTLine();
 			}
+		});
+		cad.controls.on("entityunselect", () => {
+			this.line = null;
+			this.updateTLine();
 		});
 		cad.controls.on("drag", () => this.updateTLine());
 		cad.controls.on("wheel", () => this.updateTLine());
@@ -121,16 +128,20 @@ export class CadLineComponent implements OnInit {
 	}
 
 	setLineColor(event: MatSelectChange) {
-		if (this.line) {
-			const color = parseInt(event.value.slice("1"), 16);
+		const color = parseInt(event.value.slice("1"), 16);
+		if (this.selectedEntities.length) {
+			this.selectedEntities.forEach((e) => (e.color = color));
+		} else if (this.line) {
 			this.line.color = color;
-			this.menu.cad.render();
 		}
+		this.menu.cad.render();
 	}
 
 	setLineText(event: Event, field: string) {
-		if (this.line) {
-			const value = (event.target as HTMLInputElement).value;
+		const value = (event.target as HTMLInputElement).value;
+		if (this.selectedEntities.length) {
+			this.selectedEntities.forEach((e) => (e[field] = value));
+		} else if (this.line) {
 			this.line[field] = value;
 			this.menu.cad.render();
 		}
@@ -141,6 +152,8 @@ export class CadLineComponent implements OnInit {
 			const start = this.menu.cad.translatePoint(this.line.start);
 			const end = this.menu.cad.translatePoint(this.line.end);
 			this.tLine = {start, end};
+		} else {
+			this.tLine = null;
 		}
 	}
 }

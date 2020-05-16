@@ -38,6 +38,7 @@ import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-for
 import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
 import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assemble.component";
 import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options.component";
+import {BezierComponent} from "./components/bezier/bezier.component";
 
 @NgModule({
 	declarations: [
@@ -57,7 +58,8 @@ import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options
 		CadDimensionFormComponent,
 		CadSubcadComponent,
 		CadAssembleComponent,
-		CadOptionsComponent
+		CadOptionsComponent,
+		BezierComponent
 	],
 	imports: [
 		BrowserModule,

@@ -1,4 +1,4 @@
-<div class="line-indicator" *ngIf="menu.viewMode !== 'components'">
+<div class="line-indicator" *ngIf="menu.viewMode !== 'components' && cadLine.selectedEntities.length === 1">
 	<ng-container *ngIf="menu.mode.type === 'normal' && cadLine.tLine">
 		<div class="point start-point" [style.left.px]="cadLine.tLine.start.x" [style.top.px]="cadLine.tLine.start.y"></div>
 		<div class="point end-point" [style.left.px]="cadLine.tLine.end.x" [style.top.px]="cadLine.tLine.end.y"></div>

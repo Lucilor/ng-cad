@@ -9,7 +9,8 @@ export const paths = {
 	"draw-cad": "draw-cad",
 	"edit-cad": "edit-cad",
 	"assemble-cad": "assemble-cad",
-	"print-cad": "print-cad"
+	"print-cad": "print-cad",
+	bezier: "bezier"
 };
 
 export interface Response {

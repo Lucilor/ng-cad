@@ -1,7 +1,7 @@
 import {CadLayer} from "../cad-layer";
 import {CAD_TYPES} from "../cad-types";
 import {MathUtils} from "three";
-import {index2RGB} from "@lucilor/utils";
+import {index2RGB, RGB2Index} from "@lucilor/utils";
 import {CadTransformation} from "../cad-transformation";
 
 export class CadEntity {
@@ -45,6 +45,7 @@ export class CadEntity {
 	transform(_params: CadTransformation) {}
 
 	export() {
+		this._indexColor = RGB2Index(this.color);
 		return {
 			id: this.id,
 			layer: this.layer,

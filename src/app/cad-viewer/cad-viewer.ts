@@ -16,7 +16,8 @@ import {
 	MeshBasicMaterial,
 	Material,
 	BufferGeometry,
-	Vector3
+	Vector3,
+	LineDashedMaterial
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
@@ -34,11 +35,11 @@ import {CadHatch} from "./cad-data/cad-entity/cad-hatch";
 
 export class CadStyle {
 	color?: number;
-	lineWidth?: number;
+	linewidth?: number;
 	fontSize?: number;
 	visible?: boolean;
 	constructor(
-		params: {color?: number; lineWidth?: number; fontSize?: number; visible?: boolean} = {},
+		params: {color?: number; linewidth?: number; fontSize?: number; visible?: boolean} = {},
 		cad?: CadViewer,
 		entity?: CadEntity
 	) {
@@ -46,7 +47,7 @@ export class CadStyle {
 		this.color = params.color || entity?.color || 0;
 		if (selectable) {
 			if (selected && typeof cad.config.selectedColor === "number") {
-				this.color = cad.config.selectedColor;
+				// this.color = cad.config.selectedColor;
 			} else if (hover && typeof cad.config.hoverColor === "number") {
 				this.color = cad.config.hoverColor;
 			}
@@ -54,7 +55,7 @@ export class CadStyle {
 		if (cad.config.reverseSimilarColor) {
 			this.color = cad.correctColor(this.color);
 		}
-		this.lineWidth = params.lineWidth || 1;
+		this.linewidth = params.linewidth || 1;
 		let eFontSize: number = null;
 		if (entity instanceof CadMtext || entity instanceof CadDimension) {
 			eFontSize = entity.font_size;
@@ -280,13 +281,22 @@ export class CadViewer {
 		sprite.position.add(new Vector3(offset.x, offset.y));
 	}
 
+	private _setLineMaterial(object: Line, color: number, linewidth: number) {
+		if (object.userData.selected) {
+			object.material = new LineDashedMaterial({color, linewidth});
+			object.computeLineDistances();
+		} else {
+			object.material = new LineBasicMaterial({color, linewidth});
+		}
+	}
+
 	private _drawLine(entity: CadLine, style: CadStyle = {}) {
 		const {scene, objects, config} = this;
 		const showLineLength = config.showLineLength;
 		const {start, end, length, theta} = entity;
 		const middle = start.clone().add(end).divideScalar(2);
-		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
-		let object = objects[entity.id] as Mesh|Line;
+		const {linewidth, color, visible} = new CadStyle(style, this, entity);
+		let object = objects[entity.id] as Line;
 		if (length <= 0) {
 			scene.remove(object);
 			delete objects[entity.id];
@@ -301,19 +311,17 @@ export class CadViewer {
 		if (!isFinite(slope)) {
 			anchor.x = 1;
 		}
-		const dx = Math.cos(Math.PI / 2 - theta) * lineWidth;
-		const dy = Math.sin(Math.PI / 2 - theta) * lineWidth;
+		const dx = Math.cos(Math.PI / 2 - theta) * linewidth;
+		const dy = Math.sin(Math.PI / 2 - theta) * linewidth;
 		const shape = new Shape();
 		shape.moveTo(start.x + dx, start.y - dy);
 		shape.lineTo(end.x + dx, end.y - dy);
 		shape.lineTo(end.x - dx, end.y + dy);
 		shape.lineTo(start.x - dx, start.y + dy);
 		shape.closePath();
-		const geometry = new ShapeGeometry(shape);
-		const material = new MeshBasicMaterial({color});
 		if (object) {
 			object.geometry = new BufferGeometry().setFromPoints([start, end]);
-			(object.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
+			this._setLineMaterial(object, color, linewidth);
 			const lengthText = object.children.find((o) => (o as any).isTextSprite) as TextSprite;
 			if (lengthText) {
 				lengthText.text = Math.round(length).toString();
@@ -323,7 +331,7 @@ export class CadViewer {
 			}
 		} else {
 			const geometry = new BufferGeometry().setFromPoints([start, end]);
-			const material = new LineBasicMaterial({color, linewidth: lineWidth});
+			const material = new LineBasicMaterial({color, linewidth});
 			object = new Line(geometry, material);
 			object.userData.selectable = true;
 			object.name = entity.id;
@@ -343,14 +351,14 @@ export class CadViewer {
 		const {scene, objects} = this;
 		const {curve} = entity;
 		const points = curve.getPoints(50);
-		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
+		const {linewidth: linewidth, color, visible} = new CadStyle(style, this, entity);
 		let object = objects[entity.id] as Line;
 		if (object) {
 			object.geometry = new Geometry().setFromPoints(points);
-			(object.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
+			this._setLineMaterial(object, color, linewidth);
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
-			const material = new LineBasicMaterial({color, linewidth: lineWidth});
+			const material = new LineBasicMaterial({color, linewidth});
 			object = new Line(geometry, material);
 			object.userData.selectable = true;
 			object.name = entity.id;
@@ -364,7 +372,7 @@ export class CadViewer {
 		const {scene, objects} = this;
 		const {curve} = entity;
 		const points = curve.getPoints(50);
-		const {lineWidth, color, visible} = new CadStyle(style, this, entity);
+		const {linewidth: linewidth, color, visible} = new CadStyle(style, this, entity);
 		let object = objects[entity.id] as Line;
 		if (!visible) {
 			scene.remove(object);
@@ -373,10 +381,10 @@ export class CadViewer {
 		}
 		if (object) {
 			object.geometry = new Geometry().setFromPoints(points);
-			(object.material as LineBasicMaterial).setValues({color, linewidth: lineWidth});
+			this._setLineMaterial(object, color, linewidth);
 		} else {
 			const geometry = new Geometry().setFromPoints(points);
-			const material = new LineBasicMaterial({color, linewidth: lineWidth});
+			const material = new LineBasicMaterial({color, linewidth});
 			object = new Line(geometry, material);
 			object.userData.selectable = true;
 			object.name = entity.id;
@@ -411,7 +419,7 @@ export class CadViewer {
 	private _drawDimension(entity: CadDimension, style: CadStyle = {}) {
 		const {scene, objects} = this;
 		const {mingzi, qujian, axis, distance} = entity;
-		const {lineWidth, color, fontSize, visible} = new CadStyle(style, this, entity);
+		const {linewidth: linewidth, color, fontSize, visible} = new CadStyle(style, this, entity);
 		let object = objects[entity.id] as Line;
 		const colorStr = "#" + new Color(color).getHexString();
 		let canDraw = true;
@@ -488,7 +496,7 @@ export class CadViewer {
 			object.geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 		} else {
 			const geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
-			const material = new LineBasicMaterial({color, linewidth: lineWidth});
+			const material = new LineBasicMaterial({color, linewidth});
 			object = new Line(geometry, material);
 			object.renderOrder = -1;
 			object.userData.selectable = false;
