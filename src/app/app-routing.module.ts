@@ -14,8 +14,8 @@ const routes: Routes = [
 	{path: paths["draw-cad"], component: DrawCadComponent},
 	{path: paths["edit-cad"], component: EditCadComponent},
 	{path: paths["print-cad"], component: PrintCadComponent},
-	{path: "**", component: PageNotFoundComponent, resolve: {redirect: PathResolveService}},
-	{path: paths.bezier, component: BezierComponent}
+	{path: paths.bezier, component: BezierComponent},
+	{path: "**", component: PageNotFoundComponent, resolve: {redirect: PathResolveService}}
 ];
 
 @NgModule({

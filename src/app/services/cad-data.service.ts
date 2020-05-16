@@ -85,6 +85,9 @@ export class CadDataService {
 		if (!data) {
 			data = this.data;
 		}
+		if (cadData.length < 1) {
+			return [];
+		}
 		const result: CadData[] = [];
 		let counter = 0;
 		let successCounter = 0;

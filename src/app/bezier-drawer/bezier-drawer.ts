@@ -52,20 +52,21 @@ export class BezierDrawer {
 	};
 	stats: Stats;
 	controls: OrbitControls;
+	paused = false;
+	loop = false;
 	private _needsUpdate = false;
-	private _paused = false;
 	private _stoped = false;
-	private _loop = false;
 	private _destroyed = false;
 	private _currentTime = 0;
 	private _geometries = {point: new ShapeGeometry(new Shape(new ArcCurve(0, 0, 0.5, 0, Math.PI * 2, true).getPoints(64)))};
 	private _materials = {point: new MeshBasicMaterial()};
 	private _raycaster = new Raycaster();
-	private _clock = new Clock();
+	private _clock = new Clock(false);
 
 	constructor(config: BezierDrawerConfig = {}) {
 		this.config = {...this.config, ...config};
 		const {width, height, backgroundColor, backgroundAlpha} = this.config;
+		this._materials.point.setValues({color: this._correctColor(0xcccccc)});
 		const scene = new Scene();
 		const camera = new PerspectiveCamera(60, width / height, 0.1, 15000);
 		const renderer = new WebGLRenderer({preserveDrawingBuffer: true});
@@ -92,8 +93,8 @@ export class BezierDrawer {
 		}
 		this.controls = new OrbitControls(camera, dom);
 
-		const ctrl = new LineSegments(new BufferGeometry(), new LineBasicMaterial());
-		const curve = new Line(new BufferGeometry(), new LineBasicMaterial({color: 0xff0000}));
+		const ctrl = new LineSegments(new BufferGeometry(), new LineBasicMaterial({color: this._correctColor(0xcccccc)}));
+		const curve = new Line(new BufferGeometry(), new LineBasicMaterial({color: this._correctColor(0xff0000)}));
 		this.objects = {ctrl, curve};
 		scene.add(ctrl, curve);
 
@@ -114,17 +115,17 @@ export class BezierDrawer {
 	}
 
 	render() {
-		const {config, curve, _currentTime, objects, _geometries, _materials, _clock} = this;
-		const {_needsUpdate, _stoped, _loop, _paused} = this;
+		const {config, curve, _currentTime, objects, _geometries, _materials} = this;
+		const {_needsUpdate, _stoped, loop, paused, _clock} = this;
 		const ctrlGeometry = objects.ctrl.geometry as BufferGeometry;
 		const curveGeometry = objects.curve.geometry as BufferGeometry;
 		if (_stoped) {
 			ctrlGeometry.setAttribute("position", new Float32BufferAttribute([], 3));
 			curveGeometry.setAttribute("position", new Float32BufferAttribute([], 3));
 			objects.ctrl.remove(...objects.ctrl.children);
-		} else if (_paused) {
+		} else if (paused) {
 			return;
-		} else if (_needsUpdate || _loop) {
+		} else if (_needsUpdate || loop) {
 			const {duration} = config;
 			const groups = curve.deCasteljau(_currentTime / duration);
 			const ctrlPosition = [];
@@ -157,7 +158,7 @@ export class BezierDrawer {
 			curveGeometry.setAttribute("position", new Float32BufferAttribute(curvePosition, 3));
 			if (this._currentTime === duration) {
 				this._currentTime = 0;
-				this._needsUpdate = _loop;
+				this._needsUpdate = loop;
 			} else {
 				this._currentTime = _clock.getElapsedTime() * 1000;
 			}
@@ -166,6 +167,13 @@ export class BezierDrawer {
 				_clock.stop();
 			}
 		}
+	}
+
+	private _correctColor(color: number, threshold = 5) {
+		if (typeof color === "number" && Math.abs(color - this.config.backgroundColor) <= threshold) {
+			return 0xfffffff - color;
+		}
+		return color;
 	}
 
 	private _getNDC(point: Vector2) {
@@ -192,33 +200,15 @@ export class BezierDrawer {
 		this._stoped = false;
 		this._currentTime = 0;
 		this._needsUpdate = true;
-		return this.resume();
+		this.paused = false;
+		return this;
 	}
 
-	end() {
+	stop() {
 		this._stoped = true;
 		this._currentTime = 0;
 		this._needsUpdate = false;
-		return this.pause();
-	}
-
-	pause() {
-		this._paused = true;
-		return this;
-	}
-
-	resume() {
-		this._paused = false;
-		return this;
-	}
-
-	loop() {
-		this._loop = true;
-		return this;
-	}
-
-	unloop() {
-		this._loop = false;
+		this.paused = true;
 		return this;
 	}
 
