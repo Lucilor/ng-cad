@@ -491,12 +491,6 @@ export class CadData {
 							map[id] = {};
 						}
 						map[id][conn.axis] = conn.space;
-						if (conn.axis === "x") {
-							conn.offset.y += translate.y;
-						}
-						if (conn.axis === "y") {
-							conn.offset.x = translate.x;
-						}
 					}
 				});
 			}
@@ -525,6 +519,51 @@ export class CadData {
 	hide() {
 		this.getAllEntities().forEach((e) => (e.visible = false));
 		return this;
+	}
+
+	directAssemble(data: CadData, component: CadData, accuracy = 1) {
+		const findLines = (entities: CadEntities): {[key: string]: CadLine} => {
+			let hLine: CadLine;
+			let vLine: CadLine;
+			for (const l of entities.line) {
+				if (Math.abs(l.slope) <= accuracy) {
+					hLine = l;
+				}
+				if (!isFinite(l.slope)) {
+					vLine = l;
+				}
+				if (hLine && vLine) {
+					break;
+				}
+			}
+			if (!hLine || !vLine) {
+				throw new Error("缺少水平或垂直的线");
+			}
+			return {x: vLine, y: hLine};
+		};
+
+		const lines = findLines(data.entities);
+		if (!lines) {
+			return;
+		}
+		const cLines = findLines(component.getAllEntities());
+		if (!cLines) {
+			return;
+		}
+		["x", "y"].forEach((axis) => {
+			const conn = new CadConnection({axis, position: "absolute"});
+			conn.ids = [data.id, component.id];
+			conn.names = [data.name, component.name];
+			conn.lines = [lines[axis].id, cLines[axis].id];
+			if (axis === "x") {
+				conn.space = (cLines[axis].start.x - lines[axis].start.x).toString();
+			}
+			if (axis === "y") {
+				conn.space = (cLines[axis].start.y - lines[axis].start.y).toString();
+			}
+			data.assembleComponents(conn);
+		});
+		data.updateComponents();
 	}
 }
 
@@ -578,7 +617,6 @@ export class CadConnection {
 	space: string;
 	position: "absolute" | "relative";
 	axis: "x" | "y";
-	offset: Vector2;
 
 	constructor(data: any = {}) {
 		this.ids = Array.isArray(data.ids) ? data.ids : [];
@@ -587,7 +625,17 @@ export class CadConnection {
 		this.space = data.space || "0";
 		this.position = data.position || "absolute";
 		this.axis = data.axis || "x";
-		this.offset = getVectorFromArray(data.offset);
+	}
+
+	export() {
+		return {
+			ids: this.ids,
+			names: this.names,
+			lines: this.lines,
+			space: this.space,
+			position: this.position,
+			axis: this.axis
+		};
 	}
 }
 export class CadComponents {
@@ -608,8 +656,9 @@ export class CadComponents {
 	}
 
 	export() {
-		const result = {data: [], connections: this.connections};
+		const result = {data: [], connections: []};
 		this.data.forEach((v) => result.data.push(v.export()));
+		this.connections.forEach((v) => result.connections.push(v.export()));
 		return result;
 	}
 }

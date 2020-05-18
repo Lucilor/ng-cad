@@ -282,11 +282,14 @@ export class CadViewer {
 	}
 
 	private _setLineMaterial(object: Line, color: number, linewidth: number) {
+		const oldMaterial = object.material as Material;
+		const opacity = oldMaterial?.opacity || 1;
+		const params = {color, linewidth, opacity, transparent: true};
 		if (object.userData.selected) {
-			object.material = new LineDashedMaterial({color, linewidth});
+			object.material = new LineDashedMaterial(params);
 			object.computeLineDistances();
 		} else {
-			object.material = new LineBasicMaterial({color, linewidth});
+			object.material = new LineBasicMaterial(params);
 		}
 	}
 
