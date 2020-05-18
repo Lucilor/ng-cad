@@ -175,4 +175,17 @@ export class CadEntities {
 		}
 		return this;
 	}
+
+	remove(entity: CadEntity) {
+		if (entity instanceof CadEntity) {
+			const id = entity.id;
+			this.forEachType((array) => {
+				const index = array.findIndex((e) => e.id === id);
+				if (index > -1) {
+					array.splice(index, 1);
+				}
+			});
+		}
+		return this;
+	}
 }

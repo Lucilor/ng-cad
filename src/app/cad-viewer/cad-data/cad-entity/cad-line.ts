@@ -22,6 +22,9 @@ export class CadLine extends CadEntity {
 		const {start, end} = this;
 		return Math.atan2(start.y - end.y, start.x - end.x);
 	}
+	get middle() {
+		return this.start.clone().add(this.end).divideScalar(2);
+	}
 
 	constructor(data: any = {type: CAD_TYPES.line}, layers: CadLayer[] = []) {
 		super(data, layers);

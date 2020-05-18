@@ -24,7 +24,7 @@
 				[ngModel]="getCssColor()"
 				[style]="{color: getCssColor(getCssColor()), backgroundColor: getCssColor()}"
 				(selectionChange)="setLineColor($event)"
-				[disabled]="selectedEntities.length < 1"
+				[disabled]="selectedLines.length < 1"
 			>
 				<mat-option
 					*ngFor="let color of selectableColors"
@@ -46,7 +46,7 @@
 				(change)="setLineText($event, 'mingzi')"
 				[ngModel]="line?.mingzi"
 				placeholder="请输入名字"
-				[disabled]="selectedEntities.length < 1"
+				[disabled]="selectedLines.length < 1"
 			/>
 		</mat-form-field>
 	</div>
@@ -60,7 +60,7 @@
 				(change)="setLineText($event, 'qujian')"
 				[ngModel]="line?.qujian"
 				placeholder="请输入区间"
-				[disabled]="selectedEntities.length < 1"
+				[disabled]="selectedLines.length < 1"
 			/>
 		</mat-form-field>
 	</div>

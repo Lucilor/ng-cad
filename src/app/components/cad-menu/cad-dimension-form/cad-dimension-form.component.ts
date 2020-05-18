@@ -18,8 +18,8 @@ export class CadDimensionFormComponent implements OnInit {
 	) {}
 
 	ngOnInit() {
-		const dimension = new CadDimension(this.data.data);
-		this.dimension = dimension;
+		const dimension = this.data.data;
+		this.dimension = this.data.data;
 		this.form = this.fb.group({
 			mingzi: [dimension.mingzi],
 			qujian: [dimension.qujian, [this.qujianValidator()]],

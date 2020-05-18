@@ -428,19 +428,7 @@ export class CadViewer {
 			return;
 		}
 
-		const getPoint = (e: CadLine, location: string) => {
-			if (location === "start") {
-				return e.start;
-			}
-			if (location === "end") {
-				return e.start;
-			}
-			if (location === "center") {
-				return e.start.add(e.end).divideScalar(2);
-			}
-		};
-		let p1 = getPoint(entity1, entity.entity1.location);
-		let p2 = getPoint(entity2, entity.entity2.location);
+		let {point1: p1, point2: p2} = this.data.getDimensionPoints(entity);
 		let p3 = p1.clone();
 		let p4 = p2.clone();
 		const arrow1: Vector2[] = [];
@@ -478,16 +466,17 @@ export class CadViewer {
 			arrow2[2] = arrow2[0].clone().add(new Vector2(arrowSize, arrowLength));
 		}
 
+		const geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 		if (object) {
 			object = objects[entity.id] as Line;
 			object.remove(...object.children);
-			object.geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
+			object.geometry = geometry;
+			this._setLineMaterial(object, color, linewidth, opacity);
 		} else {
-			const geometry = new Geometry().setFromPoints([p1, p3, p4, p2]);
 			const material = new LineBasicMaterial({color, linewidth, opacity, transparent: true});
 			object = new Line(geometry, material);
 			object.renderOrder = -1;
-			object.userData.selectable = false;
+			object.userData.selectable = true;
 			object.name = entity.id;
 			objects[entity.id] = object;
 			scene.add(object);

@@ -1,7 +1,7 @@
 import {AlertComponent} from "../alert/alert.component";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
-import {Material, Mesh, Vector2} from "three";
+import {Vector2} from "three";
 import {CadDataService} from "@services/cad-data.service";
 import {CAD_TYPES} from "@src/app/cad-viewer/cad-data/cad-types";
 import {CadEntity} from "@src/app/cad-viewer/cad-data/cad-entity/cad-entity";
@@ -204,12 +204,10 @@ export class CadMenu {
 	}
 
 	selectLineBegin(type: Mode["type"], index: number) {
-		const {cad, mode, selectedColor, hoverColor} = this;
+		const {cad, mode} = this;
 		cad.traverse((o) => (o.userData.selected = false));
 		mode.type = type;
 		mode.index = index;
-		cad.config.selectedColor = selectedColor;
-		cad.config.hoverColor = hoverColor;
 		cad.render();
 	}
 
@@ -217,8 +215,6 @@ export class CadMenu {
 		const {cad, mode} = this;
 		cad.traverse((o) => (o.userData.selected = false));
 		this.focus();
-		cad.config.selectedColor = null;
-		cad.config.hoverColor = null;
 		cad.render();
 		mode.type = "normal";
 	}
@@ -330,11 +326,11 @@ export class CadMenu {
 			(o, e) => {
 				if (e.type === CAD_TYPES.mtext) {
 					e.visible = this.drawMTexts;
+					o.userData.selectable = false;
 				}
 				if (e.type === CAD_TYPES.dimension) {
 					e.visible = this.drawDimensions;
 				}
-				o.userData.selectable = false;
 			},
 			cad.data.getAllEntities(),
 			["mtext", "dimension"]

@@ -15,8 +15,7 @@
 				(change)="setDimensionName($event, d)"
 				placeholder="标注名字"
 			/>
-			<mat-icon matSuffix color="primary" (click)="menu.addDimension(i)">add_circle</mat-icon>
-			<mat-icon matSuffix color="primary" (click)="menu.removeDimension(i)">remove_circle</mat-icon>
+			<mat-icon matSuffix color="primary" (click)="removeDimension(d)">remove_circle</mat-icon>
 			<mat-hint [align]="'start'">
 				<button
 					mat-raised-button
@@ -27,6 +26,15 @@
 				</button>
 			</mat-hint>
 		</mat-form-field>
+	</div>
+	<div class="btn-group">
+		<button
+			mat-raised-button
+			[color]="menu.mode.type === 'dimension' && menu.mode.index === -1 ? 'accent' : 'primary'"
+			(click)="addDimension()"
+		>
+			添加标注
+		</button>
 	</div>
 </mat-expansion-panel>
 <mat-expansion-panel *ngIf="!data">

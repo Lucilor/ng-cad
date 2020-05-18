@@ -7,6 +7,8 @@ import {CadTransformation} from "./cad-transformation";
 import {CadLine} from "./cad-entity/cad-line";
 import {getVectorFromArray, isLinesParallel} from "./utils";
 import {CadCircle} from "./cad-entity/cad-circle";
+import {CadEntity} from "./cad-entity/cad-entity";
+import {CadDimension} from "./cad-entity/cad-dimension";
 
 export class CadData {
 	entities: CadEntities;
@@ -245,14 +247,14 @@ export class CadData {
 	}
 
 	addComponent(component: CadData) {
-		// const rect1 = this.getAllEntities().getBounds();
-		// if (rect1.width && rect1.height) {
-		// 	const rect2 = component.getAllEntities().getBounds();
-		// 	const translate = [rect1.x - rect2.x, rect1.y - rect2.y];
-		// 	translate[0] += (rect1.width + rect2.width) / 2 + 15;
-		// 	// offset1[1] += (rect1.height - rect2.height) / 2;
-		// 	component.transform(new CadTransformation().setTranslate(...translate));
-		// }
+		const rect1 = this.getAllEntities().getBounds();
+		if (rect1.width && rect1.height) {
+			const rect2 = component.getAllEntities().getBounds();
+			const translate = new Vector2(rect1.x - rect2.x, rect1.y - rect2.y);
+			translate.x += (rect1.width + rect2.width) / 2 + 15;
+			// offset1[1] += (rect1.height - rect2.height) / 2;
+			component.transform(new CadTransformation({translate}));
+		}
 		const data = this.components.data;
 		const prev = data.findIndex((v) => v.id === component.id);
 		if (prev > -1) {
@@ -563,6 +565,27 @@ export class CadData {
 			}
 			this.assembleComponents(conn);
 		});
+	}
+
+	getDimensionPoints({entity1, entity2}: CadDimension) {
+		const getPoint = (e: CadEntity, location: string) => {
+			if (e instanceof CadLine) {
+				if (location === "start") {
+					return e.start;
+				}
+				if (location === "end") {
+					return e.end;
+				}
+				if (location === "center") {
+					return e.middle;
+				}
+			}
+			return null;
+		};
+		return {
+			point1: getPoint(this.findEntity(entity1.id), entity1.location),
+			point2: getPoint(this.findEntity(entity2.id), entity2.location)
+		};
 	}
 }
 

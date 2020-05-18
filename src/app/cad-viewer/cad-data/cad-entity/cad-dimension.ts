@@ -19,6 +19,7 @@ export class CadDimension extends CadEntity {
 	cad2: string;
 	mingzi: string;
 	qujian: string;
+	
 	constructor(data: any = {type: CAD_TYPES.dimension}, layers: CadLayer[] = []) {
 		super(data, layers);
 		this.font_size = data.font_size || 16;

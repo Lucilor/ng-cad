@@ -6,6 +6,7 @@ import {Mesh, Material} from "three";
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
+import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 
 @Component({
 	selector: "app-cad-dimension",
@@ -25,9 +26,8 @@ export class CadDimensionComponent implements OnInit {
 		const {cad, mode} = this.menu;
 		cad.controls.on("entityselect", (event, entity) => {
 			const {type, index} = mode;
-			const data = this.data;
+			const dimensions = this.data;
 			if (type === "dimension") {
-				const dimension = data[index];
 				let thatData: CadData;
 				for (const d of cad.data.components.data) {
 					if (d.findEntity(entity.id)) {
@@ -35,10 +35,15 @@ export class CadDimensionComponent implements OnInit {
 						break;
 					}
 				}
-				if (!dimension.entity1) {
+				let dimension = dimensions[index];
+				if (!dimension) {
+					dimension = new CadDimension();
+					mode.index = thatData.entities.dimension.push(dimension) - 1;
+				}
+				if (!dimension.entity1.id) {
 					dimension.entity1 = {id: entity.id, location: "start"};
 					dimension.cad1 = thatData.name;
-				} else if (!dimension.entity2) {
+				} else if (!dimension.entity2.id) {
 					dimension.entity2 = {id: entity.id, location: "end"};
 					dimension.cad2 = thatData.name;
 				} else {
@@ -60,7 +65,6 @@ export class CadDimensionComponent implements OnInit {
 		});
 		ref.afterClosed().subscribe((dimension) => {
 			if (dimension) {
-				data[i] = dimension;
 				cad.render();
 			}
 		});
@@ -86,11 +90,11 @@ export class CadDimensionComponent implements OnInit {
 		if (menu.mode.type === "dimension" && menu.mode.index === i) {
 			menu.selectLineEnd();
 		} else {
-			const {entity1, entity2} = data[i];
+			const {entity1, entity2} = data[i] || {};
 			cad.traverse((o, e) => {
 				if (e instanceof CadLine) {
 					o.userData.selectable = true;
-					o.userData.selected = [entity1.id, entity2.id].includes(e.id);
+					o.userData.selected = [entity1?.id, entity2?.id].includes(e.id);
 					e.opacity = 1;
 				} else if (e instanceof CadDimension) {
 					o.userData.selectable = false;
@@ -102,5 +106,13 @@ export class CadDimensionComponent implements OnInit {
 			});
 			menu.selectLineBegin("dimension", i);
 		}
+	}
+
+	addDimension() {
+		this.selectDimLine(-1);
+	}
+
+	removeDimension(entity: CadDimension) {
+		this.menu.cad.removeEntities(new CadEntities().add(entity));
 	}
 }
