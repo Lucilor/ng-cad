@@ -154,5 +154,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		return !this.menuMap[name].includes(this.menu.viewMode);
 	}
 
-	submitAll() {}
+	submitAll() {
+		this.menu.submit(true);
+	}
 }

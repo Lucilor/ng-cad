@@ -10,6 +10,7 @@ export class CadEntity {
 	layer: string;
 	color: number;
 	visible: boolean;
+	opacity: number;
 	_indexColor: number;
 	constructor(data: any = {}, layers: CadLayer[] = []) {
 		if (typeof data !== "object") {
@@ -40,6 +41,7 @@ export class CadEntity {
 			}
 		}
 		this.visible = data.visible === false ? false : true;
+		this.opacity = typeof data.opacity === "number" ? data.opacity : 1;
 	}
 
 	transform(_params: CadTransformation) {}

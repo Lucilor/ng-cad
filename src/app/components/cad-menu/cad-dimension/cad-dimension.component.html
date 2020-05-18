@@ -2,7 +2,7 @@
 	<mat-expansion-panel-header>
 		<mat-panel-title>标注信息</mat-panel-title>
 	</mat-expansion-panel-header>
-	<div class="form-item dimension-info" *ngFor="let d of data.entities.dimension; let i = index">
+	<div class="form-item dimension-info" *ngFor="let d of data; let i = index">
 		<button mat-raised-button color="primary" (click)="editDimension(i)">标注</button>
 		<mat-form-field>
 			<mat-label></mat-label>

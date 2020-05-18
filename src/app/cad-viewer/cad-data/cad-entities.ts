@@ -93,8 +93,17 @@ export class CadEntities {
 
 	export() {
 		const result = {line: {}, circle: {}, arc: {}, mtext: {}, dimension: {}, hatch: {}};
-		for (const type in CAD_TYPES) {
-			(this[type] as CadEntity[]).forEach((e) => (result[type][e.id] = e.export()));
+		for (const key in CAD_TYPES) {
+			const type = key as keyof CadTypes;
+			this[type].forEach((e: CadEntity) => {
+				if (e instanceof CadDimension) {
+					if (e.entity1.id && e.entity2.id) {
+						result[type][e.id] = e.export();
+					}
+				} else {
+					result[type][e.id] = e.export();
+				}
+			});
 		}
 		return result;
 	}

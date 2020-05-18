@@ -16,8 +16,9 @@ export class CadDimensionComponent implements OnInit {
 	@Input() menu: CadMenu;
 	dimNameFocus = -1;
 	get data() {
-		return this.menu.getData();
+		return this.menu.cad.data.getAllEntities().dimension;
 	}
+	tempDimension: CadDimension[] = [];
 	constructor(private dialog: MatDialog) {}
 
 	ngOnInit() {
@@ -26,7 +27,7 @@ export class CadDimensionComponent implements OnInit {
 			const {type, index} = mode;
 			const data = this.data;
 			if (type === "dimension") {
-				const dimension = data.entities.dimension[index];
+				const dimension = data[index];
 				let thatData: CadData;
 				for (const d of cad.data.components.data) {
 					if (d.findEntity(entity.id)) {
@@ -54,12 +55,12 @@ export class CadDimensionComponent implements OnInit {
 		const {menu, data} = this;
 		const cad = menu.cad;
 		const ref: MatDialogRef<CadDimensionFormComponent, CadDimension> = this.dialog.open(CadDimensionFormComponent, {
-			data: {data: data.entities.dimension[i]},
+			data: {data: data[i]},
 			disableClose: true
 		});
 		ref.afterClosed().subscribe((dimension) => {
 			if (dimension) {
-				data.entities.dimension[i] = dimension;
+				data[i] = dimension;
 				cad.render();
 			}
 		});
@@ -85,19 +86,18 @@ export class CadDimensionComponent implements OnInit {
 		if (menu.mode.type === "dimension" && menu.mode.index === i) {
 			menu.selectLineEnd();
 		} else {
-			const {entity1, entity2} = data.entities.dimension[i];
+			const {entity1, entity2} = data[i];
 			cad.traverse((o, e) => {
-				const material = (o as Mesh).material as Material;
 				if (e instanceof CadLine) {
 					o.userData.selectable = true;
 					o.userData.selected = [entity1.id, entity2.id].includes(e.id);
-					material.setValues({opacity: 1});
+					e.opacity = 1;
 				} else if (e instanceof CadDimension) {
 					o.userData.selectable = false;
-					material.setValues({opacity: 1});
+					e.opacity = 1;
 				} else {
 					o.userData.selectable = false;
-					material.setValues({opacity: 0.3, transparent: true});
+					e.opacity = 0.3;
 				}
 			});
 			menu.selectLineBegin("dimension", i);

@@ -95,6 +95,7 @@ export class BezierDrawer {
 
 		const ctrl = new LineSegments(new BufferGeometry(), new LineBasicMaterial({color: this._correctColor(0xcccccc)}));
 		const curve = new Line(new BufferGeometry(), new LineBasicMaterial({color: this._correctColor(0xff0000)}));
+		curve.renderOrder = 1;
 		this.objects = {ctrl, curve};
 		scene.add(ctrl, curve);
 
@@ -160,7 +161,7 @@ export class BezierDrawer {
 				this._currentTime = 0;
 				this._needsUpdate = loop;
 			} else {
-				this._currentTime = _clock.getElapsedTime() * 1000;
+				this._currentTime += _clock.getDelta() * 1000;
 			}
 			if (this._currentTime > duration) {
 				this._currentTime = duration;

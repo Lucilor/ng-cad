@@ -115,18 +115,19 @@ export class CadMenu {
 		if (d.jointPoints.length < 1) {
 			this.addJointPoint(0, d);
 		}
-		if (d.entities.dimension.length < 1) {
-			this.addDimension(0, d);
-		}
 		d.partners.forEach((v) => this.setData(v));
 		d.components.data.forEach((v) => this.setData(v));
 	}
 
-	async submit() {
+	async submit(all = false) {
 		const {cadIdx, dataService, cad} = this;
-		const data = this.getData(cadIdx, -1);
-		const resData = (await dataService.postCadData([data]))[0];
-		cad.data.components.data[cadIdx] = resData;
+		const data = all ? cad.data.components.data : [this.getData(cadIdx, -1)];
+		const resData = await dataService.postCadData(data);
+		if (all) {
+			cad.data.components.data = resData;
+		} else {
+			cad.data.components.data[cadIdx] = resData[0];
+		}
 		cad.reset();
 		this.focus();
 	}
@@ -203,21 +204,23 @@ export class CadMenu {
 	}
 
 	selectLineBegin(type: Mode["type"], index: number) {
-		const cad = this.cad;
-		this.mode.type = type;
-		this.mode.index = index;
-		cad.config.selectedColor = this.selectedColor;
-		cad.config.hoverColor = this.hoverColor;
+		const {cad, mode, selectedColor, hoverColor} = this;
+		cad.traverse((o) => (o.userData.selected = false));
+		mode.type = type;
+		mode.index = index;
+		cad.config.selectedColor = selectedColor;
+		cad.config.hoverColor = hoverColor;
 		cad.render();
 	}
 
 	selectLineEnd() {
-		const {cad} = this;
+		const {cad, mode} = this;
+		cad.traverse((o) => (o.userData.selected = false));
 		this.focus();
 		cad.config.selectedColor = null;
 		cad.config.hoverColor = null;
 		cad.render();
-		this.mode.type = "normal";
+		mode.type = "normal";
 	}
 
 	generatePointsMap(entities: CadEntities) {
@@ -280,9 +283,7 @@ export class CadMenu {
 				const selectable = d.id === data.id ? true : false;
 				cad.traverse((o, e) => {
 					o.userData.selectable = selectable;
-					const m = (o as Mesh).material as Material;
-					m.setValues({opacity, transparent: true});
-					e.visible = true;
+					e.opacity = opacity;
 				}, d.getAllEntities());
 			});
 			this.cadIdx2 = -1;
@@ -303,26 +304,23 @@ export class CadMenu {
 						d.getAllEntities().forEach((e) => (e.visible = false));
 					});
 				}
-				cad.traverse((o) => {
+				cad.traverse((o, e) => {
 					o.userData.selectable = false;
-					const m = (o as Mesh).material as Material;
-					m.setValues({opacity: 0.3, transparent: true});
+					e.opacity = 0.3;
 				}, data.entities);
 				subData.forEach((d, i) => {
 					const isFocused = checkedIdx.includes(i);
 					const opacity = isFocused ? 1 : 0.3;
 					const selectable = isFocused ? true : false;
-					cad.traverse((o) => {
+					cad.traverse((o, e) => {
 						o.userData.selectable = selectable;
-						const m = (o as Mesh).material as Material;
-						m.setValues({opacity, transparent: true});
+						e.opacity = opacity;
 					}, d.getAllEntities());
 				});
 			} else {
-				cad.traverse((o) => {
+				cad.traverse((o, e) => {
 					o.userData.selectable = true;
-					const m = (o as Mesh).material as Material;
-					m.setValues({opacity: 1});
+					e.opacity = 1;
 				}, data.getAllEntities());
 			}
 		}
@@ -350,10 +348,9 @@ export class CadMenu {
 		} else if (this.cadIdx >= 0) {
 			this.cadIdx = cadIdx;
 		}
-		this.cad.traverse((o) => {
+		this.cad.traverse((o, e) => {
 			o.userData.selectable = true;
-			const m = (o as Mesh).material as Material;
-			m.setValues({opacity: 1});
+			e.opacity = 1;
 		});
 		this.cad.controls.config.dragAxis = "xy";
 	}
@@ -370,7 +367,7 @@ export class CadMenu {
 				this.cadLength += l;
 			});
 			this.cadLength = Number(this.cadLength.toFixed(2));
-			if(!data.zhankaikuan){
+			if (!data.zhankaikuan) {
 				data.zhankaikuan = this.cadLength.toString();
 			}
 		}
