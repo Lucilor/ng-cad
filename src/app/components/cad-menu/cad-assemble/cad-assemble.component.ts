@@ -132,10 +132,9 @@ export class CadAssembleComponent implements OnInit {
 			try {
 				data.directAssemble(component);
 			} catch (error) {
-				this.dialog.open(AlertComponent, {data: {content: (error as Error).message}});
+				this.dialog.open(AlertComponent, {data: {content: error}});
 			}
 		});
-		// data.updateComponents();
 		menu.cad.render();
 	}
 }

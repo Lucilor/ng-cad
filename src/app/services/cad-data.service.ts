@@ -35,15 +35,9 @@ export class CadDataService {
 		this.data = params.data ? encodeURIComponent(params.data) : "";
 	}
 
-	private alertError(err: any) {
-		if (this.silent) {
-			return;
-		}
-		console.warn(err);
-		if (err instanceof Error) {
-			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: err.message}});
-		} else if (err) {
-			this.dialog.open(AlertComponent, {data: {title: "Oops!", content: JSON.stringify(err)}});
+	private alert(content: any) {
+		if (!this.silent) {
+			this.dialog.open(AlertComponent, {data: {content}});
 		}
 	}
 
@@ -53,7 +47,7 @@ export class CadDataService {
 			try {
 				return [new CadData(this.loadCurrentCad())];
 			} catch (error) {
-				this.alertError(error);
+				this.alert(error);
 				return [new CadData()];
 			}
 		}
@@ -73,7 +67,7 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
-			this.alertError(error);
+			this.alert(error);
 			return [new CadData()];
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadData"});
@@ -168,7 +162,7 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
-			this.alertError(error);
+			this.alert(error);
 			return null;
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
@@ -189,7 +183,7 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
-			this.alertError(error);
+			this.alert(error);
 			return null;
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
@@ -248,7 +242,7 @@ export class CadDataService {
 				throw new Error(response.msg);
 			}
 		} catch (error) {
-			this.alertError(error);
+			this.alert(error);
 			return null;
 		} finally {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getOptions"});
