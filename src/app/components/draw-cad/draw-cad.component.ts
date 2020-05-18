@@ -119,6 +119,13 @@ export class DrawCadComponent implements AfterViewInit {
 			RSAEncrypt({collection: "cad"})
 		);
 		cad.data.components.data = cad.data.components.data.concat(resDataArr);
+		resDataArr.forEach((d) => {
+			try {
+				cad.data.directAssemble(d);
+			} catch (error) {
+				console.warn(error);
+			}
+		});
 		await dataService.postCadData([cad.data]);
 		this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});
 	}

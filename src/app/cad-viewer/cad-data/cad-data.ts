@@ -521,7 +521,7 @@ export class CadData {
 		return this;
 	}
 
-	directAssemble(data: CadData, component: CadData, accuracy = 1) {
+	directAssemble(component: CadData, accuracy = 1) {
 		const findLines = (entities: CadEntities): {[key: string]: CadLine} => {
 			let hLine: CadLine;
 			let vLine: CadLine;
@@ -542,7 +542,7 @@ export class CadData {
 			return {x: vLine, y: hLine};
 		};
 
-		const lines = findLines(data.entities);
+		const lines = findLines(this.entities);
 		if (!lines) {
 			return;
 		}
@@ -552,8 +552,8 @@ export class CadData {
 		}
 		["x", "y"].forEach((axis) => {
 			const conn = new CadConnection({axis, position: "absolute"});
-			conn.ids = [data.id, component.id];
-			conn.names = [data.name, component.name];
+			conn.ids = [this.id, component.id];
+			conn.names = [this.name, component.name];
 			conn.lines = [lines[axis].id, cLines[axis].id];
 			if (axis === "x") {
 				conn.space = (cLines[axis].start.x - lines[axis].start.x).toString();
@@ -561,9 +561,8 @@ export class CadData {
 			if (axis === "y") {
 				conn.space = (cLines[axis].start.y - lines[axis].start.y).toString();
 			}
-			data.assembleComponents(conn);
+			this.assembleComponents(conn);
 		});
-		data.updateComponents();
 	}
 }
 

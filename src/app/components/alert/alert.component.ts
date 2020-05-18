@@ -2,9 +2,10 @@ import {Component, OnInit, Inject} from "@angular/core";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
 
 export interface AlertData {
-	title: string;
-	content: string;
-	confirm: boolean;
+	title?: string;
+	content?: string;
+	confirm?: boolean;
+	type?: "none" | "error";
 }
 
 @Component({
@@ -15,5 +16,8 @@ export interface AlertData {
 export class AlertComponent implements OnInit {
 	constructor(public dialogRef: MatDialogRef<AlertComponent>, @Inject(MAT_DIALOG_DATA) public data: AlertData) {}
 
-	ngOnInit() {}
+	ngOnInit() {
+		// const {title,type}=this.data;
+		// if()
+	}
 }

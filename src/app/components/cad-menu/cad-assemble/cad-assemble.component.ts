@@ -124,56 +124,18 @@ export class CadAssembleComponent implements OnInit {
 		this.data.components.connections.splice(index, 1);
 	}
 
-	private _findLines(entities: CadEntities): {[key: string]: CadLine} {
-		let hLine: CadLine;
-		let vLine: CadLine;
-		for (const l of entities.line) {
-			if (Math.abs(l.slope) <= this.menu.accuracy) {
-				hLine = l;
-			}
-			if (!isFinite(l.slope)) {
-				vLine = l;
-			}
-			if (hLine && vLine) {
-				break;
-			}
-		}
-		if (!hLine || !vLine) {
-			this.dialog.open(AlertComponent, {data: {content: "缺少水平或垂直的线"}});
-			return null;
-		}
-		return {x: vLine, y: hLine};
-	}
-
 	directAssemble() {
 		const {menu} = this;
 		const data = menu.getData(menu.cadIdx, -1);
-		const lines = this._findLines(data.entities);
-		if (!lines) {
-			return;
-		}
 		menu.checkedIdx.forEach((i) => {
 			const component = menu.getData(menu.cadIdx, i);
-			const cLines = this._findLines(component.getAllEntities());
-			if (!cLines) {
-				return;
+			try {
+				data.directAssemble(component);
+			} catch (error) {
+				this.dialog.open(AlertComponent, {data: {content: (error as Error).message}});
 			}
-			["x", "y"].forEach((axis) => {
-				const conn = new CadConnection({axis, position: "absolute"});
-				conn.ids = [data.id, component.id];
-				conn.names = [data.name, component.name];
-				conn.lines = [lines[axis].id, cLines[axis].id];
-				if (axis === "x") {
-					conn.space = (cLines[axis].start.x - lines[axis].start.x).toString();
-				}
-				if (axis === "y") {
-					conn.space = (cLines[axis].start.y - lines[axis].start.y).toString();
-				}
-				console.log(conn);
-				data.assembleComponents(conn);
-			});
 		});
-		data.updateComponents();
+		// data.updateComponents();
 		menu.cad.render();
 	}
 }
