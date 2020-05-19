@@ -2,7 +2,6 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialogRef, MatDialog} from "@angular/material/dialog";
 import {CadDimensionFormComponent} from "../cad-dimension-form/cad-dimension-form.component";
-import {Mesh, Material} from "three";
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
@@ -27,7 +26,7 @@ export class CadDimensionComponent implements OnInit {
 		cad.controls.on("entityselect", (event, entity) => {
 			const {type, index} = mode;
 			const dimensions = this.data;
-			if (type === "dimension") {
+			if (type === "dimension" && entity instanceof CadLine) {
 				let thatData: CadData;
 				for (const d of cad.data.components.data) {
 					if (d.findEntity(entity.id)) {

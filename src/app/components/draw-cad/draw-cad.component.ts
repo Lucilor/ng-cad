@@ -127,7 +127,9 @@ export class DrawCadComponent implements AfterViewInit {
 			}
 		});
 		await dataService.postCadData([cad.data]);
-		this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});
+		await this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});
+		// TODO: bug
+		window.location = window.location;
 	}
 
 	selectOptions(i: number) {

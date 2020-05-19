@@ -65,7 +65,6 @@ export class CadAssembleComponent implements OnInit {
 							}
 							if ((lines.length === 2 && position === "absolute") || (lines.length === 3 && position === "relative")) {
 								try {
-									console.log(ids, names, lines);
 									data.assembleComponents(new CadConnection({ids, names, lines, space, position}));
 								} catch (error) {
 									this.dialog.open(AlertComponent, {data: {content: error.message}});
@@ -109,7 +108,7 @@ export class CadAssembleComponent implements OnInit {
 		this.lines = [];
 		menu.cad.unselectAll();
 		if (this.assembling) {
-			menu.blur(menu.cadIdx, menu.cadIdx2);
+			menu.blur(menu.cadIdx, menu.cadIdxs2);
 			menu.selectLineBegin("assemble", -1);
 			cad.controls.config.dragAxis = "";
 		} else {
@@ -127,7 +126,7 @@ export class CadAssembleComponent implements OnInit {
 	directAssemble() {
 		const {menu} = this;
 		const data = menu.getData(menu.cadIdx, -1);
-		menu.checkedIdx.forEach((i) => {
+		menu.cadIdxs2.forEach((i) => {
 			const component = menu.getData(menu.cadIdx, i);
 			try {
 				data.directAssemble(component);

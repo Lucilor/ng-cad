@@ -47,14 +47,14 @@ export class CadSubcadComponent implements OnInit {
 		data?.forEach((d, i) => {
 			const cad = new CadViewer(d, {width: 300, height: 150, padding: 10});
 			const src = cad.exportImage().src;
-			this.list.push({id: d.id, name: d.name, src, checked: menu.checkedIdx.includes(i)});
+			this.list.push({id: d.id, name: d.name, src, checked: menu.cadIdxs2.includes(i)});
 			cad.destroy();
 		});
 	}
 
 	clickItem(index: number) {
 		const {menu} = this;
-		const {cadIdx, cadIdx2, viewMode} = menu;
+		const {cadIdx, cadIdxs2, viewMode} = menu;
 		if (viewMode === "normal") {
 			if (index === cadIdx) {
 				menu.blur();
@@ -63,31 +63,24 @@ export class CadSubcadComponent implements OnInit {
 			}
 		} else {
 			if (this.multi) {
-				menu.checkedIdx.length = 0;
+				menu.cadIdxs2.length = 0;
 				this.list.forEach((v, i) => {
 					if (v.checked) {
-						menu.checkedIdx.push(i);
+						menu.cadIdxs2.push(i);
 					}
 				});
-				if (menu.checkedIdx.length > 0) {
-					menu.focus(cadIdx, menu.checkedIdx[0]);
-				} else {
-					menu.blur();
-				}
+				menu.focus();
 			} else {
-				if (index === cadIdx2) {
-					menu.blur();
-				} else {
-					menu.focus(cadIdx, index);
-				}
+				menu.cadIdxs2 = index === cadIdxs2[0] ? [] : [index];
+				menu.focus();
 			}
 		}
 	}
 
 	isActive(index: number) {
 		const {menu} = this;
-		const {cadIdx, cadIdx2, viewMode} = menu;
-		return viewMode === "normal" ? index === cadIdx : index === cadIdx2;
+		const {cadIdx, cadIdxs2, viewMode} = menu;
+		return viewMode === "normal" ? index === cadIdx : index === cadIdxs2[0];
 	}
 
 	editSubcads(type: string) {

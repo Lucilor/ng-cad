@@ -266,7 +266,7 @@ export class CadViewer {
 		const {scene, objects} = this;
 		let canDraw = entity.visible;
 		if (entity instanceof CadLine) {
-			canDraw = entity.length > 0;
+			canDraw = canDraw && entity.length > 0;
 		}
 		if (!canDraw) {
 			scene.remove(objects[entity.id]);
@@ -397,7 +397,6 @@ export class CadViewer {
 			objects[entity.id] = object;
 			scene.add(object);
 		}
-		object.material.setValue({opacity, transparent: true});
 		this._setAnchor(object, entity.insert, entity.anchor);
 	}
 

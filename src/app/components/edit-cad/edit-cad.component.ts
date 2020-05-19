@@ -75,11 +75,11 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		this.cad.render(true);
 		this.menu.initData();
 		if (partners) {
-			this.menu.focus(0, 0, "partners");
+			this.menu.focus(0, [0], "partners");
 		} else if (components) {
-			this.menu.focus(0, 0, "components");
+			this.menu.focus(0, [0], "components");
 		} else {
-			this.menu.focus(0, -1, "normal");
+			this.menu.focus(0, [], "normal");
 		}
 		this.subcad.updateList();
 		document.title = `${title}-${data.map((d) => d.name).join(",")}`;
@@ -129,8 +129,8 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 
 	transform(trans: CadTransformation) {
 		const {cad, menu} = this;
-		if (menu.checkedIdx.length) {
-			menu.checkedIdx.forEach((i) => {
+		if (menu.cadIdxs2.length) {
+			menu.cadIdxs2.forEach((i) => {
 				menu.getData(menu.cadIdx, i).transform(trans);
 			});
 		} else {
@@ -145,7 +145,7 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			const queryParams = this.route.snapshot.queryParams;
 			this.router.navigate(["draw-cad"], {queryParams: {...queryParams, fromEdit: true}});
 		} else {
-			this.menu.focus(this.menu.cadIdx, 0, mode);
+			this.menu.focus(this.menu.cadIdx, [0], mode);
 			this.subcad.updateList();
 		}
 	}

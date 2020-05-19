@@ -31,8 +31,7 @@ export class CadMenu {
 	line: CadLine;
 	mode: Mode;
 	cadIdx = -1;
-	cadIdx2 = -1;
-	checkedIdx = Array<number>();
+	cadIdxs2 = Array<number>();
 	partner: string;
 	cadLength = 0;
 	pointsMap: LinesAtPoint[];
@@ -66,7 +65,7 @@ export class CadMenu {
 				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
 				if (this.viewMode === "components") {
-					this.checkedIdx.forEach((i) => {
+					this.cadIdxs2.forEach((i) => {
 						data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
 					});
 				} else {
@@ -86,7 +85,7 @@ export class CadMenu {
 		});
 	}
 
-	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2) {
+	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdxs2[0]) {
 		const {cad, viewMode} = this;
 		let result: CadData;
 		if (viewMode === "normal" || viewMode === "slice" || cadIdx2 < 0) {
@@ -254,16 +253,13 @@ export class CadMenu {
 		this.pointsMap = this.generatePointsMap(this.getData().getAllEntities());
 	}
 
-	focus(cadIdx = this.cadIdx, cadIdx2 = this.cadIdx2, viewMode: CadMenu["viewMode"] = this.viewMode) {
+	focus(cadIdx = this.cadIdx, cadIdxs2 = this.cadIdxs2, viewMode: CadMenu["viewMode"] = this.viewMode) {
 		this.cadIdx = cadIdx;
-		this.cadIdx2 = cadIdx2;
+		this.cadIdxs2 = cadIdxs2;
 		const viewModeChanged = this.viewMode !== viewMode;
 		this.viewMode = viewMode;
-		const {cad, checkedIdx} = this;
-		if (checkedIdx.length < 1) {
-			checkedIdx.push(cadIdx2);
-		}
-		if (cadIdx2 >= 0) {
+		const {cad} = this;
+		if (cadIdxs2.length > 0) {
 			cad.data.components.data.forEach((d, i) => {
 				if (cadIdx === i || viewMode === "normal") {
 					d.show();
@@ -282,11 +278,10 @@ export class CadMenu {
 					e.opacity = opacity;
 				}, d.getAllEntities());
 			});
-			this.cadIdx2 = -1;
-			this.checkedIdx = [];
+			this.cadIdxs2 = [];
 		} else {
 			const data = this.getData(this.cadIdx, -1);
-			if (cadIdx2 >= 0) {
+			if (cadIdxs2.length > 0) {
 				let subData: CadData[];
 				if (viewMode === "partners") {
 					subData = data.partners;
@@ -305,7 +300,7 @@ export class CadMenu {
 					e.opacity = 0.3;
 				}, data.entities);
 				subData.forEach((d, i) => {
-					const isFocused = checkedIdx.includes(i);
+					const isFocused = cadIdxs2.includes(i);
 					const opacity = isFocused ? 1 : 0.3;
 					const selectable = isFocused ? true : false;
 					cad.traverse((o, e) => {
@@ -322,25 +317,15 @@ export class CadMenu {
 		}
 		cad.controls.config.dragAxis = "";
 		this.updateCadLength();
-		cad.traverse(
-			(o, e) => {
-				if (e.type === CAD_TYPES.mtext) {
-					e.visible = this.drawMTexts;
-					o.userData.selectable = false;
-				}
-				if (e.type === CAD_TYPES.dimension) {
-					e.visible = this.drawDimensions;
-				}
-			},
-			cad.data.getAllEntities(),
-			["mtext", "dimension"]
-		);
+		const {mtext, dimension} = cad.data.getAllEntities();
+		mtext.forEach((e) => (e.visible = this.drawMTexts));
+		dimension.forEach((e) => (e.visible = this.drawMTexts));
 		cad.render(viewModeChanged);
 	}
 
-	blur(cadIdx = -1, cadIdx2 = -1) {
-		if (this.cadIdx2 >= 0) {
-			this.cadIdx2 = cadIdx2;
+	blur(cadIdx = -1, cadIdxs2 = []) {
+		if (this.cadIdxs2.length >= 0) {
+			this.cadIdxs2 = cadIdxs2;
 		} else if (this.cadIdx >= 0) {
 			this.cadIdx = cadIdx;
 		}

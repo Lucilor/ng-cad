@@ -37,6 +37,9 @@ export class CadStylizer {
 		if (entity instanceof CadMtext || entity instanceof CadDimension) {
 			eFontSize = entity.font_size;
 		}
+		if (entity instanceof CadDimension) {
+			result.color.setRGB(0, 1, 0);
+		}
 		result.fontSize = params.fontSize || eFontSize || 16;
 		result.opacity = entity.opacity;
 		if (typeof params.opacity === "number") {
