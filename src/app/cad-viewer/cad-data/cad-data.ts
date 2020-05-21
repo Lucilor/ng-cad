@@ -137,8 +137,14 @@ export class CadData {
 		return this.getAllEntities().find(id);
 	}
 
-	clone() {
-		return new CadData(this.export());
+	clone(resetEntitiesIds = false) {
+		const data = new CadData(this.export());
+		if (resetEntitiesIds) {
+			data.entities = data.entities.clone(true);
+			data.partners = data.partners.map((v) => v.clone(true));
+			data.components.data = data.components.data.map((v) => v.clone(true));
+		}
+		return data;
 	}
 
 	private _mergeArray(arr1: any[], arr2: any[], field?: string) {

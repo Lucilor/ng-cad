@@ -108,6 +108,14 @@ export class CadEntities {
 		return result;
 	}
 
+	clone(resetIds = false) {
+		const result = new CadEntities(this.export());
+		if (resetIds) {
+			result.forEach((e) => (e.id = MathUtils.generateUUID()));
+		}
+		return result;
+	}
+
 	transform(trans: CadTransformation) {
 		for (const type in CAD_TYPES) {
 			(this[type] as CadEntity[]).forEach((e) => e.transform(trans));

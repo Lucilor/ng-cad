@@ -2,7 +2,7 @@ import {Component, OnInit, Input} from "@angular/core";
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadMenu} from "../cad-menu.common";
-import {MatDialog} from "@angular/material/dialog";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CadDataService} from "@services/cad-data.service";
 
@@ -93,9 +93,13 @@ export class CadSubcadComponent implements OnInit {
 		if (type === "components") {
 			checkedItems = data.components.data.map((v) => v.id);
 		}
-		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "multiple", checkedItems}, width: "80vw"});
+		const ref: MatDialogRef<ListCadComponent, CadData[]> = this.dialog.open(ListCadComponent, {
+			data: {selectMode: "multiple", checkedItems},
+			width: "80vw"
+		});
 		ref.afterClosed().subscribe(async (cads) => {
 			if (Array.isArray(cads)) {
+				cads = cads.map((v) => v.clone(true));
 				if (type === "partners") {
 					data.partners = cads;
 				}
@@ -112,5 +116,19 @@ export class CadSubcadComponent implements OnInit {
 
 	cadImageClick() {
 		this.menu.focus();
+	}
+
+	deleteSubcads() {
+		const {menu} = this;
+		const data = menu.getData(menu.cadIdx, -1);
+		if (menu.viewMode === "partners") {
+			data.partners = data.partners.filter((_v, i) => !menu.cadIdxs2.includes(i));
+		}
+		if (menu.viewMode === "components") {
+			data.components.data = data.components.data.filter((_v, i) => !menu.cadIdxs2.includes(i));
+		}
+		this.updateList();
+		menu.cad.reset();
+		menu.focus();
 	}
 }

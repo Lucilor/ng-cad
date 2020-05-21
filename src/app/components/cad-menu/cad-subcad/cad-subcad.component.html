@@ -16,7 +16,11 @@
 			<img [src]="item.src" (click)="item.checked = !item.checked" (click)="clickItem(i)" />
 		</div>
 	</div>
-	<button mat-raised-button color="primary" (click)="editSubcads('partners')">编辑关联</button>
-	<span style="margin-left: 10px;"></span>
-	<button mat-raised-button color="primary" (click)="editSubcads('components')">编辑装配</button>
+	<div class="btn-group">
+		<button mat-raised-button color="primary" (click)="editSubcads('partners')">编辑关联</button>
+		<button mat-raised-button color="primary" (click)="editSubcads('components')">编辑装配</button>
+	</div>
+	<div class="btn-group" *ngIf="menu.viewMode === 'partners' || menu.viewMode === 'components'">
+		<button mat-raised-button color="primary" (click)="deleteSubcads()">删除选中</button>
+	</div>
 </mat-expansion-panel>
