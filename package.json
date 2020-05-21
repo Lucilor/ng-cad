@@ -28,7 +28,7 @@
     "@seregpie/three.text-sprite": "^2.0.0",
     "lodash": "^4.17.15",
     "rxjs": "^6.5.5",
-    "tslib": "^2.0.0",
+    "tslib": "^1.10.0",
     "zone.js": "^0.10.3"
   },
   "devDependencies": {
