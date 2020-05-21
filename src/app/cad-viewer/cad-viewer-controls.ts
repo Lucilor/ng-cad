@@ -260,19 +260,19 @@ export class CadViewerControls {
 			switch (event.key) {
 				case "w":
 				case "ArrowUp":
-					position.y += step;
+					position.y -= step;
 					break;
 				case "a":
 				case "ArrowLeft":
-					position.x -= step;
+					position.x += step;
 					break;
 				case "s":
 				case "ArrowDown":
-					position.y -= step;
+					position.y += step;
 					break;
 				case "d":
 				case "ArrowRight":
-					position.x += step;
+					position.x -= step;
 					break;
 				case "Escape":
 					cad.unselectAll();

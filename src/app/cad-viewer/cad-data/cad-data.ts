@@ -247,14 +247,14 @@ export class CadData {
 	}
 
 	addComponent(component: CadData) {
-		const rect1 = this.getAllEntities().getBounds();
-		if (rect1.width && rect1.height) {
-			const rect2 = component.getAllEntities().getBounds();
-			const translate = new Vector2(rect1.x - rect2.x, rect1.y - rect2.y);
-			translate.x += (rect1.width + rect2.width) / 2 + 15;
-			// offset1[1] += (rect1.height - rect2.height) / 2;
-			component.transform(new CadTransformation({translate}));
-		}
+		// const rect1 = this.getAllEntities().getBounds();
+		// if (rect1.width && rect1.height) {
+		// 	const rect2 = component.getAllEntities().getBounds();
+		// 	const translate = new Vector2(rect1.x - rect2.x, rect1.y - rect2.y);
+		// 	translate.x += (rect1.width + rect2.width) / 2 + 15;
+		// 	// offset1[1] += (rect1.height - rect2.height) / 2;
+		// 	component.transform(new CadTransformation({translate}));
+		// }
 		const data = this.components.data;
 		const prev = data.findIndex((v) => v.id === component.id);
 		if (prev > -1) {
