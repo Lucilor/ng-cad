@@ -1,6 +1,6 @@
 import {Component, OnInit, Input} from "@angular/core";
 import {CadMenu} from "../cad-menu.common";
-import {Vector2} from "three";
+import {Vector2, Color} from "three";
 import {getColorLightness} from "@lucilor/utils";
 import {MatSelectChange} from "@angular/material/select";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
@@ -16,7 +16,6 @@ import {CadArc} from "@src/app/cad-viewer/cad-data/cad-entity/cad-arc";
 })
 export class CadLineComponent implements OnInit {
 	@Input() menu: CadMenu;
-	line: CadLine;
 	tLine: {start: Vector2; end: Vector2};
 	get data() {
 		return this.menu.getData();
@@ -24,19 +23,16 @@ export class CadLineComponent implements OnInit {
 	get selectedLines() {
 		return this.menu.cad.selectedEntities.line;
 	}
+	focusedField = "";
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
 	constructor() {}
 
 	ngOnInit() {
-		const {cad, mode} = this.menu;
-		cad.controls.on("entityselect", (event, entity) => {
-			if (mode.type === "normal" && entity instanceof CadLine) {
-				this.line = entity;
-				this.updateTLine();
-			}
+		const {cad} = this.menu;
+		cad.controls.on("entityselect", () => {
+			this.updateTLine();
 		});
 		cad.controls.on("entityunselect", () => {
-			this.line = null;
 			this.updateTLine();
 		});
 		cad.controls.on("drag", () => this.updateTLine());
@@ -50,14 +46,24 @@ export class CadLineComponent implements OnInit {
 		return translate;
 	}
 
+	getLineLength() {
+		const lines = this.selectedLines;
+		if (lines.length === 1) {
+			return lines[0].length.toFixed(2);
+		}
+		return "";
+	}
+
 	setLineLength(event: InputEvent) {
-		const {line, menu} = this;
+		const {selectedLines, menu} = this;
 		menu.updatePointsMap();
-		const entities = this.findAllAdjacentLines(line, line.end);
-		const length = Number((event.target as HTMLInputElement).value);
-		const d = line.length - length;
-		const translate = this.expandLine(line, d);
-		entities.transform(new CadTransformation({translate}));
+		selectedLines.forEach((line) => {
+			const entities = this.findAllAdjacentLines(line, line.end);
+			const length = Number((event.target as HTMLInputElement).value);
+			const d = line.length - length;
+			const translate = this.expandLine(line, d);
+			entities.transform(new CadTransformation({translate}));
+		});
 		menu.getData().updatePartners().updateComponents();
 		menu.cad.render();
 		menu.updateCadLength();
@@ -118,39 +124,55 @@ export class CadLineComponent implements OnInit {
 		return entities;
 	}
 
-	getCssColor(color?: string) {
-		if (color) {
-			return getColorLightness(color) < 0.5 ? "black" : "white";
-		} else if (this.line) {
-			return "#" + this.line.color.toString(16).padStart(6, "0");
+	getCssColor(colorStr?: string) {
+		const lines = this.selectedLines;
+		if (colorStr) {
+			const color = new Color(colorStr);
+			return getColorLightness(color.getHex()) < 0.5 ? "black" : "white";
+		}
+		if (lines.length === 1) {
+			return "#" + lines[0].color.getHexString();
+		}
+		if (lines.length) {
+			const strs = Array.from(new Set(lines.map((l) => "#" + l.color.getHexString())));
+			if (strs.length === 1) {
+				return strs[0];
+			}
 		}
 		return "white";
 	}
 
 	setLineColor(event: MatSelectChange) {
 		const color = parseInt(event.value.slice("1"), 16);
-		if (this.selectedLines.length) {
-			this.selectedLines.forEach((e) => (e.color = color));
-		} else if (this.line) {
-			this.line.color = color;
-		}
+		this.selectedLines.forEach((e) => e.color.set(color));
 		this.menu.cad.render();
+	}
+
+	getLineText(field: "mingzi" | "qujian" | "gongshi") {
+		const lines = this.selectedLines;
+		if (lines.length === 1) {
+			return lines[0][field];
+		}
+		if (lines.length) {
+			const texts = Array.from(new Set(lines.map((l) => l[field])));
+			if (texts.length === 1) {
+				return texts[0];
+			}
+			return field === this.focusedField ? "" : "多个值";
+		}
+		return "";
 	}
 
 	setLineText(event: Event, field: string) {
 		const value = (event.target as HTMLInputElement).value;
-		if (this.selectedLines.length) {
-			this.selectedLines.forEach((e) => (e[field] = value));
-		} else if (this.line) {
-			this.line[field] = value;
-			this.menu.cad.render();
-		}
+		this.selectedLines.forEach((e) => (e[field] = value));
 	}
 
 	updateTLine() {
-		if (this.line) {
-			const start = this.menu.cad.translatePoint(this.line.start);
-			const end = this.menu.cad.translatePoint(this.line.end);
+		const lines = this.selectedLines;
+		if (lines.length === 1) {
+			const start = this.menu.cad.translatePoint(lines[0].start);
+			const end = this.menu.cad.translatePoint(lines[0].end);
 			this.tLine = {start, end};
 		} else {
 			this.tLine = null;

@@ -39,14 +39,15 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		"缩放：滚轮 或 [键 + ]键",
 		"全选：ctrl+a",
 		"全不选：esc",
-		"锁定下一次鼠标触碰的线：按住Ctrl"
+		"锁定下一次鼠标触碰的线：按住Ctrl",
+		"删除选中的实体: Delete"
 	].join("\n");
 	menuMap: {[key: string]: CadMenu["viewMode"][]} = {
-		subcad: ["normal", "components", "partners", "slice"],
-		cadInfo: ["normal", "partners", "components"],
+		subcad: ["normal", "components", "partners"],
+		cadInfo: ["normal", "partners"],
 		cadLine: ["normal", "partners"],
 		cadAssemble: ["components"],
-		cadDimension: ["normal", "components", "partners"]
+		cadDimension: ["normal", "partners"]
 	};
 	cad: CadViewer;
 	rotateAngle = 0;

@@ -88,7 +88,7 @@ export class CadMenu {
 	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdxs2[0]) {
 		const {cad, viewMode} = this;
 		let result: CadData;
-		if (viewMode === "normal" || viewMode === "slice" || cadIdx2 < 0) {
+		if (viewMode === "normal" || cadIdx2 < 0) {
 			result = cad.data.components.data[cadIdx];
 		} else if (viewMode === "partners") {
 			result = cad.data.components.data[cadIdx].partners[cadIdx2];

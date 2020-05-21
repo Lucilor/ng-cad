@@ -283,6 +283,9 @@ export class CadViewerControls {
 				case "]":
 					cad.scale += 0.1;
 					break;
+				case "Delete":
+					cad.removeEntities(cad.selectedEntities);
+					break;
 				default:
 			}
 		}

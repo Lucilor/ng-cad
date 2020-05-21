@@ -1,6 +1,6 @@
 import {CadLayer} from "../cad-layer";
 import {CAD_TYPES} from "../cad-types";
-import {MathUtils} from "three";
+import {MathUtils, Color} from "three";
 import {index2RGB, RGB2Index} from "@lucilor/utils";
 import {CadTransformation} from "../cad-transformation";
 
@@ -8,7 +8,7 @@ export class CadEntity {
 	id: string;
 	type: string;
 	layer: string;
-	color: number;
+	color: Color;
 	visible: boolean;
 	opacity: number;
 	_indexColor: number;
@@ -23,20 +23,20 @@ export class CadEntity {
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
 		this.layer = typeof data.layer === "string" ? data.layer : "0";
-		this.color = 0;
+		this.color = new Color();
 		if (data._indexColor && typeof data.color === "number") {
 			this._indexColor = data._indexColor;
-			this.color = data.color;
+			this.color.set(data.color);
 		} else {
-			this._indexColor = data.color;
 			if (typeof data.color === "number") {
+				this._indexColor = data.color;
 				if (data.color === 256) {
 					const layer = layers.find((layer) => layer.name === this.layer);
 					if (layer) {
-						this.color = layer.color;
+						this.color.set(layer.color);
 					}
 				} else {
-					this.color = index2RGB(data.color, "number");
+					this.color.set(index2RGB(data.color, "number"));
 				}
 			}
 		}
@@ -47,7 +47,7 @@ export class CadEntity {
 	transform(_params: CadTransformation) {}
 
 	export() {
-		this._indexColor = RGB2Index(this.color);
+		this._indexColor = RGB2Index(this.color.getHex());
 		return {
 			id: this.id,
 			layer: this.layer,

@@ -9,10 +9,10 @@
 			<input
 				matInput
 				type="number"
+				[ngModel]="getLineLength()"
 				(change)="setLineLength($event)"
-				[ngModel]="line?.length"
 				placeholder="请输入长度"
-				[disabled]="!line"
+				[disabled]="selectedLines.length < 1"
 			/>
 		</mat-form-field>
 	</div>
@@ -43,8 +43,10 @@
 			<input
 				matInput
 				type="text"
+				[ngModel]="getLineText('mingzi')"
 				(change)="setLineText($event, 'mingzi')"
-				[ngModel]="line?.mingzi"
+				(focus)="focusedField = 'mingzi'"
+				(blur)="focusedField = ''"
 				placeholder="请输入名字"
 				[disabled]="selectedLines.length < 1"
 			/>
@@ -57,8 +59,10 @@
 			<input
 				matInput
 				type="text"
+				[ngModel]="getLineText('qujian')"
 				(change)="setLineText($event, 'qujian')"
-				[ngModel]="line?.qujian"
+				(focus)="focusedField = 'qujian'"
+				(blur)="focusedField = ''"
 				placeholder="请输入区间"
 				[disabled]="selectedLines.length < 1"
 			/>
@@ -71,10 +75,12 @@
 			<input
 				matInput
 				type="text"
+				[ngModel]="getLineText('gongshi')"
 				(change)="setLineText($event, 'gongshi')"
-				[ngModel]="line?.gongshi || ''"
+				(focus)="focusedField = 'gongshi'"
+				(blur)="focusedField = ''"
 				placeholder="请输入公式"
-				[disabled]="!line"
+				[disabled]="selectedLines.length < 1"
 			/>
 		</mat-form-field>
 	</div>
