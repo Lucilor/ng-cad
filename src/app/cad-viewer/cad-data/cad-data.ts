@@ -158,24 +158,50 @@ export class CadData {
 		return arr1;
 	}
 
+	private _separateArray(arr1: any[], arr2: any[], field?: string) {
+		if (field) {
+			const keys = arr2.map((v) => v[field]);
+			arr1 = arr1.filter((v) => !keys.includes(v[field]));
+		} else {
+			arr1 = arr1.filter((v) => !arr2.includes(v));
+		}
+		return arr1;
+	}
+
 	merge(data: CadData) {
 		this.layers = this.layers.concat(data.layers);
 		this.entities.merge(data.entities);
 		this.conditions = this._mergeArray(this.conditions, data.conditions);
 		this.options = this._mergeArray(this.options, data.options, "name");
-		this.partners = this._mergeArray(this.partners, data.partners, "id");
 		this.jointPoints = this._mergeArray(this.jointPoints, data.jointPoints, "name");
 		this.baseLines = this._mergeArray(this.baseLines, data.baseLines, "name");
+		this.partners = this._mergeArray(this.partners, data.partners, "id");
 		this.components.connections = this._mergeArray(this.components.connections, data.components.connections);
 		this.components.data = this._mergeArray(this.components.data, data.components.data, "id");
 		return this;
 	}
 
-	transform(t: CadTransformation) {
-		this.entities.transform(t);
-		this.partners.forEach((v) => v.transform(t));
-		this.components.data.forEach((v) => v.transform(t));
-		const matrix = t.matrix;
+	separate(data: CadData) {
+		const layerIds = data.layers.map((v) => v.id);
+		this.layers = this.layers.filter((v) => !layerIds.includes(v.id));
+		this.entities.separate(data.entities);
+		this.conditions = this._separateArray(this.conditions, data.conditions);
+		this.options = this._separateArray(this.options, data.options, "name");
+		this.jointPoints = this._separateArray(this.jointPoints, data.jointPoints, "name");
+		this.baseLines = this._separateArray(this.baseLines, data.baseLines, "name");
+		this.partners = this._separateArray(this.partners, data.partners, "id");
+		this.components.connections = this._separateArray(this.components.connections, data.components.connections);
+		this.components.data = this._separateArray(this.components.data, data.components.data, "id");
+		this.partners.forEach((v) => v.separate(data));
+		this.components.data.forEach((v) => v.separate(data));
+		return this;
+	}
+
+	transform(trans: CadTransformation) {
+		this.entities.transform(trans);
+		this.partners.forEach((v) => v.transform(trans));
+		this.components.data.forEach((v) => v.transform(trans));
+		const matrix = trans.matrix;
 		this.baseLines.forEach((v) => {
 			const point = new Vector2(v.valueX, v.valueY);
 			point.applyMatrix3(matrix);

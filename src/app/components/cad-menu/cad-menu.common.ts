@@ -64,7 +64,10 @@ export class CadMenu {
 				const end = new Vector2(event.clientX, event.clientY);
 				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
-				if (this.viewMode === "components") {
+				const selected = cad.selectedEntities;
+				if (false && selected) {
+					selected.transform(new CadTransformation({translate}));
+				} else if (this.viewMode === "components") {
 					this.cadIdxs2.forEach((i) => {
 						data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
 					});
@@ -324,15 +327,18 @@ export class CadMenu {
 	}
 
 	blur(cadIdx = -1, cadIdxs2 = []) {
-		if (this.cadIdxs2.length >= 0) {
+		if (this.cadIdxs2.length > 0) {
 			this.cadIdxs2 = cadIdxs2;
 		} else if (this.cadIdx >= 0) {
 			this.cadIdx = cadIdx;
+			console.log(this.cadIdx);
 		}
-		this.cad.traverse((o, e) => {
-			o.userData.selectable = true;
-			e.opacity = 1;
-		});
+		this.cad
+			.traverse((o, e) => {
+				o.userData.selectable = true;
+				e.opacity = 1;
+			})
+			.render();
 		this.cad.controls.config.dragAxis = "xy";
 	}
 

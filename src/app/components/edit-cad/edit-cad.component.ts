@@ -107,38 +107,47 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 	}
 
 	rotate(clockwise?: boolean) {
-		const {cad} = this;
 		let angle = 0;
 		if (clockwise === true) {
-			angle = -Math.PI / 2;
-		} else if (clockwise === false) {
 			angle = Math.PI / 2;
+		} else if (clockwise === false) {
+			angle = -Math.PI / 2;
 		} else {
 			angle = new Angle(this.rotateAngle, "deg").rad;
 		}
-		if (typeof clockwise === "boolean") {
-			cad.data.getAllEntities().dimension.forEach((d) => {
-				if (d.axis === "x") {
-					d.axis = "y";
-				} else {
-					d.axis = "x";
-				}
-			});
-		}
-		this.transform(new CadTransformation({rotate: {angle}}));
+		this.transform(new CadTransformation({rotate: {angle}}), typeof clockwise === "boolean");
 	}
 
-	transform(trans: CadTransformation) {
+	transform(trans: CadTransformation, rotateDimension = false) {
 		const {cad, menu} = this;
-		if (menu.cadIdxs2.length) {
+		const fn = (data: CadData) => {
+			const {x, y} = data.getAllEntities().getBounds();
+			trans.anchor.set(x, y);
+			data.transform(trans);
+			if (rotateDimension) {
+				data.getAllEntities().dimension.forEach((d) => {
+					if (d.axis === "x") {
+						d.axis = "y";
+					} else {
+						d.axis = "x";
+					}
+				});
+			}
+		};
+		const seleted = cad.selectedEntities;
+		if (seleted.length) {
+			const {x, y} = seleted.getBounds();
+			trans.anchor.set(x, y);
+			seleted.transform(trans);
+		} else if (menu.cadIdxs2.length) {
 			menu.cadIdxs2.forEach((i) => {
-				menu.getData(menu.cadIdx, i).transform(trans);
+				fn(menu.getData(menu.cadIdx, i));
 			});
 		} else {
-			menu.getData().transform(new CadTransformation(trans));
+			fn(menu.getData());
 		}
 		cad.data.updatePartners().updateComponents();
-		cad.render(true);
+		cad.render();
 	}
 
 	setViewMode(mode: CadMenu["viewMode"]) {

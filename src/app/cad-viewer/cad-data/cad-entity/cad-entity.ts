@@ -44,7 +44,7 @@ export class CadEntity {
 		this.opacity = typeof data.opacity === "number" ? data.opacity : 1;
 	}
 
-	transform(_params: CadTransformation) {}
+	transform(_trans: CadTransformation) {}
 
 	export() {
 		this._indexColor = RGB2Index(this.color.getHex());

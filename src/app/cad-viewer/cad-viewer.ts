@@ -618,6 +618,7 @@ export class CadViewer {
 
 	traverse(callback: (o: Object3D, e: CadEntity) => void, entities = this.data.getAllEntities(), include?: (keyof CadTypes)[]) {
 		entities.forEach((e) => this.objects[e.id]?.traverse((o) => callback(o, e)), include);
+		return this;
 	}
 
 	addEntities(entities: CadEntities) {
@@ -630,9 +631,9 @@ export class CadViewer {
 			this.scene.remove(this.objects[e.id]);
 			delete this.objects[e.id];
 		});
-		this.data.entities.separate(entities);
-		this.data.partners.forEach((d) => d.entities.separate(entities));
-		this.data.components.data.forEach((d) => d.entities.separate(entities));
+		const data = new CadData();
+		data.entities = entities;
+		this.data.separate(data);
 		return this.render();
 	}
 }

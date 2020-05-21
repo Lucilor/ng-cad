@@ -108,9 +108,9 @@ export class CadEntities {
 		return result;
 	}
 
-	transform(params: CadTransformation) {
+	transform(trans: CadTransformation) {
 		for (const type in CAD_TYPES) {
-			(this[type] as CadEntity[]).forEach((e) => e.transform(params));
+			(this[type] as CadEntity[]).forEach((e) => e.transform(trans));
 		}
 	}
 
