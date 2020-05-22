@@ -28,6 +28,15 @@ export class CadDimensionComponent implements OnInit {
 			const dimensions = this.data;
 			if (type === "dimension" && entity instanceof CadLine) {
 				let thatData: CadData;
+				let thatIndex: number;
+				cad.data.components.data.some((d, i) => {
+					if (d.findEntity(entity.id)) {
+						thatData = d;
+						thatIndex = i;
+						return true;
+					}
+					return false;
+				});
 				for (const d of cad.data.components.data) {
 					if (d.findEntity(entity.id)) {
 						thatData = d;
@@ -37,7 +46,11 @@ export class CadDimensionComponent implements OnInit {
 				let dimension = dimensions[index];
 				if (!dimension) {
 					dimension = new CadDimension();
-					mode.index = thatData.entities.dimension.push(dimension) - 1;
+					mode.index = 0;
+					for (let i = 0; i < thatIndex; i++) {
+						mode.index += this.menu.getData(i, -1).entities.dimension.length;
+					}
+					mode.index += thatData.entities.dimension.push(dimension) - 1;
 				}
 				if (!dimension.entity1.id) {
 					dimension.entity1 = {id: entity.id, location: "start"};
