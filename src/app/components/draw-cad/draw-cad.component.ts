@@ -77,6 +77,11 @@ export class DrawCadComponent implements AfterViewInit {
 		data.name = "CAD-" + (this.cads.length + 1);
 		const cad = new CadViewer(data, {padding: 10});
 		this.cads.push({src: cad.exportImage().src, data, checked: false});
+		this.cad.data.getAllEntities().dimension.forEach((d) => {
+			if (data.findEntity(d.entity1.id) || data.findEntity(d.entity2.id)) {
+				data.entities.dimension.push(d);
+			}
+		});
 		cad.destroy();
 		if (this.fromEdit) {
 			data.type = this.cad.data.type;

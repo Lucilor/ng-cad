@@ -3,7 +3,6 @@ import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {MatDialog} from "@angular/material/dialog";
 import {Vector2} from "three";
 import {CadDataService} from "@services/cad-data.service";
-import {CAD_TYPES} from "@src/app/cad-viewer/cad-data/cad-types";
 import {CadEntity} from "@src/app/cad-viewer/cad-data/cad-entity/cad-entity";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
@@ -68,9 +67,13 @@ export class CadMenu {
 				if (false && selected) {
 					selected.transform(new CadTransformation({translate}));
 				} else if (this.viewMode === "components") {
-					this.cadIdxs2.forEach((i) => {
-						data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
-					});
+					if (this.cadIdxs2.length) {
+						this.cadIdxs2.forEach((i) => {
+							data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
+						});
+					} else {
+						data.components.data.forEach((v) => data.moveComponent(v, translate.clone()));
+					}
 				} else {
 					data.transform(new CadTransformation({translate}));
 				}

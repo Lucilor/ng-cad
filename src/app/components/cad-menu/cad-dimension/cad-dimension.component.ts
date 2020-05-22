@@ -109,7 +109,6 @@ export class CadDimensionComponent implements OnInit {
 					o.userData.selected = [entity1?.id, entity2?.id].includes(e.id);
 					e.opacity = 1;
 				} else if (e instanceof CadDimension) {
-					o.userData.selectable = false;
 					e.opacity = 1;
 				} else {
 					o.userData.selectable = false;

@@ -5,7 +5,7 @@ import {CadEntities} from "./cad-entities";
 import {CadLayer} from "./cad-layer";
 import {CadTransformation} from "./cad-transformation";
 import {CadLine} from "./cad-entity/cad-line";
-import {getVectorFromArray, isLinesParallel} from "./utils";
+import {getVectorFromArray, isLinesParallel, mergeArray, separateArray} from "./utils";
 import {CadCircle} from "./cad-entity/cad-circle";
 import {CadEntity} from "./cad-entity/cad-entity";
 import {CadDimension} from "./cad-entity/cad-dimension";
@@ -147,43 +147,16 @@ export class CadData {
 		return data;
 	}
 
-	private _mergeArray(arr1: any[], arr2: any[], field?: string) {
-		if (field) {
-			const keys = arr1.map((v) => v[field]);
-			arr2.forEach((v) => {
-				const idx = keys.indexOf(v[field]);
-				if (idx === -1) {
-					arr1.push(v);
-				} else {
-					arr1[idx] = v;
-				}
-			});
-		} else {
-			arr1 = Array.from(new Set(arr1.concat(arr2)));
-		}
-		return arr1;
-	}
-
-	private _separateArray(arr1: any[], arr2: any[], field?: string) {
-		if (field) {
-			const keys = arr2.map((v) => v[field]);
-			arr1 = arr1.filter((v) => !keys.includes(v[field]));
-		} else {
-			arr1 = arr1.filter((v) => !arr2.includes(v));
-		}
-		return arr1;
-	}
-
 	merge(data: CadData) {
 		this.layers = this.layers.concat(data.layers);
 		this.entities.merge(data.entities);
-		this.conditions = this._mergeArray(this.conditions, data.conditions);
-		this.options = this._mergeArray(this.options, data.options, "name");
-		this.jointPoints = this._mergeArray(this.jointPoints, data.jointPoints, "name");
-		this.baseLines = this._mergeArray(this.baseLines, data.baseLines, "name");
-		this.partners = this._mergeArray(this.partners, data.partners, "id");
-		this.components.connections = this._mergeArray(this.components.connections, data.components.connections);
-		this.components.data = this._mergeArray(this.components.data, data.components.data, "id");
+		this.conditions = mergeArray(this.conditions, data.conditions);
+		this.options = mergeArray(this.options, data.options, "name");
+		this.jointPoints = mergeArray(this.jointPoints, data.jointPoints, "name");
+		this.baseLines = mergeArray(this.baseLines, data.baseLines, "name");
+		this.partners = mergeArray(this.partners, data.partners, "id");
+		this.components.connections = mergeArray(this.components.connections, data.components.connections);
+		this.components.data = mergeArray(this.components.data, data.components.data, "id");
 		return this;
 	}
 
@@ -191,13 +164,13 @@ export class CadData {
 		const layerIds = data.layers.map((v) => v.id);
 		this.layers = this.layers.filter((v) => !layerIds.includes(v.id));
 		this.entities.separate(data.entities);
-		this.conditions = this._separateArray(this.conditions, data.conditions);
-		this.options = this._separateArray(this.options, data.options, "name");
-		this.jointPoints = this._separateArray(this.jointPoints, data.jointPoints, "name");
-		this.baseLines = this._separateArray(this.baseLines, data.baseLines, "name");
-		this.partners = this._separateArray(this.partners, data.partners, "id");
-		this.components.connections = this._separateArray(this.components.connections, data.components.connections);
-		this.components.data = this._separateArray(this.components.data, data.components.data, "id");
+		this.conditions = separateArray(this.conditions, data.conditions);
+		this.options = separateArray(this.options, data.options, "name");
+		this.jointPoints = separateArray(this.jointPoints, data.jointPoints, "name");
+		this.baseLines = separateArray(this.baseLines, data.baseLines, "name");
+		this.partners = separateArray(this.partners, data.partners, "id");
+		this.components.connections = separateArray(this.components.connections, data.components.connections);
+		this.components.data = separateArray(this.components.data, data.components.data, "id");
 		this.partners.forEach((v) => v.separate(data));
 		this.components.data.forEach((v) => v.separate(data));
 		return this;

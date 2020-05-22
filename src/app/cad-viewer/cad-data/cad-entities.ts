@@ -9,6 +9,7 @@ import {CAD_TYPES, CadTypes} from "./cad-types";
 import {CadEntity} from "./cad-entity/cad-entity";
 import {CadTransformation} from "./cad-transformation";
 import {Box2, ArcCurve, MathUtils, Vector2} from "three";
+import {mergeArray, separateArray} from "./utils";
 
 export class CadEntities {
 	line: CadLine[] = [];
@@ -61,7 +62,7 @@ export class CadEntities {
 
 	merge(entities: CadEntities) {
 		Object.keys(CAD_TYPES).forEach((type) => {
-			this[type] = this[type].concat(entities[type]);
+			this[type] = mergeArray(this[type], entities[type], "id");
 		});
 	}
 
@@ -69,7 +70,7 @@ export class CadEntities {
 		Object.keys(CAD_TYPES).forEach((type) => {
 			const arr = entities[type] as CadEntity[];
 			const ids = arr.map((e) => e.id);
-			this[type] = (this[type] as CadEntity[]).filter((e) => !ids.includes(e.id));
+			this[type] = separateArray(this[type], entities[type], "id");
 		});
 	}
 

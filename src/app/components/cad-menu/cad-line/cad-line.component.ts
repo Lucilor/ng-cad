@@ -21,7 +21,8 @@ export class CadLineComponent implements OnInit {
 		return this.menu.getData();
 	}
 	get selectedLines() {
-		return this.menu.cad.selectedEntities.line;
+		const {line, arc} = this.menu.cad.selectedEntities;
+		return [...line, ...arc];
 	}
 	focusedField = "";
 	readonly selectableColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
@@ -49,7 +50,12 @@ export class CadLineComponent implements OnInit {
 	getLineLength() {
 		const lines = this.selectedLines;
 		if (lines.length === 1) {
-			return lines[0].length.toFixed(2);
+			const line = lines[0];
+			if (line instanceof CadLine) {
+				return line.length.toFixed(2);
+			} else if (line instanceof CadArc) {
+				return line.curve.getLength().toFixed(2);
+			}
 		}
 		return "";
 	}
@@ -58,11 +64,13 @@ export class CadLineComponent implements OnInit {
 		const {selectedLines, menu} = this;
 		menu.updatePointsMap();
 		selectedLines.forEach((line) => {
-			const entities = this.findAllAdjacentLines(line, line.end);
-			const length = Number((event.target as HTMLInputElement).value);
-			const d = line.length - length;
-			const translate = this.expandLine(line, d);
-			entities.transform(new CadTransformation({translate}));
+			if (line instanceof CadLine) {
+				const entities = this.findAllAdjacentLines(line, line.end);
+				const length = Number((event.target as HTMLInputElement).value);
+				const d = line.length - length;
+				const translate = this.expandLine(line, d);
+				entities.transform(new CadTransformation({translate}));
+			}
 		});
 		menu.getData().updatePartners().updateComponents();
 		menu.cad.render();
@@ -165,17 +173,24 @@ export class CadLineComponent implements OnInit {
 
 	setLineText(event: Event, field: string) {
 		const value = (event.target as HTMLInputElement).value;
-		this.selectedLines.forEach((e) => (e[field] = value));
+		this.selectedLines.forEach((e) => {
+			if (e instanceof CadLine) {
+				e[field] = value;
+			}
+		});
 	}
 
 	updateTLine() {
 		const lines = this.selectedLines;
 		if (lines.length === 1) {
-			const start = this.menu.cad.translatePoint(lines[0].start);
-			const end = this.menu.cad.translatePoint(lines[0].end);
-			this.tLine = {start, end};
-		} else {
-			this.tLine = null;
+			const line = lines[0];
+			if (line instanceof CadLine) {
+				const start = this.menu.cad.translatePoint(line.start);
+				const end = this.menu.cad.translatePoint(line.end);
+				this.tLine = {start, end};
+				return;
+			}
 		}
+		this.tLine = null;
 	}
 }
