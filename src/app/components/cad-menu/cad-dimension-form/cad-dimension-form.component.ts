@@ -45,6 +45,9 @@ export class CadDimensionFormComponent implements OnInit {
 			dimension.distance = value.distance;
 			dimension.font_size = value.fontSize;
 			this.close();
+		} else {
+			console.log(this.form.controls.qujian.errors?.qujian);
+			this.form.controls.qujian.updateValueAndValidity();
 		}
 	}
 

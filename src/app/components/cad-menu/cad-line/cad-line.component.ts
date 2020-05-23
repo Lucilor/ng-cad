@@ -38,6 +38,11 @@ export class CadLineComponent implements OnInit {
 		});
 		cad.controls.on("drag", () => this.updateTLine());
 		cad.controls.on("wheel", () => this.updateTLine());
+		cad.controls.on("keyboard", (event) => {
+			if (event.key === "Delete") {
+				this.updateTLine();
+			}
+		});
 	}
 
 	expandLine(line: CadLine, d: number) {

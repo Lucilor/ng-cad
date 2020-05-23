@@ -248,4 +248,22 @@ export class CadDataService {
 			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getOptions"});
 		}
 	}
+
+	async getShowLineInfo() {
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getShowLineInfo"});
+		const {baseURL, encode} = this;
+		try {
+			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/showLineInfo/${encode}`).toPromise();
+			if (response.code === 0) {
+				return response.data as boolean;
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alert(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getShowLineInfo"});
+		}
+	}
 }

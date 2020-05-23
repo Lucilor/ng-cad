@@ -6,6 +6,7 @@ import {CadTransformation} from "../cad-transformation";
 
 export class CadEntity {
 	id: string;
+	originalId: string;
 	type: string;
 	layer: string;
 	color: Color;
@@ -22,6 +23,7 @@ export class CadEntity {
 			throw new Error(`Unrecognized cad type: ${data.type}`);
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
+		this.originalId = data.originalId || this.id;
 		this.layer = typeof data.layer === "string" ? data.layer : "0";
 		this.color = new Color();
 		if (data._indexColor && typeof data.color === "number") {
@@ -50,6 +52,7 @@ export class CadEntity {
 		this._indexColor = RGB2Index(this.color.getHex());
 		return {
 			id: this.id,
+			originalId: this.originalId,
 			layer: this.layer,
 			type: this.type,
 			color: this._indexColor

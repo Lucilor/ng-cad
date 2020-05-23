@@ -14,6 +14,7 @@ export class CadData {
 	entities: CadEntities;
 	layers: CadLayer[];
 	id: string;
+	originalId: string;
 	name: string;
 	type: string;
 	conditions: string[];
@@ -33,6 +34,7 @@ export class CadData {
 			throw new Error("Invalid data.");
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
+		this.originalId = data.originalId || this.id;
 		this.name = typeof data.name === "string" ? data.name : "";
 		this.type = typeof data.type === "string" ? data.type : "";
 		this.layers = [];
@@ -89,10 +91,11 @@ export class CadData {
 				exOptions[v.name] = v.value;
 			}
 		});
-		const result = {
+		return {
 			layers: exLayers,
 			entities: this.entities.export(),
 			id: this.id,
+			originalId: this.originalId,
 			name: this.name,
 			type: this.type,
 			conditions: this.conditions.filter((v) => v),
@@ -107,7 +110,6 @@ export class CadData {
 			shuliang: this.shuliang,
 			huajian: this.huajian
 		};
-		return result;
 	}
 
 	/**
@@ -137,9 +139,15 @@ export class CadData {
 		return this.getAllEntities().find(id);
 	}
 
-	clone(resetEntitiesIds = false) {
+	clone(resetIds = false) {
 		const data = new CadData(this.export());
-		if (resetEntitiesIds) {
+		if (resetIds) {
+			this.id = MathUtils.generateUUID();
+			this.layers = this.layers.map((v) => {
+				const nv = new CadLayer(v.export());
+				nv.id = MathUtils.generateUUID();
+				return nv;
+			});
 			data.entities = data.entities.clone(true);
 			data.partners = data.partners.map((v) => v.clone(true));
 			data.components.data = data.components.data.map((v) => v.clone(true));
@@ -292,10 +300,10 @@ export class CadData {
 		let c1: CadData;
 		let c2: CadData;
 		for (const c of components.data) {
-			if (c.id === ids[0]) {
+			if (c.id === ids[0] || c.originalId === ids[0]) {
 				c1 = c;
 			}
-			if (c.id === ids[1]) {
+			if (c.id === ids[1] || c.originalId === ids[1]) {
 				c2 = c;
 			}
 			if (c1 && c2) {

@@ -145,7 +145,7 @@ export class DrawCadComponent implements AfterViewInit {
 		});
 		ref.afterClosed().subscribe((v) => {
 			if (Array.isArray(v)) {
-				data.huajian = v.join(",");
+				// data.huajian = v.join(",");
 				data.name = data.huajian;
 			}
 		});

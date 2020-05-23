@@ -68,15 +68,13 @@ export class CadEntities {
 
 	separate(entities: CadEntities) {
 		Object.keys(CAD_TYPES).forEach((type) => {
-			const arr = entities[type] as CadEntity[];
-			const ids = arr.map((e) => e.id);
 			this[type] = separateArray(this[type], entities[type], "id");
 		});
 	}
 
 	find(id: string) {
 		for (const type in CAD_TYPES) {
-			const result = (this[type] as CadEntity[]).find((e) => e.id === id);
+			const result = (this[type] as CadEntity[]).find((e) => e.id === id || e.originalId === id);
 			if (result) {
 				return result;
 			}

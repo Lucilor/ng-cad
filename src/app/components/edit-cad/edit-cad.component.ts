@@ -71,30 +71,36 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 
 	async ngOnInit() {
 		const {partners, components} = this.route.snapshot.queryParams;
-		const data = await this.dataService.getCadData();
-		data.forEach((d) => this.cad.data.addComponent(d));
-		this.cad.render(true);
-		this.menu.initData();
-		if (partners) {
-			this.menu.focus(0, [0], "partners");
-		} else if (components) {
-			this.menu.focus(0, [0], "components");
-		} else {
-			this.menu.focus(0, [], "normal");
-		}
-		this.subcad.updateList();
-		document.title = `${title}-${data.map((d) => d.name).join(",")}`;
-
-		window.addEventListener("pointermove", (event) => {
-			const {clientY: y} = event;
-			if (y <= 90) {
-				this.showTopMenu = true;
-			} else {
-				this.showTopMenu = false;
+		Promise.all([this.dataService.getCadData(), this.dataService.getShowLineInfo()]).then((value) => {
+			const data = value[0];
+			if(value[1] === true){
+				this.menuMap.cadInfo.push("components");
+				this.menuMap.cadLine.push("components")
 			}
-		});
-		window.addEventListener("resize", () => {
-			this.cad.resize(innerWidth, innerHeight);
+			data.forEach((d) => this.cad.data.addComponent(d));
+			this.cad.render(true);
+			this.menu.initData();
+			if (partners) {
+				this.menu.focus(0, [0], "partners");
+			} else if (components) {
+				this.menu.focus(0, [0], "components");
+			} else {
+				this.menu.focus(0, [], "normal");
+			}
+			this.subcad.updateList();
+			document.title = `${title}-${data.map((d) => d.name).join(",")}`;
+
+			window.addEventListener("pointermove", (event) => {
+				const {clientY: y} = event;
+				if (y <= 90) {
+					this.showTopMenu = true;
+				} else {
+					this.showTopMenu = false;
+				}
+			});
+			window.addEventListener("resize", () => {
+				this.cad.resize(innerWidth, innerHeight);
+			});
 		});
 	}
 
