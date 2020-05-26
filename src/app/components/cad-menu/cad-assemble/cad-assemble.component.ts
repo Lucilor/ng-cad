@@ -3,8 +3,6 @@ import {CadMenu} from "../cad-menu.common";
 import {MatDialog} from "@angular/material/dialog";
 import {AlertComponent} from "../../alert/alert.component";
 import {CadData, CadConnection} from "@src/app/cad-viewer/cad-data/cad-data";
-import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
-import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 
 @Component({
 	selector: "app-cad-assemble",
@@ -14,7 +12,7 @@ import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 export class CadAssembleComponent implements OnInit {
 	@Input() menu: CadMenu;
 	get data() {
-		return this.menu.getData(this.menu.cadIdx, -1);
+	return this.menu.getData(this.menu.cadIdx, -1);
 	}
 	options = {space: "0", position: "absolute"};
 	assembling = false;

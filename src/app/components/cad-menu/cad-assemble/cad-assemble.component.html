@@ -22,8 +22,10 @@
 			</mat-form-field>
 		</div>
 		<div class="btn-group">
-			<button mat-raised-button color="accent" (click)="toggleAssemble()">{{ assembling ? "结束" : "开始" }}装配</button>
-			<button mat-raised-button color="accent" (click)="directAssemble()">快速装配</button>
+			<button mat-raised-button [color]="assembling ? 'accent' : 'primary'" (click)="toggleAssemble()">
+				{{ assembling ? "结束" : "开始" }}装配
+			</button>
+			<button mat-raised-button color="primary" (click)="directAssemble()">快速装配</button>
 		</div>
 	</div>
 </mat-expansion-panel>

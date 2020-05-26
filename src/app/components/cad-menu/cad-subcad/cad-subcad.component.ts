@@ -4,7 +4,6 @@ import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
-import {CadDataService} from "@services/cad-data.service";
 
 @Component({
 	selector: "app-cad-subcad",
@@ -37,7 +36,7 @@ export class CadSubcadComponent implements OnInit {
 		}
 		return data;
 	}
-	constructor(private dialog: MatDialog, private dataService: CadDataService) {}
+	constructor(private dialog: MatDialog) {}
 
 	ngOnInit() {}
 
@@ -84,14 +83,14 @@ export class CadSubcadComponent implements OnInit {
 	}
 
 	editSubcads(type: string) {
-		const {menu, dataService} = this;
+		const {menu} = this;
 		const data = menu.getData(menu.cadIdx, -1);
-		let checkedItems: string[];
+		let checkedItems: CadData[];
 		if (type === "partners") {
-			checkedItems = data.partners.map((v) => v.id);
+			checkedItems = [...data.partners];
 		}
 		if (type === "components") {
-			checkedItems = data.components.data.map((v) => v.id);
+			checkedItems = [...data.components.data];
 		}
 		const ref: MatDialogRef<ListCadComponent, CadData[]> = this.dialog.open(ListCadComponent, {
 			data: {selectMode: "multiple", checkedItems},
@@ -106,8 +105,11 @@ export class CadSubcadComponent implements OnInit {
 				if (type === "components") {
 					data.components.data = cads;
 				}
-				const resData = (await dataService.postCadData([data]))[0];
-				menu.cad.data.components.data[menu.cadIdx] = resData;
+				menu.cad.data.components.data[menu.cadIdx] = data;
+				menu.cadIdxs2 = [];
+				for (let i = 0; i < cads.length; i++) {
+					menu.cadIdxs2.push(i);
+				}
 				menu.cad.reset();
 				this.updateList();
 			}
@@ -127,6 +129,7 @@ export class CadSubcadComponent implements OnInit {
 		if (menu.viewMode === "components") {
 			data.components.data = data.components.data.filter((_v, i) => !menu.cadIdxs2.includes(i));
 		}
+		menu.cadIdxs2 = [];
 		this.updateList();
 		menu.cad.reset();
 		menu.focus();

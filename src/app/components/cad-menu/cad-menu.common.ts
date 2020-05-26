@@ -340,7 +340,6 @@ export class CadMenu {
 			this.cadIdxs2 = cadIdxs2;
 		} else if (this.cadIdx >= 0) {
 			this.cadIdx = cadIdx;
-			console.log(this.cadIdx);
 		}
 		this.cad
 			.traverse((o, e) => {

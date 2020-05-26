@@ -27,6 +27,7 @@ export class CadData {
 	zhankaikuan: string;
 	zhankaigao: string;
 	shuliang: string;
+	shuliangbeishu: string;
 	huajian: string;
 	readonly visible: boolean;
 	constructor(data: any = {}) {
@@ -76,6 +77,7 @@ export class CadData {
 		this.zhankaikuan = data.zhankaikuan || "";
 		this.zhankaigao = data.zhankaigao || "";
 		this.shuliang = data.shuliang || "1";
+		this.shuliangbeishu = data.shuliangbeishu || "1";
 		this.huajian = data.huajian || "";
 	}
 
@@ -108,6 +110,7 @@ export class CadData {
 			zhankaikuan: this.zhankaikuan,
 			zhankaigao: this.zhankaigao,
 			shuliang: this.shuliang,
+			shuliangbeishu: this.shuliangbeishu,
 			huajian: this.huajian
 		};
 	}
@@ -461,9 +464,11 @@ export class CadData {
 				connectedToC2.push(conn.ids[0]);
 			}
 		});
+		connection.axis = axis;
+		connection.space = connection.space ? connection.space : "0";
 		const connectedToBoth = intersection(connectedToC1, connectedToC2);
 		components.connections.forEach((conn, i) => {
-			const arr = intersection(conn.ids, [c1.id, c2.id]);
+			const arr = intersection(conn.ids, [c1.id, c2.id, this.id]);
 			if (conn.ids.includes(c2.id) && intersection(conn.ids, connectedToBoth).length) {
 				toRemove.push(i);
 			}
@@ -472,11 +477,8 @@ export class CadData {
 			}
 		});
 		components.connections = components.connections.filter((v, i) => !toRemove.includes(i));
-		connection.axis = axis;
-		connection.space = connection.space ? connection.space : "0";
 		components.connections.push(cloneDeep(connection));
 
-		this.sortComponents();
 		return this;
 	}
 

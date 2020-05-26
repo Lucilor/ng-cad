@@ -82,6 +82,7 @@ export class CadDataService {
 		if (cadData.length < 1) {
 			return [];
 		}
+		cadData.forEach((d) => d.sortComponents());
 		const result: CadData[] = [];
 		let counter = 0;
 		let successCounter = 0;
@@ -172,6 +173,7 @@ export class CadDataService {
 	async replaceData(source: CadData, target: string) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
 		const {baseURL, encode} = this;
+		source.sortComponents();
 		try {
 			const data = new FormData();
 			data.append("data", RSAEncrypt({source: source.export(), target}));

@@ -1,10 +1,9 @@
-import {Component, OnInit, Inject, ViewChild, AfterViewInit} from "@angular/core";
+import {Component, Inject, ViewChild, AfterViewInit} from "@angular/core";
 import {PageEvent, MatPaginator} from "@angular/material/paginator";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadDataService} from "@services/cad-data.service";
-import {timeout} from "@src/app/app.common";
 
 @Component({
 	selector: "app-list-cad",
@@ -13,7 +12,7 @@ import {timeout} from "@src/app/app.common";
 })
 export class ListCadComponent implements AfterViewInit {
 	length = 100;
-	pageSizeOptions = [1, 10, 20, 30, 40, 50];
+	pageSizeOptions = [1, 10, 20, 50, 100];
 	pageSize = 10;
 	pageData: {data: CadData; img: string; checked: boolean}[] = [];
 	width = 300;
@@ -21,11 +20,11 @@ export class ListCadComponent implements AfterViewInit {
 	searchInput = "";
 	searchValue = "";
 	checkedIndex = -1;
-	checkedItems: string[] = [];
+	checkedItems: CadData[] = [];
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;
 	constructor(
-		public dialogRef: MatDialogRef<ListCadComponent, CadData | CadData[]>,
-		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems?: string[]},
+		public dialogRef: MatDialogRef<ListCadComponent, CadData[]>,
+		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems?: CadData[]},
 		private dataService: CadDataService
 	) {}
 
@@ -38,6 +37,7 @@ export class ListCadComponent implements AfterViewInit {
 	}
 
 	changePage(event: PageEvent) {
+		this.syncCheckedItems();
 		this.getData(event.pageIndex + 1);
 	}
 
@@ -50,7 +50,7 @@ export class ListCadComponent implements AfterViewInit {
 				d.entities.dimension = [];
 				d.entities.mtext = [];
 				const cad = new CadViewer(d, {width: this.width, height: this.height, padding: 10});
-				const checked = this.checkedItems.includes(d.id);
+				const checked = this.checkedItems.find((v) => v.id === d.id) ? true : false;
 				const img = cad.exportImage().src;
 				this.pageData.push({data: cad.data, img, checked});
 				cad.destroy();
@@ -67,12 +67,8 @@ export class ListCadComponent implements AfterViewInit {
 	}
 
 	submit() {
-		if (this.data.selectMode === "single") {
-			this.dialogRef.close(this.pageData[this.checkedIndex].data);
-		}
-		if (this.data.selectMode === "multiple") {
-			this.dialogRef.close(this.pageData.filter((v) => v.checked).map((v) => v.data));
-		}
+		this.syncCheckedItems();
+		this.dialogRef.close(this.checkedItems);
 	}
 
 	close() {
@@ -89,5 +85,19 @@ export class ListCadComponent implements AfterViewInit {
 		if (event.key === "Enter") {
 			this.search();
 		}
+	}
+
+	syncCheckedItems() {
+		// this.pageData.forEach((v) => {
+		// 	if (v.checked) {
+		// 		const index = this.checkedItems.findIndex((vv) => vv.id === v.data.id);
+		// 		if (index === -1) {
+		// 			this.checkedItems.push(v.data);
+		// 		} else {
+		// 			this.checkedItems[index] = v.data;
+		// 		}
+		// 	}
+		// });
+		this.checkedItems = this.pageData.filter((v) => v.checked).map((v) => v.data);
 	}
 }
