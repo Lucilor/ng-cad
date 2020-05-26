@@ -137,6 +137,7 @@ export class CadMenu {
 		} else {
 			cad.data.components.data[cadIdx] = resData[0];
 		}
+		this.setData(this.getData(cadIdx, -1));
 		cad.reset();
 		this.focus();
 	}
@@ -330,6 +331,9 @@ export class CadMenu {
 		const {mtext, dimension} = cad.data.getAllEntities();
 		mtext.forEach((e) => (e.visible = this.drawMTexts));
 		dimension.forEach((e) => (e.visible = this.drawMTexts));
+		if (viewModeChanged) {
+			this.selectLineEnd();
+		}
 		cad.render(viewModeChanged);
 	}
 
@@ -355,11 +359,7 @@ export class CadMenu {
 			this.cadLength = 0;
 			const entities = data.getAllEntities();
 			entities.line.forEach((e) => (this.cadLength += e.length));
-			entities.arc.forEach((e) => {
-				const {radius, start_angle, end_angle} = e;
-				const l = ((Math.abs(start_angle - end_angle) % 360) * Math.PI * radius) / 180;
-				this.cadLength += l;
-			});
+			// entities.arc.forEach((e) => (this.cadLength += e.curve.getLength()));
 			this.cadLength = Number(this.cadLength.toFixed(2));
 			if (!data.zhankaikuan) {
 				data.zhankaikuan = this.cadLength.toString();

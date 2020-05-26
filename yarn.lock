@@ -1007,10 +1007,10 @@
     merge-source-map "^1.1.0"
     schema-utils "^2.6.4"
 
-"@lucilor/cad-viewer@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@lucilor/cad-viewer/-/cad-viewer-2.2.0.tgz#7f8e747d28fe1158cc5bcba39071b186be2144e1"
-  integrity sha512-XL61prjJ5IwDIXLB7ebasU4whyvzDo0Ofi0wGTfSPxlZnneNIiIx0Cym8JS0sKjyMklbyVuF7aVQA69NrGgUuA==
+"@lucilor/cad-viewer@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@lucilor/cad-viewer/-/cad-viewer-2.2.1.tgz#605e1774d133d2c477be77a79ebc31b207ebd32e"
+  integrity sha512-lDcPEAD/UWfwZv/Fucuc2Yluv5CLQxja084Yb7s9sNdOWZJNu2pC9vZzij7+OJ8cKQnPu7XiRdWXtuAZEPzDmg==
   dependencies:
     "@lucilor/utils" "^1.0.19"
     "@seregpie/three.text-sprite" "^2.0.0"
@@ -1106,10 +1106,10 @@
   dependencies:
     "@types/jasmine" "*"
 
-"@types/lodash@^4.14.151":
-  version "4.14.151"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.151.tgz#7d58cac32bedb0ec37cb7f99094a167d6176c9d5"
-  integrity sha512-Zst90IcBX5wnwSu7CAS0vvJkTjTELY4ssKbHiTnGcJgi170uiS8yQDdc3v6S77bRqYQIN1App5a1Pc2lceE5/g==
+"@types/lodash@^4.14.152":
+  version "4.14.152"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.152.tgz#7e7679250adce14e749304cdb570969f77ec997c"
+  integrity sha512-Vwf9YF2x1GE3WNeUMjT5bTHa2DqgUo87ocdgTScupY2JclZ5Nn7W2RLM/N0+oreexUk8uaVugR81NnTY/jNNXg==
 
 "@types/minimatch@*":
   version "3.0.3"
@@ -1121,10 +1121,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-13.13.5.tgz#96ec3b0afafd64a4ccea9107b75bf8489f0e5765"
   integrity sha512-3ySmiBYJPqgjiHA7oEaIo2Rzz0HrOZ7yrNO5HWyaE5q0lQ3BppDZ3N53Miz8bw2I7gh1/zir2MGVZBvpb1zq9g==
 
-"@types/node@^14.0.1":
-  version "14.0.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.1.tgz#5d93e0a099cd0acd5ef3d5bde3c086e1f49ff68c"
-  integrity sha512-FAYBGwC+W6F9+huFIDtn43cpy7+SzG+atzRiTfdp3inUKL2hXnd4rG8hylJLIh4+hqrQy1P17kvJByE/z825hA==
+"@types/node@^14.0.5":
+  version "14.0.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.5.tgz#3d03acd3b3414cf67faf999aed11682ed121f22b"
+  integrity sha512-90hiq6/VqtQgX8Sp0EzeIsv3r+ellbGj4URKj5j30tLlZvRUpnAe9YbYnjl3pJM93GyXU0tghHhvXHq+5rnCKA==
 
 "@types/q@^0.0.32":
   version "0.0.32"
@@ -4069,10 +4069,19 @@ http-proxy-middleware@0.19.1:
     lodash "^4.17.11"
     micromatch "^3.1.10"
 
-http-proxy@^1.17.0, http-proxy@^1.18.0:
+http-proxy@^1.17.0:
   version "1.18.0"
   resolved "https://registry.yarnpkg.com/http-proxy/-/http-proxy-1.18.0.tgz#dbe55f63e75a347db7f3d99974f2692a314a6a3a"
   integrity sha512-84I2iJM/n1d4Hdgc6y2+qY5mDaz2PUVjlg9znE9byl+q0uC3DeByqBGReQu5tpLK0TAqTIXScRUV+dg7+bUPpQ==
+  dependencies:
+    eventemitter3 "^4.0.0"
+    follow-redirects "^1.0.0"
+    requires-port "^1.0.0"
+
+http-proxy@^1.18.1:
+  version "1.18.1"
+  resolved "https://registry.yarnpkg.com/http-proxy/-/http-proxy-1.18.1.tgz#401541f0534884bbf95260334e72f88ee3976549"
+  integrity sha512-7mz/721AbnJwIVbnaSv1Cz3Am0ZLT/UBwkC92VlxhXv/k/BBQfM2fXElQNC27BVGr0uwUpplYPQM9LnaBMR5NQ==
   dependencies:
     eventemitter3 "^4.0.0"
     follow-redirects "^1.0.0"
@@ -4849,10 +4858,10 @@ karma-source-map-support@1.4.0:
   dependencies:
     source-map-support "^0.5.5"
 
-karma@^5.0.8:
-  version "5.0.8"
-  resolved "https://registry.yarnpkg.com/karma/-/karma-5.0.8.tgz#be9cec113c1b36e47e5fa03a370c76984a1a65ee"
-  integrity sha512-n0iQ66to2YivGTw202ReC5I33F7/BaiQRBEP6MNRex//3ckblNcEDV5T5CL+2W/wdjPc479IxDkMtBoOZ/4PnA==
+karma@^5.0.9:
+  version "5.0.9"
+  resolved "https://registry.yarnpkg.com/karma/-/karma-5.0.9.tgz#11a119b0c763a806fdc471b40c594a2240b5ca13"
+  integrity sha512-dUA5z7Lo7G4FRSe1ZAXqOINEEWxmCjDBbfRBmU/wYlSMwxUQJP/tEEP90yJt3Uqo03s9rCgVnxtlfq+uDhxSPg==
   dependencies:
     body-parser "^1.19.0"
     braces "^3.0.2"
@@ -4864,7 +4873,7 @@ karma@^5.0.8:
     flatted "^2.0.2"
     glob "^7.1.6"
     graceful-fs "^4.2.4"
-    http-proxy "^1.18.0"
+    http-proxy "^1.18.1"
     isbinaryfile "^4.0.6"
     lodash "^4.17.15"
     log4js "^6.2.1"

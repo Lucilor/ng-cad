@@ -73,9 +73,9 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		const {partners, components} = this.route.snapshot.queryParams;
 		Promise.all([this.dataService.getCadData(), this.dataService.getShowLineInfo()]).then((value) => {
 			const data = value[0];
-			if(value[1] === true){
+			if (value[1] === true) {
 				this.menuMap.cadInfo.push("components");
-				this.menuMap.cadLine.push("components")
+				this.menuMap.cadLine.push("components");
 			}
 			data.forEach((d) => this.cad.data.addComponent(d));
 			this.cad.render(true);
@@ -161,6 +161,9 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 			const queryParams = this.route.snapshot.queryParams;
 			this.router.navigate(["draw-cad"], {queryParams: {...queryParams, fromEdit: true}});
 		} else {
+			if (this.menu.viewMode === "components" && this.cadAssemble.assembling) {
+				this.cadAssemble.toggleAssemble();
+			}
 			this.menu.focus(this.menu.cadIdx, [0], mode);
 			this.subcad.updateList();
 		}

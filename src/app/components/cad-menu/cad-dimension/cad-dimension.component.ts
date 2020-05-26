@@ -18,7 +18,6 @@ export class CadDimensionComponent implements OnInit {
 	get data() {
 		return this.menu.cad.data.getAllEntities().dimension;
 	}
-	tempDimension: CadDimension[] = [];
 	constructor(private dialog: MatDialog) {}
 
 	ngOnInit() {
@@ -62,6 +61,18 @@ export class CadDimensionComponent implements OnInit {
 					dimension.entity1 = dimension.entity2;
 					dimension.entity2 = {id: entity.id, location: "end"};
 					dimension.cad2 = thatData.name;
+				}
+				const e1 = cad.data.findEntity(dimension.entity1.id);
+				const e2 = cad.data.findEntity(dimension.entity2.id);
+				if (e1 instanceof CadLine && e2 instanceof CadLine) {
+					const delta = e1.theta - e2.theta;
+					if (Math.abs(delta) <= 0.1) {
+						if (Math.abs(e1.theta) <= 0.1) {
+							dimension.axis = "y";
+						} else {
+							dimension.axis = "x";
+						}
+					}
 				}
 				cad.render();
 			}

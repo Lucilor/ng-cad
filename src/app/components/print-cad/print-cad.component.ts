@@ -27,8 +27,10 @@ export class PrintCadComponent implements AfterViewInit {
 	async ngAfterViewInit() {
 		document.title = "打印CAD";
 		let data: CadData;
+		let showLineLength = 0;
 		try {
 			data = JSON.parse(sessionStorage.getItem("cache-cad-data"));
+			showLineLength = Number(sessionStorage.getItem("show-line-length"));
 		} catch (error) {
 			console.warn(error);
 		}
@@ -41,7 +43,7 @@ export class PrintCadComponent implements AfterViewInit {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
-			showLineLength: 0,
+			showLineLength,
 			backgroundColor: 0xffffff,
 			padding: this.padding
 		});

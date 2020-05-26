@@ -2,89 +2,97 @@
 	<mat-expansion-panel-header>
 		<mat-panel-title>线段信息</mat-panel-title>
 	</mat-expansion-panel-header>
-	<div class="form-item length">
-		<label>长度</label>
-		<mat-form-field>
-			<mat-label></mat-label>
-			<input
-				matInput
-				type="number"
-				[ngModel]="getLineLength()"
-				(change)="setLineLength($event)"
-				placeholder="请输入长度"
-				[disabled]="selectedLines.length < 1"
-			/>
-		</mat-form-field>
-	</div>
-	<div class="form-item color">
-		<label>颜色</label>
-		<mat-form-field>
-			<mat-label></mat-label>
-			<mat-select
-				[ngModel]="getCssColor()"
-				[style]="{color: getCssColor(getCssColor()), backgroundColor: getCssColor()}"
-				(selectionChange)="setLineColor($event)"
-				[disabled]="selectedLines.length < 1"
-			>
-				<mat-option
-					*ngFor="let color of selectableColors"
-					[value]="color"
-					[style]="{color: getCssColor(color), backgroundColor: color}"
+	<form>
+		<button [hidden]="true"></button>
+		<div class="form-item length">
+			<label>长度</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<input
+					matInput
+					type="number"
+					[ngModel]="getLineLength()"
+					(change)="setLineLength($event)"
+					placeholder="请输入长度"
+					[disabled]="selectedLines.length < 1"
+					name="lineLength"
+				/>
+			</mat-form-field>
+		</div>
+		<div class="form-item color">
+			<label>颜色</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<mat-select
+					[ngModel]="getCssColor()"
+					[style]="{color: getCssColor(getCssColor()), backgroundColor: getCssColor()}"
+					(selectionChange)="setLineColor($event)"
+					[disabled]="selectedLines.length < 1"
+					name="lineColor"
 				>
-					{{ color }}
-				</mat-option>
-			</mat-select>
-		</mat-form-field>
-	</div>
-	<div class="form-item mingzi">
-		<label>名字</label>
-		<mat-form-field>
-			<mat-label></mat-label>
-			<input
-				matInput
-				type="text"
-				[ngModel]="getLineText('mingzi')"
-				(change)="setLineText($event, 'mingzi')"
-				(focus)="focusedField = 'mingzi'"
-				(blur)="focusedField = ''"
-				placeholder="请输入名字"
-				[disabled]="selectedLines.length < 1"
-			/>
-		</mat-form-field>
-	</div>
-	<div class="form-item qujian">
-		<label>区间</label>
-		<mat-form-field>
-			<mat-label></mat-label>
-			<input
-				matInput
-				type="text"
-				[ngModel]="getLineText('qujian')"
-				(change)="setLineText($event, 'qujian')"
-				(focus)="focusedField = 'qujian'"
-				(blur)="focusedField = ''"
-				placeholder="请输入区间"
-				[disabled]="selectedLines.length < 1"
-			/>
-		</mat-form-field>
-	</div>
-	<div class="form-item gongshi">
-		<label>公式</label>
-		<mat-form-field>
-			<mat-label></mat-label>
-			<input
-				matInput
-				type="text"
-				[ngModel]="getLineText('gongshi')"
-				(change)="setLineText($event, 'gongshi')"
-				(focus)="focusedField = 'gongshi'"
-				(blur)="focusedField = ''"
-				placeholder="请输入公式"
-				[disabled]="selectedLines.length < 1"
-			/>
-		</mat-form-field>
-	</div>
-	<button mat-raised-button color="accent" [disabled]="!menu.cad" (click)="menu.submit()">确定修改</button>
+					<mat-option
+						*ngFor="let color of selectableColors"
+						[value]="color"
+						[style]="{color: getCssColor(color), backgroundColor: color}"
+					>
+						{{ color }}
+					</mat-option>
+				</mat-select>
+			</mat-form-field>
+		</div>
+		<div class="form-item mingzi">
+			<label>名字</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<input
+					matInput
+					type="text"
+					[ngModel]="getLineText('mingzi')"
+					(change)="setLineText($event, 'mingzi')"
+					(focus)="focusedField = 'mingzi'"
+					(blur)="focusedField = ''"
+					placeholder="请输入名字"
+					[disabled]="selectedLines.length < 1"
+					name="lineMingzi"
+				/>
+			</mat-form-field>
+		</div>
+		<div class="form-item qujian">
+			<label>区间</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<input
+					matInput
+					type="text"
+					[ngModel]="getLineText('qujian')"
+					(change)="setLineText($event, 'qujian')"
+					(focus)="focusedField = 'qujian'"
+					(blur)="focusedField = ''"
+					placeholder="请输入区间"
+					[disabled]="selectedLines.length < 1"
+					name="lineQujian"
+				/>
+			</mat-form-field>
+		</div>
+		<div class="form-item gongshi">
+			<label>公式</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<input
+					matInput
+					type="text"
+					[ngModel]="getLineText('gongshi')"
+					(change)="setLineText($event, 'gongshi')"
+					(focus)="focusedField = 'gongshi'"
+					(blur)="focusedField = ''"
+					placeholder="请输入公式"
+					[disabled]="selectedLines.length < 1"
+					name="lineGongshi"
+				/>
+			</mat-form-field>
+		</div>
+		<button mat-raised-button color="accent" [disabled]="!menu.cad" (click)="menu.submit()">确定修改</button>
+	</form>
 </mat-expansion-panel>
 <mat-expansion-panel *ngIf="!data">
 	<mat-expansion-panel-header>

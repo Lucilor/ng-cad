@@ -2,26 +2,30 @@
 	<mat-expansion-panel-header>
 		<mat-panel-title>选项</mat-panel-title>
 	</mat-expansion-panel-header>
-	<div class="form-item">
-		<label>距离</label>
-		<mat-form-field>
-			<mat-label></mat-label>
-			<input matInput type="text" [(ngModel)]="options.space" placeholder="请输入距离" />
-		</mat-form-field>
+	<div>
+		<button [hidden]="true"></button>
+		<div class="form-item">
+			<label>距离</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<input matInput type="text" [(ngModel)]="options.space" placeholder="请输入距离" />
+			</mat-form-field>
+		</div>
+		<div class="form-item">
+			<label>定位</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<mat-select [(ngModel)]="options.position">
+					<mat-option value="absolute">绝对定位</mat-option>
+					<mat-option value="relative">相对定位</mat-option>
+				</mat-select>
+			</mat-form-field>
+		</div>
+		<div class="btn-group">
+			<button mat-raised-button color="accent" (click)="toggleAssemble()">{{ assembling ? "结束" : "开始" }}装配</button>
+			<button mat-raised-button color="accent" (click)="directAssemble()">快速装配</button>
+		</div>
 	</div>
-	<div class="form-item">
-		<label>定位</label>
-		<mat-form-field>
-			<mat-label></mat-label>
-			<mat-select [(ngModel)]="options.position">
-				<mat-option value="absolute">绝对定位</mat-option>
-				<mat-option value="relative">相对定位</mat-option>
-			</mat-select>
-		</mat-form-field>
-	</div>
-	<button mat-raised-button color="accent" (click)="toggleAssemble()">{{ assembling ? "结束" : "开始" }}装配</button>
-	<span style="margin-right: 10px;"></span>
-	<button mat-raised-button color="accent" (click)="directAssemble()">快速装配</button>
 </mat-expansion-panel>
 <mat-expansion-panel expanded>
 	<mat-expansion-panel-header>
