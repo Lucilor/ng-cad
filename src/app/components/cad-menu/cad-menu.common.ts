@@ -83,10 +83,8 @@ export class CadMenu {
 		});
 		cad.controls.on("dragend", () => (button = NaN));
 		cad.controls.on("wheel", () => this.updatePointsMap());
-		cad.controls.on("keyboard", (event) => {
-			if (event.key === "Delete") {
-				this.updateCadLength();
-			}
+		cad.controls.on("entitiesdelete", () => {
+			this.updateCadLength();
 		});
 		cad.controls.on("entityselect", (event, entity) => {
 			if (!environment.production) {

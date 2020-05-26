@@ -67,6 +67,9 @@ export class DrawCadComponent implements AfterViewInit {
 		window.addEventListener("beforeunload", () => {
 			this.dataService.saveCadStatus(this.cad, title);
 		});
+		window.addEventListener("resize", () => {
+			this.cad.resize(innerWidth, innerHeight);
+		});
 	}
 
 	selectLines(entities = this.cad.selectedEntities) {

@@ -18,6 +18,7 @@ export interface CadEvents {
 	entityselect: [PointerEvent, CadEntity, Object3D];
 	entityunselect: [PointerEvent, CadEntity, Object3D];
 	entitiesselect: [PointerEvent, never, never];
+	entitiesdelete: [KeyboardEvent, never, never];
 	entitiesunselect: [PointerEvent, never, never];
 	dragstart: [PointerEvent, never, never];
 	drag: [PointerEvent, never, never];
@@ -284,7 +285,10 @@ export class CadViewerControls {
 					cad.scale += 0.1;
 					break;
 				case "Delete":
+				case "Backspace":
 					cad.removeEntities(cad.selectedEntities);
+					const name: keyof CadEvents = "entitiesdelete";
+					this._emitter.emit(name, event);
 					break;
 				default:
 			}
@@ -361,7 +365,7 @@ export class CadViewerControls {
 	}
 
 	private _dragObject(p: Vector2, offset: Vector2) {
-		const {cad, currentObject: object,_multiSelector} = this;
+		const {cad, currentObject: object, _multiSelector} = this;
 		if (!object || !_multiSelector.hidden) {
 			return false;
 		}
