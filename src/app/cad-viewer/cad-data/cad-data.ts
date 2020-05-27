@@ -114,6 +114,9 @@ export class CadData {
 			huajian: this.huajian
 		};
 	}
+	export2(i = 0) {
+		return this.components.data[i].export();
+	}
 
 	/**
 	 * 100: this.entities

@@ -1007,10 +1007,10 @@
     merge-source-map "^1.1.0"
     schema-utils "^2.6.4"
 
-"@lucilor/cad-viewer@^2.2.1":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@lucilor/cad-viewer/-/cad-viewer-2.2.1.tgz#605e1774d133d2c477be77a79ebc31b207ebd32e"
-  integrity sha512-lDcPEAD/UWfwZv/Fucuc2Yluv5CLQxja084Yb7s9sNdOWZJNu2pC9vZzij7+OJ8cKQnPu7XiRdWXtuAZEPzDmg==
+"@lucilor/cad-viewer@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@lucilor/cad-viewer/-/cad-viewer-2.2.2.tgz#e3fdee92c3a6741bf5ce264fe85f1ae97d7c3d3f"
+  integrity sha512-ATivbOeO6aBKFIEf/AEsf+aUsMPhGFkkq+jaRbJa7lmtnG4h8IVHtiEMwudMAVj+9hmpYjzIIbKO+9zHu9oPBw==
   dependencies:
     "@lucilor/utils" "^1.0.19"
     "@seregpie/three.text-sprite" "^2.0.0"
@@ -1106,10 +1106,10 @@
   dependencies:
     "@types/jasmine" "*"
 
-"@types/lodash@^4.14.152":
-  version "4.14.152"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.152.tgz#7e7679250adce14e749304cdb570969f77ec997c"
-  integrity sha512-Vwf9YF2x1GE3WNeUMjT5bTHa2DqgUo87ocdgTScupY2JclZ5Nn7W2RLM/N0+oreexUk8uaVugR81NnTY/jNNXg==
+"@types/lodash@^4.14.153":
+  version "4.14.153"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.153.tgz#5cb7dded0649f1df97938ac5ffc4f134e9e9df98"
+  integrity sha512-lYniGRiRfZf2gGAR9cfRC3Pi5+Q1ziJCKqPmjZocigrSJUVPWf7st1BtSJ8JOeK0FLXVndQ1IjUjTco9CXGo/Q==
 
 "@types/minimatch@*":
   version "3.0.3"
@@ -4844,10 +4844,10 @@ karma-jasmine-html-reporter@^1.5.4:
   resolved "https://registry.yarnpkg.com/karma-jasmine-html-reporter/-/karma-jasmine-html-reporter-1.5.4.tgz#669f33d694d88fce1b0ccfda57111de716cb0192"
   integrity sha512-PtilRLno5O6wH3lDihRnz0Ba8oSn0YUJqKjjux1peoYGwo0AQqrWRbdWk/RLzcGlb+onTyXAnHl6M+Hu3UxG/Q==
 
-karma-jasmine@~3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/karma-jasmine/-/karma-jasmine-3.1.1.tgz#f592b253e7619a8d84559d7daf473a647498ade8"
-  integrity sha512-pxBmv5K7IkBRLsFSTOpgiK/HzicQT3mfFF+oHAC7nxMfYKhaYFgxOa5qjnHW4sL5rUnmdkSajoudOnnOdPyW4Q==
+karma-jasmine@~3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/karma-jasmine/-/karma-jasmine-3.2.0.tgz#61ca8e881db3a92dfe456c9a8c4bef2a8fbf0f94"
+  integrity sha512-NkMgcMVKZJ2LtxWXXWD+d6OSFf8ehjxhfgpjdx9DgjwpLDpirm66kEc7+S0i4HcTJzgNhyTWutDzzfnbvKJpNg==
   dependencies:
     jasmine-core "^3.5.0"
 
