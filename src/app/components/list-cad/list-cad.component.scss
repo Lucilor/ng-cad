@@ -1,9 +1,9 @@
-@import "../../../styles.scss";
 @import "../../../mat-theme.scss";
 
 mat-paginator,
 .data-container {
-	@include font();
+	line-height: 1.5rem;
+	font-size: 1rem;
 }
 
 mat-radio-group,

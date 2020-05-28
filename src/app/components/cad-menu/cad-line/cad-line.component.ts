@@ -36,6 +36,9 @@ export class CadLineComponent implements OnInit {
 		cad.controls.on("entityunselect", () => {
 			this.updateTLine();
 		});
+		cad.controls.on("entitiesunselect", () => {
+			this.updateTLine();
+		});
 		cad.controls.on("drag", () => this.updateTLine());
 		cad.controls.on("wheel", () => this.updateTLine());
 		cad.controls.on("entitiesdelete", () => {
@@ -68,11 +71,11 @@ export class CadLineComponent implements OnInit {
 		menu.updatePointsMap();
 		selectedLines.forEach((line) => {
 			if (line instanceof CadLine) {
-				const entities = this.findAllAdjacentLines(line, line.end);
+				const {entities, closed} = this.findAllAdjacentLines(line, line.end);
 				const length = Number((event.target as HTMLInputElement).value);
 				const d = line.length - length;
 				const translate = this.expandLine(line, d);
-				entities.transform(new CadTransformation({translate}));
+				entities.forEach((e) => e.transform(new CadTransformation({translate})));
 			}
 		});
 		menu.getData().updatePartners().updateComponents();
@@ -97,17 +100,19 @@ export class CadLineComponent implements OnInit {
 	}
 
 	findAllAdjacentLines(entity: CadEntity, point: Vector2) {
-		const entities = new CadEntities();
+		const entities: CadEntity[] = [];
 		const id = entity.id;
 		const accuracy = this.menu.accuracy;
+		let closed = false;
 		while (entity && point) {
 			entity = this.findAdjacentLines(entity, point)[0];
 			if (entity?.id === id) {
+				closed = true;
 				break;
 			}
 			if (entity) {
 				if (entity instanceof CadLine) {
-					entities.line.push(entity);
+					entities.push(entity);
 					const {start, end} = entity;
 					if (start.distanceTo(point) <= accuracy) {
 						point = end;
@@ -118,7 +123,7 @@ export class CadLineComponent implements OnInit {
 					}
 				}
 				if (entity instanceof CadArc) {
-					entities.arc.push(entity);
+					entities.push(entity);
 					const curve = entity.curve;
 					const start = curve.getPoint(0);
 					const end = curve.getPoint(1);
@@ -132,7 +137,7 @@ export class CadLineComponent implements OnInit {
 				}
 			}
 		}
-		return entities;
+		return {entities, closed};
 	}
 
 	getCssColor(colorStr?: string) {
@@ -174,7 +179,7 @@ export class CadLineComponent implements OnInit {
 		return "";
 	}
 
-	setLineText(event: Event, field: string) {
+	setLineText(event: InputEvent, field: string) {
 		const value = (event.target as HTMLInputElement).value;
 		this.selectedLines.forEach((e) => {
 			if (e instanceof CadLine) {

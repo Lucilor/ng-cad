@@ -26,6 +26,7 @@
     "@lucilor/utils": "^1.0.19",
     "@ngrx/store": "^9.1.2",
     "@seregpie/three.text-sprite": "^2.0.0",
+    "@syncfusion/ej2-angular-inputs": "^18.1.54",
     "lodash": "^4.17.15",
     "rxjs": "^6.5.5",
     "tslib": "^1.10.0",

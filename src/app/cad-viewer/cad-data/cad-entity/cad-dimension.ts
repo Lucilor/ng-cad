@@ -43,6 +43,10 @@ export class CadDimension extends CadEntity {
 		this.qujian = data.qujian || "";
 	}
 
+	transform(){
+		return this;
+	}
+
 	export() {
 		return Object.assign(super.export(), {
 			dimstyle: this.dimstyle,
@@ -56,5 +60,13 @@ export class CadDimension extends CadEntity {
 			mingzi: this.mingzi,
 			qujian: this.qujian
 		});
+	}
+
+	clone(resetId = false) {
+		const data = this.export();
+		if (resetId) {
+			delete data.id;
+		}
+		return new CadDimension(data);
 	}
 }

@@ -22,10 +22,12 @@ import {MatPaginatorModule, MatPaginatorIntl} from "@angular/material/paginator"
 import {MatRadioModule} from "@angular/material/radio";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatTooltipModule} from "@angular/material/tooltip";
+import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
+import {ColorPickerModule} from "@syncfusion/ej2-angular-inputs";
 import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
@@ -38,6 +40,7 @@ import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-for
 import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
 import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assemble.component";
 import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options.component";
+import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.component";
 
 @NgModule({
 	declarations: [
@@ -57,7 +60,8 @@ import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options
 		CadDimensionFormComponent,
 		CadSubcadComponent,
 		CadAssembleComponent,
-		CadOptionsComponent
+		CadOptionsComponent,
+		CadMtextComponent
 	],
 	imports: [
 		BrowserModule,
@@ -83,9 +87,11 @@ import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options
 		MatRadioModule,
 		MatCheckboxModule,
 		MatTooltipModule,
+		MatAutocompleteModule,
 		DragDropModule,
 		FormsModule,
-		ReactiveFormsModule
+		ReactiveFormsModule,
+		ColorPickerModule
 	],
 	entryComponents: [],
 	providers: [

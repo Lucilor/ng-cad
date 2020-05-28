@@ -67,7 +67,7 @@ export class CadDimensionComponent implements OnInit {
 				if (e1 instanceof CadLine && e2 instanceof CadLine) {
 					const delta = e1.theta - e2.theta;
 					if (Math.abs(delta) <= 0.1) {
-						if (Math.abs(e1.theta) <= 0.1) {
+						if (Math.abs(e1.slope) <= 0.1) {
 							dimension.axis = "y";
 						} else {
 							dimension.axis = "x";

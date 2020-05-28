@@ -29,6 +29,7 @@ export class CadData {
 	shuliang: string;
 	shuliangbeishu: string;
 	huajian: string;
+	dVars: {[key: string]: {lines: string[]; cads: string[]}};
 	readonly visible: boolean;
 	constructor(data: any = {}) {
 		if (typeof data !== "object") {
@@ -74,11 +75,12 @@ export class CadData {
 		this.components = new CadComponents(data.components || {});
 		this.updateComponents();
 		this.visible = data.visible === false ? false : true;
-		this.zhankaikuan = data.zhankaikuan || "";
+		this.zhankaikuan = data.zhankaikuan || "ceil(总长)+0";
 		this.zhankaigao = data.zhankaigao || "";
 		this.shuliang = data.shuliang || "1";
 		this.shuliangbeishu = data.shuliangbeishu || "1";
 		this.huajian = data.huajian || "";
+		this.dVars = data.dVars || {};
 	}
 
 	export() {
@@ -111,7 +113,8 @@ export class CadData {
 			zhankaigao: this.zhankaigao,
 			shuliang: this.shuliang,
 			shuliangbeishu: this.shuliangbeishu,
-			huajian: this.huajian
+			huajian: this.huajian,
+			dVars: this.dVars
 		};
 	}
 	export2(i = 0) {
@@ -344,13 +347,11 @@ export class CadData {
 		if (position === "absolute") {
 			const e1 = c1.findEntity(lines[0]);
 			const e2 = c2.findEntity(lines[1]);
+			// console.log(lines);
 			if (!e1 || !e2) {
 				throw new Error("未找到对应实体");
 			}
-			let spaceNum = Number(space);
-			if (isNaN(spaceNum)) {
-				spaceNum = 20;
-			}
+			const spaceNum = Number(space);
 			let l1: Line;
 			let l2: Line;
 			if (e1 instanceof CadLine) {
@@ -385,7 +386,9 @@ export class CadData {
 			} else {
 				throw new Error("两条线不平行");
 			}
-			this.moveComponent(c2, translate, c1);
+			if (!isNaN(spaceNum)) {
+				this.moveComponent(c2, translate, c1);
+			}
 		} else if (position === "relative") {
 			const match = space.match(/([0-9]*)(\+|-)?([0-9]*)/);
 			if (!match) {

@@ -64,7 +64,7 @@ export class CadMenu {
 				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
 				const selected = cad.selectedEntities;
-				if (false && selected) {
+				if (selected.length) {
 					selected.transform(new CadTransformation({translate}));
 				} else if (this.viewMode === "components") {
 					if (this.cadIdxs2.length) {
@@ -358,9 +358,9 @@ export class CadMenu {
 			entities.line.forEach((e) => (this.cadLength += e.length));
 			// entities.arc.forEach((e) => (this.cadLength += e.curve.getLength()));
 			this.cadLength = Number(this.cadLength.toFixed(2));
-			if (!data.zhankaikuan) {
-				data.zhankaikuan = this.cadLength.toString();
-			}
+			// if (!data.zhankaikuan) {
+			// 	data.zhankaikuan = this.cadLength.toString();
+			// }
 		}
 	}
 

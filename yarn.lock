@@ -1075,6 +1075,73 @@
   resolved "https://registry.yarnpkg.com/@seregpie/three.text-texture/-/three.text-texture-2.0.1.tgz#2f0b1aaa429bfc84c8c5e3f7b0503d9faa2079ea"
   integrity sha512-9uO/mP5PyGyl1LqrkObe9OOAwL/jp9rKjdphWf5gUH8LHDJuNy5GQCjr+nKqJG2lGID8gMNNnub1CSALl4BZHw==
 
+"@syncfusion/ej2-angular-base@~18.1.52":
+  version "18.1.52"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-angular-base/-/ej2-angular-base-18.1.52.tgz#a35b739790911a674cfdc48c65ec8d3a8afba427"
+  integrity sha512-tuovzFPYUCl2XH8XNC3E4P0Be1qI/xWXnAxgnowVCkTriqVf3yLpFBrBml+q6lXG6ugbJKZjSMuKC3sdf3XN4Q==
+  dependencies:
+    "@syncfusion/ej2-base" "~18.1.52"
+    "@syncfusion/ej2-icons" "~18.1.52"
+    core-js "^3.4.8"
+    reflect-metadata "^0.1.9"
+    rxjs "^6.5.4"
+    rxjs-compat "^6.5.4"
+    zone.js "^0.10.2"
+
+"@syncfusion/ej2-angular-inputs@^18.1.54":
+  version "18.1.54"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-angular-inputs/-/ej2-angular-inputs-18.1.54.tgz#07c516327c2bdd1a5f2789c4fee4dd2b185c665e"
+  integrity sha512-avWdbR/Alp8D+xSxarWGFKsv9eVBA82Zuus2PU0eCjg3+RdyFkBxTjm4ov86rwfhtY7MWnH+VQicrnawIQrb0g==
+  dependencies:
+    "@syncfusion/ej2-angular-base" "~18.1.52"
+    "@syncfusion/ej2-base" "~18.1.53"
+    "@syncfusion/ej2-inputs" "18.1.54"
+
+"@syncfusion/ej2-base@~18.1.52", "@syncfusion/ej2-base@~18.1.53":
+  version "18.1.53"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-base/-/ej2-base-18.1.53.tgz#8dd1e9c4d19a8cf59b842903aecdfca085e1931e"
+  integrity sha512-JPp4AlmO2QfrCbxHZwiHpf1/1F1pYNXqJdWK4V/x99jQH8stcfvFkggTwnO9MBsYpmkzhyDa9t0KhtdJReYZ6A==
+  dependencies:
+    "@syncfusion/ej2-icons" "~18.1.52"
+
+"@syncfusion/ej2-buttons@~18.1.52":
+  version "18.1.52"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-buttons/-/ej2-buttons-18.1.52.tgz#af12e0ce5bd0abd64fc43666090b441900a0ad8a"
+  integrity sha512-ETGxD45kekJ6CDDpBQLhs0DRgOcC0gr2jIT6Gfqn6+1pNeWHOzbjwQ/JECdjXW6TfESmCNObceBrjbL0MdI56A==
+  dependencies:
+    "@syncfusion/ej2-base" "~18.1.52"
+
+"@syncfusion/ej2-icons@~18.1.52":
+  version "18.1.52"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-icons/-/ej2-icons-18.1.52.tgz#3aac373083d60338aa65a0cb44d0db3472c409ba"
+  integrity sha512-G7TQ+1Y7BVUGR8qlo/NOx7IxQ/WkR9qoAyWVSs3sNNxnpM8HXP16N0BiexPwxkNEgoRmdByngtWPddHax9cdbA==
+
+"@syncfusion/ej2-inputs@18.1.54":
+  version "18.1.54"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-inputs/-/ej2-inputs-18.1.54.tgz#1c8a755fbd80601dcaa9da40e1902567ba7d11fa"
+  integrity sha512-tbJp0NV5uW33A2GOsuY46mKuJipd9Y0xYo4TJH5Hn7gzpWrZrkx4afGNw/wDL4lRc/p3o1fOaxTMQYw2J7XheQ==
+  dependencies:
+    "@syncfusion/ej2-base" "~18.1.53"
+    "@syncfusion/ej2-buttons" "~18.1.52"
+    "@syncfusion/ej2-popups" "~18.1.53"
+    "@syncfusion/ej2-splitbuttons" "~18.1.52"
+
+"@syncfusion/ej2-popups@~18.1.52", "@syncfusion/ej2-popups@~18.1.53":
+  version "18.1.53"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-popups/-/ej2-popups-18.1.53.tgz#6f37d22a20ea72e5399276ec59de2718e5d3e89b"
+  integrity sha512-BdqEIDlJDdQan3M30JXXZf005dwQ71cAnptLiJ1T4P1WDi8EHgrCfhbXB+LsbUFSo63V0Wns8C0Z/wiDVRQgUg==
+  dependencies:
+    "@syncfusion/ej2-base" "~18.1.53"
+    "@syncfusion/ej2-buttons" "~18.1.52"
+
+"@syncfusion/ej2-splitbuttons@~18.1.52":
+  version "18.1.52"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-splitbuttons/-/ej2-splitbuttons-18.1.52.tgz#176bbf295609efe89daa9877ad71ef525c941aec"
+  integrity sha512-7w3+3rIHTvSXqCKh52YLlrF/BPsa1um29wYtBN0pBfOSyfGVdteXXYjgA364Z64b8okykBwvIE7SYxvm/cUhew==
+  dependencies:
+    "@syncfusion/ej2-base" "~18.1.52"
+    "@syncfusion/ej2-popups" "~18.1.52"
+
 "@types/color-name@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
@@ -2548,6 +2615,11 @@ core-js@3.6.4:
   version "3.6.4"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.6.4.tgz#440a83536b458114b9cb2ac1580ba377dc470647"
   integrity sha512-4paDGScNgZP2IXXilaffL9X7968RuvwlkK3xWtZRVqgd8SYNiVKRJvkFd1aqqEuPfN7E68ZHEp9hDj6lHj4Hyw==
+
+core-js@^3.4.8:
+  version "3.6.5"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.6.5.tgz#7395dc273af37fb2e50e9bd3d9fe841285231d1a"
+  integrity sha512-vZVEEwZoIsI+vPEuoF9Iqf5H7/M3eeQqWlQnYa8FSKKePuYTf5MWnxb5SDAzCa60b3JBRS5g9b+Dq7b1y/RCrA==
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -6774,7 +6846,7 @@ readdirp@~3.4.0:
   dependencies:
     picomatch "^2.2.1"
 
-reflect-metadata@^0.1.2:
+reflect-metadata@^0.1.2, reflect-metadata@^0.1.9:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
@@ -7003,6 +7075,11 @@ run-queue@^1.0.0, run-queue@^1.0.3:
   dependencies:
     aproba "^1.1.1"
 
+rxjs-compat@^6.5.4:
+  version "6.5.5"
+  resolved "https://registry.yarnpkg.com/rxjs-compat/-/rxjs-compat-6.5.5.tgz#073c40510f29c45a2a5fc02dde87f8c3ad75f2c2"
+  integrity sha512-F42sssVbUyWH4vJswEo6m+Eh02xHv3q93n8S7nUJO58R7sbc3CvJIOts605zdaBhWa1xMB9aVSyqPqhQ5q3eXg==
+
 rxjs@6.5.4:
   version "6.5.4"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.5.4.tgz#e0777fe0d184cec7872df147f303572d414e211c"
@@ -7010,7 +7087,7 @@ rxjs@6.5.4:
   dependencies:
     tslib "^1.9.0"
 
-rxjs@^6.5.3, rxjs@^6.5.5:
+rxjs@^6.5.3, rxjs@^6.5.4, rxjs@^6.5.5:
   version "6.5.5"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.5.5.tgz#c5c884e3094c8cfee31bf27eb87e54ccfc87f9ec"
   integrity sha512-WfQI+1gohdf0Dai/Bbmk5L5ItH5tYqm3ki2c5GdWhKjalzjg93N3avFjVStyZZz+A2Em+ZxKH5bNghw9UeylGQ==
@@ -8702,7 +8779,7 @@ yn@3.1.1:
   resolved "https://registry.yarnpkg.com/yn/-/yn-3.1.1.tgz#1e87401a09d767c1d5eab26a6e4c185182d2eb50"
   integrity sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==
 
-zone.js@^0.10.3:
+zone.js@^0.10.2, zone.js@^0.10.3:
   version "0.10.3"
   resolved "https://registry.yarnpkg.com/zone.js/-/zone.js-0.10.3.tgz#3e5e4da03c607c9dcd92e37dd35687a14a140c16"
   integrity sha512-LXVLVEq0NNOqK/fLJo3d0kfzd4sxwn2/h67/02pjCjfKDxgx1i9QqpvtHD8CrBnSSwMw5+dy11O7FRX5mkO7Cg==

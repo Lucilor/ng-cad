@@ -38,6 +38,7 @@ export class CadLine extends CadEntity {
 	transform({matrix}: CadTransformation) {
 		this.start.applyMatrix3(matrix);
 		this.end.applyMatrix3(matrix);
+		return this;
 	}
 
 	export() {
@@ -48,5 +49,13 @@ export class CadLine extends CadEntity {
 			qujian: this.qujian,
 			gongshi: this.gongshi
 		});
+	}
+
+	clone(resetId = false) {
+		const data = this.export();
+		if (resetId) {
+			delete data.id;
+		}
+		return new CadLine(data);
 	}
 }

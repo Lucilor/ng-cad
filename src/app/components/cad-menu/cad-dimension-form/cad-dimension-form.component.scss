@@ -1,8 +1,7 @@
-@import "../../../../styles.scss";
-
 .mat-dialog-content {
 	min-width: 400px;
-	@include font();
+	line-height: 1.5rem;
+	font-size: 1rem;
 }
 
 mat-form-field {

@@ -47,7 +47,8 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 		cadInfo: ["normal", "partners"],
 		cadLine: ["normal", "partners"],
 		cadAssemble: ["components"],
-		cadDimension: ["normal", "partners"]
+		cadDimension: ["normal", "partners"],
+		cadMtext: ["normal", "partners"]
 	};
 	cad: CadViewer;
 	rotateAngle = 0;

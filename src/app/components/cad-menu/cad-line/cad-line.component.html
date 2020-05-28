@@ -1,8 +1,8 @@
-<mat-expansion-panel expanded *ngIf="data">
+<mat-expansion-panel expanded>
 	<mat-expansion-panel-header>
 		<mat-panel-title>线段信息</mat-panel-title>
 	</mat-expansion-panel-header>
-	<form>
+	<form *ngIf="selectedLines.length">
 		<button [hidden]="true"></button>
 		<div class="form-item length">
 			<label>长度</label>
@@ -14,7 +14,6 @@
 					[ngModel]="getLineLength()"
 					(change)="setLineLength($event)"
 					placeholder="请输入长度"
-					[disabled]="selectedLines.length < 1"
 					name="lineLength"
 				/>
 			</mat-form-field>
@@ -27,7 +26,6 @@
 					[ngModel]="getCssColor()"
 					[style]="{color: getCssColor(getCssColor()), backgroundColor: getCssColor()}"
 					(selectionChange)="setLineColor($event)"
-					[disabled]="selectedLines.length < 1"
 					name="lineColor"
 				>
 					<mat-option
@@ -52,7 +50,6 @@
 					(focus)="focusedField = 'mingzi'"
 					(blur)="focusedField = ''"
 					placeholder="请输入名字"
-					[disabled]="selectedLines.length < 1"
 					name="lineMingzi"
 				/>
 			</mat-form-field>
@@ -69,7 +66,6 @@
 					(focus)="focusedField = 'qujian'"
 					(blur)="focusedField = ''"
 					placeholder="请输入区间"
-					[disabled]="selectedLines.length < 1"
 					name="lineQujian"
 				/>
 			</mat-form-field>
@@ -86,17 +82,9 @@
 					(focus)="focusedField = 'gongshi'"
 					(blur)="focusedField = ''"
 					placeholder="请输入公式"
-					[disabled]="selectedLines.length < 1"
 					name="lineGongshi"
 				/>
 			</mat-form-field>
 		</div>
-		<button mat-raised-button color="accent" [disabled]="!menu.cad" (click)="menu.submit()">确定修改</button>
 	</form>
-</mat-expansion-panel>
-<mat-expansion-panel *ngIf="!data">
-	<mat-expansion-panel-header>
-		<mat-panel-title>线段信息</mat-panel-title>
-	</mat-expansion-panel-header>
-	<div>未选择CAD</div>
 </mat-expansion-panel>
