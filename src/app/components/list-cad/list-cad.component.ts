@@ -47,8 +47,8 @@ export class ListCadComponent implements AfterViewInit {
 		this.pageData.length = 0;
 		data.data.forEach((d) => {
 			try {
-				d.entities.dimension = [];
-				d.entities.mtext = [];
+				d.entities.dimension.forEach((v) => (v.visible = false));
+				d.entities.mtext.forEach((v) => (v.visible = false));
 				const cad = new CadViewer(d, {width: this.width, height: this.height, padding: 10});
 				const checked = this.checkedItems.find((v) => v.id === d.id) ? true : false;
 				const img = cad.exportImage().src;
@@ -68,7 +68,7 @@ export class ListCadComponent implements AfterViewInit {
 
 	submit() {
 		this.syncCheckedItems();
-		this.dialogRef.close(this.checkedItems);
+		this.dialogRef.close(this.checkedItems.map((v) => new CadData(v.export())));
 	}
 
 	close() {

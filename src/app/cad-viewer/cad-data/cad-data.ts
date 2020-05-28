@@ -154,6 +154,7 @@ export class CadData {
 			this.id = MathUtils.generateUUID();
 			this.layers = this.layers.map((v) => {
 				const nv = new CadLayer(v.export());
+				nv.originalId = nv.id;
 				nv.id = MathUtils.generateUUID();
 				return nv;
 			});
@@ -323,12 +324,14 @@ export class CadData {
 			throw new Error("未找到配件");
 		}
 		if (!c1) {
-			c1 = new CadData();
-			c1.entities = this.entities;
+			// c1 = new CadData();
+			// c1.entities = this.entities;
+			c1 = this;
 		}
 		if (!c2) {
-			c2 = new CadData();
-			c2.entities = this.entities;
+			// c2 = new CadData();
+			// c2.entities = this.entities;
+			c2 = this;
 		}
 		let axis: "x" | "y";
 		const getLine = (e: CadCircle, l: Line) => {
@@ -347,7 +350,6 @@ export class CadData {
 		if (position === "absolute") {
 			const e1 = c1.findEntity(lines[0]);
 			const e2 = c2.findEntity(lines[1]);
-			// console.log(lines);
 			if (!e1 || !e2) {
 				throw new Error("未找到对应实体");
 			}

@@ -420,8 +420,8 @@ export class CadViewer {
 		if (!entity.entity1 || !entity.entity2 || !entity.entity1.id || !entity.entity2.id) {
 			canDraw = false;
 		}
-		const entity1 = this.data.findEntity(entity.entity1?.id) as CadLine;
-		const entity2 = this.data.findEntity(entity.entity2?.id) as CadLine;
+		const entity1 = this.data.findEntity(entity.entity1.id) as CadLine;
+		const entity2 = this.data.findEntity(entity.entity2.id) as CadLine;
 		if (!entity1 || entity1.opacity === 0 || !entity2 || entity2.opacity === 0) {
 			canDraw = false;
 		}

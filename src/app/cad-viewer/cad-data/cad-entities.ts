@@ -110,7 +110,10 @@ export class CadEntities {
 	clone(resetIds = false) {
 		const result = new CadEntities(this.export());
 		if (resetIds) {
-			result.forEach((e) => (e.id = MathUtils.generateUUID()));
+			result.forEach((e) => {
+				e.originalId = e.id;
+				e.id = MathUtils.generateUUID()
+			});
 		}
 		return result;
 	}
