@@ -241,9 +241,9 @@ export class CadViewerControls {
 		const {cad, config} = this;
 		if (config.enableScale) {
 			if (event.deltaY > 0) {
-				cad.scale = Math.max(config.minScale, cad.scale - 0.1);
+				cad.scale = Math.max(config.minScale, cad.scale / 1.1);
 			} else if (event.deltaY < 0) {
-				cad.scale = Math.min(config.maxScale, cad.scale + 0.1);
+				cad.scale = Math.min(config.maxScale, cad.scale * 1.1);
 			}
 		}
 		const name: keyof CadEvents = "wheel";
@@ -282,10 +282,10 @@ export class CadViewerControls {
 					this._emitter.emit("entitiesunselect" as keyof CadEvents, event);
 					break;
 				case "[":
-					cad.scale -= 0.1;
+					cad.scale /= 1.1;
 					break;
 				case "]":
-					cad.scale += 0.1;
+					cad.scale *= 1.1;
 					break;
 				case "Delete":
 				case "Backspace":

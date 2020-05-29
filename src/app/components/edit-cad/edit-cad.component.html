@@ -11,7 +11,7 @@
 	<button mat-raised-button color="primary" (click)="menu.toggleMtexts()">{{ menu.drawMTexts ? "隐藏" : "显示" }}MTexts</button>
 	<button mat-raised-button color="accent" (click)="submitAll()">修改全部</button>
 </div>
-<div class="menu right">
+<div class="menu right" cdkScrollable>
 	<div class="tooltip-container">
 		<mat-icon matTooltipPosition="left" [matTooltip]="tooltipText" matTooltipClass="tooltip">help</mat-icon>
 	</div>

@@ -356,11 +356,9 @@ export class CadMenu {
 			this.cadLength = 0;
 			const entities = data.getAllEntities();
 			entities.line.forEach((e) => (this.cadLength += e.length));
-			// entities.arc.forEach((e) => (this.cadLength += e.curve.getLength()));
+			entities.arc.forEach((e) => (this.cadLength += e.curve.getLength()));
+			entities.circle.forEach((e) => (this.cadLength += e.curve.getLength()));
 			this.cadLength = Number(this.cadLength.toFixed(2));
-			// if (!data.zhankaikuan) {
-			// 	data.zhankaikuan = this.cadLength.toString();
-			// }
 		}
 	}
 

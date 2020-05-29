@@ -6,10 +6,8 @@ import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.
 import {PathResolveService} from "./services/path-resolve.service";
 import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {PrintCadComponent} from "@components/print-cad/print-cad.component";
-import {PlaygroundComponent} from "@components/playground/playground.component";
 
 const routes: Routes = [
-	{path: paths.playground, component: PlaygroundComponent},
 	{path: paths["draw-cad"], component: DrawCadComponent},
 	{path: paths["edit-cad"], component: EditCadComponent},
 	{path: paths["print-cad"], component: PrintCadComponent},
