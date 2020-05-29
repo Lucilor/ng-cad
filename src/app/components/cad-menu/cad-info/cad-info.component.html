@@ -86,12 +86,12 @@
 			<label>展开宽</label>
 			<mat-form-field>
 				<mat-label></mat-label>
-				<input matInput type="text" [(ngModel)]="data.zhankaikuan" placeholder="展开宽" name="zhankaikuan" />
-				<!-- <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
-					<mat-option *ngFor="let option of filteredOptions | async" [value]="option">
-					  {{option.name}}
+				<input matInput type="text" [matAutocomplete]="auto" [(ngModel)]="data.zhankaikuan" placeholder="展开宽" name="zhankaikuan" />
+				<mat-autocomplete #auto="matAutocomplete">
+					<mat-option *ngFor="let str of sampleFormulas" [value]="str">
+						{{ str }}
 					</mat-option>
-				  </mat-autocomplete> -->
+				</mat-autocomplete>
 			</mat-form-field>
 		</div>
 		<div class="form-item zhankaigao">

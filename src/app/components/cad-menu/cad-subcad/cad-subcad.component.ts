@@ -93,7 +93,7 @@ export class CadSubcadComponent implements OnInit {
 			checkedItems = [...data.components.data];
 		}
 		const ref: MatDialogRef<ListCadComponent, CadData[]> = this.dialog.open(ListCadComponent, {
-			data: {selectMode: "multiple", checkedItems},
+			data: {selectMode: "multiple", checkedItems, options: data.options},
 			width: "80vw"
 		});
 		ref.afterClosed().subscribe(async (cads) => {

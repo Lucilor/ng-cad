@@ -86,5 +86,21 @@
 				/>
 			</mat-form-field>
 		</div>
+		<div class="form-item guanlianbianhuagongshi">
+			<label>关联变化公式</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<input
+					matInput
+					type="text"
+					[ngModel]="getLineText('guanlianbianhuagongshi')"
+					(change)="setLineText($event, 'guanlianbianhuagongshi')"
+					(focus)="focusedField = 'guanlianbianhuagongshi'"
+					(blur)="focusedField = ''"
+					placeholder="请输入关联变化公式"
+					name="guanlianbianhuagongshi"
+				/>
+			</mat-form-field>
+		</div>
 	</form>
 </mat-expansion-panel>

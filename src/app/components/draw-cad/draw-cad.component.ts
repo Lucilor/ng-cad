@@ -1,4 +1,4 @@
-import {Component, AfterViewInit, ViewChild, ElementRef} from "@angular/core";
+import {Component, AfterViewInit, ViewChild, ElementRef, OnDestroy} from "@angular/core";
 import {CadDataService} from "@services/cad-data.service";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
@@ -8,6 +8,7 @@ import {RSAEncrypt} from "@lucilor/utils";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {CadOptionsComponent} from "../cad-menu/cad-options/cad-options.component";
 import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
+import {timeout} from "@src/app/app.common";
 
 const title = "选取CAD";
 @Component({
@@ -15,7 +16,7 @@ const title = "选取CAD";
 	templateUrl: "./draw-cad.component.html",
 	styleUrls: ["./draw-cad.component.scss"]
 })
-export class DrawCadComponent implements AfterViewInit {
+export class DrawCadComponent implements AfterViewInit, OnDestroy {
 	cad: CadViewer;
 	cads: {src: string; data: CadData; checked: boolean}[] = [];
 	get checkedCads() {
@@ -72,6 +73,10 @@ export class DrawCadComponent implements AfterViewInit {
 		});
 	}
 
+	ngOnDestroy() {
+		this.cad.destroy();
+	}
+
 	selectLines(entities = this.cad.selectedEntities) {
 		if (entities.length < 1) {
 			return;
@@ -126,9 +131,10 @@ export class DrawCadComponent implements AfterViewInit {
 			cads.map((v) => v.data),
 			RSAEncrypt({collection: "cad"})
 		);
-		cad.data.components.data = cad.data.components.data.concat(resDataArr);
 		resDataArr.forEach((d) => {
 			try {
+				const component = d.clone(true);
+				cad.data.addComponent(component);
 				cad.data.directAssemble(d);
 			} catch (error) {
 				console.warn(error);
@@ -136,8 +142,6 @@ export class DrawCadComponent implements AfterViewInit {
 		});
 		await dataService.postCadData([cad.data]);
 		await this.router.navigate(["edit-cad"], {queryParams: this.route.snapshot.queryParams});
-		// TODO: bug
-		window.location = window.location;
 	}
 
 	selectOptions(i: number) {

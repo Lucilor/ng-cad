@@ -19,9 +19,10 @@ export class CadInfoComponent implements OnInit {
 	get data() {
 		return this.menu.getData();
 	}
+	sampleFormulas: string[] = [];
 	constructor(private dialog: MatDialog, private dataService: CadDataService) {}
 
-	ngOnInit() {
+	async ngOnInit() {
 		const {cad, mode} = this.menu;
 		cad.controls.on("entityselect", (event, entity, object) => {
 			const {type, index} = mode;
@@ -47,10 +48,12 @@ export class CadInfoComponent implements OnInit {
 				}
 			}
 		});
+		this.sampleFormulas = await this.dataService.getSampleFormulas();
 	}
 
 	replaceData() {
-		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}, width: "80vw"});
+		const data = this.menu.getData(this.menu.cadIdx, -1);
+		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single", options: data.options}, width: "80vw"});
 		ref.afterClosed().subscribe((data) => {
 			if (data) {
 				this.dataService.replaceData(this.menu.getData(), data.id);
@@ -125,7 +128,7 @@ export class CadInfoComponent implements OnInit {
 					option.value = v.join(",");
 				}
 			});
-		} else if (option==="huajian") {
+		} else if (option === "huajian") {
 			const checkedItems = data.huajian.split(",");
 			const ref: MatDialogRef<CadOptionsComponent, string[]> = this.dialog.open(CadOptionsComponent, {
 				data: {data, name: "花件", checkedItems}

@@ -175,6 +175,10 @@ export class CadViewer {
 	}
 
 	resize(width?: number, height?: number) {
+		if (this._destroyed) {
+			console.warn("This instance has already been destroyed.");
+			return;
+		}
 		if (width > 0) {
 			this.config.width = width;
 		} else {

@@ -1,7 +1,7 @@
 import {Component, Inject, ViewChild, AfterViewInit} from "@angular/core";
 import {PageEvent, MatPaginator} from "@angular/material/paginator";
 import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
+import {CadData, CadOption} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadDataService} from "@services/cad-data.service";
 
@@ -24,7 +24,7 @@ export class ListCadComponent implements AfterViewInit {
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;
 	constructor(
 		public dialogRef: MatDialogRef<ListCadComponent, CadData[]>,
-		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems?: CadData[]},
+		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems?: CadData[]; options?: CadOption[]},
 		private dataService: CadDataService
 	) {}
 
@@ -41,8 +41,13 @@ export class ListCadComponent implements AfterViewInit {
 		this.getData(event.pageIndex + 1);
 	}
 
-	async getData(page: number) {
-		const data = await this.dataService.getCadDataPage(page, this.paginator.pageSize, this.searchValue, true);
+	async getData(page: number, withOption = false) {
+		let options: CadOption[] = [];
+		if (withOption) {
+			options = this.data.options || [];
+			console.log(options);
+		}
+		const data = await this.dataService.getCadDataPage(page, this.paginator.pageSize, this.searchValue, true, options);
 		this.length = data.count;
 		this.pageData.length = 0;
 		data.data.forEach((d) => {
@@ -75,10 +80,10 @@ export class ListCadComponent implements AfterViewInit {
 		this.dialogRef.close();
 	}
 
-	search() {
+	search(withOption = false) {
 		this.searchValue = this.searchInput;
 		this.paginator.pageIndex = 0;
-		this.getData(this.paginator.pageIndex + 1);
+		this.getData(this.paginator.pageIndex + 1, withOption);
 	}
 
 	searchKeydown(event: KeyboardEvent) {

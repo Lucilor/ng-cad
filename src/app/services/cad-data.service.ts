@@ -8,7 +8,7 @@ import {AlertComponent} from "../components/alert/alert.component";
 import {ActivatedRoute} from "@angular/router";
 import {LoadingAction, ActionTypes} from "../store/actions";
 import {Response} from "../app.common";
-import {CadData} from "../cad-viewer/cad-data/cad-data";
+import {CadData, CadOption} from "../cad-viewer/cad-data/cad-data";
 import {CadViewer} from "../cad-viewer/cad-viewer";
 import {SessionStorage, RSAEncrypt} from "@lucilor/utils";
 
@@ -41,9 +41,34 @@ export class CadDataService {
 		}
 	}
 
-	async getCadData() {
+	private async _request(url: string, name: string, method: "GET" | "POST", postData: any = {}) {
 		const {baseURL, encode, data} = this;
-		if (!data) {
+		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name});
+		try {
+			let response = await this.http.get<Response>(`${baseURL}/${url}/${encode}?data=${data}`).toPromise();
+			if (method === "GET") {
+				response = await this.http.get<Response>(`${baseURL}/${url}/${encode}?data=${data}`).toPromise();
+			}
+			if (method === "POST") {
+				const formData = new FormData();
+				formData.append("data", RSAEncrypt(postData));
+				response = await this.http.post<Response>(`${baseURL}/${url}/${encode}?data=${data}`, formData).toPromise();
+			}
+			if (response.code === 0) {
+				return response;
+			} else {
+				throw new Error(response.msg);
+			}
+		} catch (error) {
+			this.alert(error);
+			return null;
+		} finally {
+			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name});
+		}
+	}
+
+	async getCadData() {
+		if (!this.data) {
 			try {
 				return [new CadData(this.loadCurrentCad())];
 			} catch (error) {
@@ -51,27 +76,16 @@ export class CadDataService {
 				return [new CadData()];
 			}
 		}
-		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadData"});
-		try {
-			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
-			if (response.code === 0 && response.data) {
-				if (!Array.isArray(response.data)) {
-					response.data = [response.data];
-				}
-				const result: CadData[] = [];
-				response.data.forEach((d) => {
-					result.push(new CadData(d));
-				});
-				return result;
-			} else {
-				throw new Error(response.msg);
-			}
-		} catch (error) {
-			this.alert(error);
-			return [new CadData()];
-		} finally {
-			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadData"});
+		const response = await this._request("peijian/cad/getCad", "getCadData", "GET");
+		if (!response) {
+			return [];
 		}
+		if (!Array.isArray(response.data)) {
+			response.data = [response.data];
+		}
+		const result: CadData[] = [];
+		response.data.forEach((d) => result.push(new CadData(d)));
+		return result;
 	}
 
 	async postCadData(cadData: CadData[], data?: string) {
@@ -91,12 +105,13 @@ export class CadDataService {
 			name: "postCadData",
 			progress: 0
 		});
-		return new Promise<CadData[]>((resolve) => {
-			cadData.forEach(async (d, i) => {
+		return new Promise<CadData[]>(async (resolve) => {
+			for (let i = 0; i < cadData.length; i++) {
 				const formData = new FormData();
 				if (data) {
 					formData.append("data", data);
 				}
+				const d = cadData[i];
 				formData.append("cadData", JSON.stringify(d.export()));
 				try {
 					const response = await this.http.post<Response>(`${baseURL}/peijian/cad/setCAD/${encode}`, formData).toPromise();
@@ -116,7 +131,7 @@ export class CadDataService {
 					name: "postCadData",
 					progress: counter / cadData.length
 				});
-				if (counter / cadData.length >= 1) {
+				if (counter >= cadData.length) {
 					setTimeout(() => {
 						this.store.dispatch<LoadingAction>({
 							type: ActionTypes.setLoadingProgress,
@@ -124,8 +139,6 @@ export class CadDataService {
 							progress: -1
 						});
 					}, 200);
-				}
-				if (counter >= cadData.length) {
 					if (successCounter === counter) {
 						this.snackBar.open(`${successCounter > 1 ? "全部" : ""}成功`);
 					} else {
@@ -133,63 +146,42 @@ export class CadDataService {
 					}
 					resolve(result);
 				}
-			});
+			}
 		});
 	}
 
-	async getCadDataPage(page: number, limit: number, search?: string, zhuangpei = false) {
-		const {baseURL, encode} = this;
-		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
-		try {
-			const data = RSAEncrypt({page, limit, search, xiaodaohang: "CAD", zhuangpei});
-			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/getCad/${encode}?data=${data}`).toPromise();
-			if (response.code === 0 && response.data) {
-				const result: CadData[] = [];
-				response.data.forEach((d) => {
-					const {_id, 分类, 名字, 条件, 选项} = d;
-					if (d.json && typeof d.json === "object") {
-						const json = d.json;
-						json.name = 名字;
-						json.type = 分类;
-						json.options = 选项;
-						json.conditions = 条件;
-						result.push(new CadData(json));
-					} else {
-						result.push(new CadData({id: _id, name: 名字, type: 分类, options: 选项, conditions: 条件}));
-					}
-				});
-				return {data: result, count: response.count};
-			} else {
-				throw new Error(response.msg);
-			}
-		} catch (error) {
-			this.alert(error);
-			return null;
-		} finally {
-			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
+	async getCadDataPage(page: number, limit: number, search?: string, zhuangpei = false, options?: CadOption[]) {
+		const postData = {page, limit, search, xiaodaohang: "CAD", zhuangpei, options};
+		const response = await this._request("peijian/cad/getCad", "getCadDataPage", "POST", postData);
+		if (!response) {
+			return {data: [], count: 0};
 		}
+		const result: CadData[] = [];
+		response.data.forEach((d) => {
+			const {_id, 分类, 名字, 条件, 选项} = d;
+			if (d.json && typeof d.json === "object") {
+				const json = d.json;
+				json.name = 名字;
+				json.type = 分类;
+				json.options = 选项;
+				json.conditions = 条件;
+				result.push(new CadData(json));
+			} else {
+				result.push(new CadData({id: _id, name: 名字, type: 分类, options: 选项, conditions: 条件}));
+			}
+		});
+		return {data: result, count: response.count};
 	}
 
 	async replaceData(source: CadData, target: string) {
 		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
-		const {baseURL, encode} = this;
 		source.sortComponents();
-		try {
-			const data = new FormData();
-			data.append("data", RSAEncrypt({source: source.export(), target}));
-			const response = await this.http.post<Response>(`${baseURL}/peijian/cad/replaceCad/${encode}`, data).toPromise();
-			if (response.code === 0 && response.data) {
-				this.snackBar.open(response.msg);
-				return new CadData(response.data);
-			} else {
-				throw new Error(response.msg);
-			}
-		} catch (error) {
-			this.alert(error);
+		const response = await this._request("peijian/cad/replaceCad", "replaceData", "POST", {source: source.export(), target});
+		if (!response) {
 			return null;
-		} finally {
-			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getCadDataPage"});
 		}
+		this.snackBar.open(response.msg);
+		return new CadData(response.data);
 	}
 
 	saveCadStatus(cad: CadViewer, field: string) {
@@ -219,53 +211,34 @@ export class CadDataService {
 	}
 
 	async getOptions(data: CadData, name: string, search: string, page: number, limit: number) {
-		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getOptions"});
-		const {baseURL, encode} = this;
-		try {
-			const formData = new FormData();
-			const exportData = data.export();
-			formData.append(
-				"data",
-				RSAEncrypt({
-					name,
-					search,
-					page,
-					limit,
-					mingzi: exportData.name,
-					fenlei: exportData.type,
-					xuanxiang: exportData.options,
-					tiaojian: exportData.conditions
-				})
-			);
-			const response = await this.http.post<Response>(`${baseURL}/peijian/cad/getOptions/${encode}`, formData).toPromise();
-			if (response.code === 0 && response.data) {
-				return {data: response.data as string[], count: response.count};
-			} else {
-				throw new Error(response.msg);
-			}
-		} catch (error) {
-			this.alert(error);
-			return null;
-		} finally {
-			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getOptions"});
+		const exportData = data.export();
+		const postData = {
+			name,
+			search,
+			page,
+			limit,
+			mingzi: exportData.name,
+			fenlei: exportData.type,
+			xuanxiang: exportData.options,
+			tiaojian: exportData.conditions
+		};
+		const response = await this._request("peijian/cad/getOptions", "getOptions", "POST", postData);
+		if (response) {
+			return {data: response.data as string[], count: response.count};
 		}
+		return {data: [], count: 0};
 	}
 
 	async getShowLineInfo() {
-		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getShowLineInfo"});
-		const {baseURL, encode} = this;
-		try {
-			const response = await this.http.get<Response>(`${baseURL}/peijian/cad/showLineInfo/${encode}`).toPromise();
-			if (response.code === 0) {
-				return response.data as boolean;
-			} else {
-				throw new Error(response.msg);
-			}
-		} catch (error) {
-			this.alert(error);
-			return null;
-		} finally {
-			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name: "getShowLineInfo"});
+		const response = await this._request("peijian/cad/showLineInfo", "getShowLineInfo", "GET");
+		return response ? (response.data as boolean) : false;
+	}
+
+	async getSampleFormulas() {
+		const response = await this._request("peijian/Houtaisuanliao/getSampleFormulas", "getSampleFormulas", "GET");
+		if (response) {
+			return response.data as string[];
 		}
+		return [];
 	}
 }

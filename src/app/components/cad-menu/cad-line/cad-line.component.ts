@@ -164,7 +164,7 @@ export class CadLineComponent implements OnInit {
 		this.menu.cad.render();
 	}
 
-	getLineText(field: "mingzi" | "qujian" | "gongshi") {
+	getLineText(field: "mingzi" | "qujian" | "gongshi" | "guanlianbianhuagongshi") {
 		const lines = this.selectedLines;
 		if (lines.length === 1) {
 			return lines[0][field];

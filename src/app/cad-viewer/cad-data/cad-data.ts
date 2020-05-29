@@ -29,7 +29,6 @@ export class CadData {
 	shuliang: string;
 	shuliangbeishu: string;
 	huajian: string;
-	dVars: {[key: string]: {lines: string[]; cads: string[]}};
 	readonly visible: boolean;
 	constructor(data: any = {}) {
 		if (typeof data !== "object") {
@@ -80,7 +79,6 @@ export class CadData {
 		this.shuliang = data.shuliang || "1";
 		this.shuliangbeishu = data.shuliangbeishu || "1";
 		this.huajian = data.huajian || "";
-		this.dVars = data.dVars || {};
 	}
 
 	export() {
@@ -113,8 +111,7 @@ export class CadData {
 			zhankaigao: this.zhankaigao,
 			shuliang: this.shuliang,
 			shuliangbeishu: this.shuliangbeishu,
-			huajian: this.huajian,
-			dVars: this.dVars
+			huajian: this.huajian
 		};
 	}
 	export2(i = 0) {
@@ -151,7 +148,7 @@ export class CadData {
 	clone(resetIds = false) {
 		const data = new CadData(this.export());
 		if (resetIds) {
-			this.id = MathUtils.generateUUID();
+			// this.id = MathUtils.generateUUID();
 			this.layers = this.layers.map((v) => {
 				const nv = new CadLayer(v.export());
 				nv.originalId = nv.id;
@@ -296,7 +293,9 @@ export class CadData {
 		data.forEach((v) => this.addComponent(v));
 		try {
 			connections.forEach((c) => this.assembleComponents(c));
-		} catch (error) {}
+		} catch (error) {
+			console.warn(error);
+		}
 		this.partners.forEach((v) => v.updateComponents());
 		this.components.data.forEach((v) => v.updateComponents());
 		return this;
@@ -324,14 +323,15 @@ export class CadData {
 			throw new Error("未找到配件");
 		}
 		if (!c1) {
-			// c1 = new CadData();
-			// c1.entities = this.entities;
-			c1 = this;
+			c1 = new CadData();
+			c1.entities = this.entities;
 		}
 		if (!c2) {
-			// c2 = new CadData();
-			// c2.entities = this.entities;
-			c2 = this;
+			c2 = c1;
+			c1 = new CadData();
+			c1.entities = this.entities;
+			lines.unshift(lines.pop());
+			ids.unshift(ids.pop());
 		}
 		let axis: "x" | "y";
 		const getLine = (e: CadCircle, l: Line) => {
@@ -388,8 +388,8 @@ export class CadData {
 			} else {
 				throw new Error("两条线不平行");
 			}
-			if (!isNaN(spaceNum)) {
-				this.moveComponent(c2, translate, c1);
+			if (isNaN(spaceNum)) {
+				translate.set(0, 0);
 			}
 		} else if (position === "relative") {
 			const match = space.match(/([0-9]*)(\+|-)?([0-9]*)/);
@@ -452,7 +452,6 @@ export class CadData {
 			} else {
 				throw new Error("三条线不是横线或者竖线");
 			}
-			this.moveComponent(c2, translate, c1);
 		}
 
 		const toRemove = [];
@@ -485,6 +484,7 @@ export class CadData {
 			}
 		});
 		components.connections = components.connections.filter((v, i) => !toRemove.includes(i));
+		this.moveComponent(c2, translate, c1);
 		components.connections.push(cloneDeep(connection));
 
 		return this;

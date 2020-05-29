@@ -1,4 +1,4 @@
-import {Component, ViewChild, ElementRef, AfterViewInit, OnInit} from "@angular/core";
+import {Component, ViewChild, ElementRef, AfterViewInit, OnInit, OnDestroy} from "@angular/core";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadDataService} from "@services/cad-data.service";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -27,7 +27,7 @@ const title = "编辑CAD";
 		])
 	]
 })
-export class EditCadComponent implements OnInit, AfterViewInit {
+export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	@ViewChild("cadInfo", {read: CadInfoComponent}) cadInfo: CadInfoComponent;
 	@ViewChild("cadLine", {read: CadLineComponent}) cadLine: CadLineComponent;
@@ -107,6 +107,10 @@ export class EditCadComponent implements OnInit, AfterViewInit {
 
 	ngAfterViewInit() {
 		this.cadContainer.nativeElement.appendChild(this.cad.dom);
+	}
+
+	ngOnDestroy() {
+		this.cad.destroy();
 	}
 
 	flip(vertical: boolean, horizontal: boolean) {
