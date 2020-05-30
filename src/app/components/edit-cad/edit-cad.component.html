@@ -9,6 +9,9 @@
 	<button mat-raised-button color="primary" (click)="rotate()">旋转</button>
 	<button mat-raised-button color="primary" (click)="menu.toggleDimensions()">{{ menu.drawDimensions ? "隐藏" : "显示" }}标注</button>
 	<button mat-raised-button color="primary" (click)="menu.toggleMtexts()">{{ menu.drawMTexts ? "隐藏" : "显示" }}MTexts</button>
+	<button mat-raised-button color="primary" (click)="menu.entitiesDraggable = !menu.entitiesDraggable">
+		选中实体{{ menu.entitiesDraggable ? "可" : "不可" }}拖动
+	</button>
 	<button mat-raised-button color="accent" (click)="submitAll()">修改全部</button>
 </div>
 <div class="menu right" cdkScrollable>

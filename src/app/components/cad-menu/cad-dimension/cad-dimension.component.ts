@@ -77,6 +77,11 @@ export class CadDimensionComponent implements OnInit {
 				cad.render();
 			}
 		});
+		cad.dom.addEventListener("keydown", ({key}) => {
+			if (key === "Escape") {
+				this.selectDimLine(mode.index);
+			}
+		});
 	}
 
 	editDimension(i: number) {

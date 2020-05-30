@@ -10,7 +10,7 @@ import {CadEntity} from "./cad-entity/cad-entity";
 import {CadTransformation} from "./cad-transformation";
 import {Box2, ArcCurve, MathUtils, Vector2} from "three";
 import {mergeArray, separateArray} from "./utils";
-import {uniqWith} from "lodash";
+import {uniqWith,intersection} from "lodash";
 
 export class CadEntities {
 	line: CadLine[] = [];
@@ -203,7 +203,9 @@ export class CadEntities {
 
 	updateDimensions() {
 		this.dimension = uniqWith(this.dimension, (a, b) => {
-			return a.entity1.id === b.entity1.id || a.entity2.id === b.entity1.id || a.entity1.id === b.entity2.id || a.id === b.id;
+			const aIds = [a.entity1.id,a.entity2.id];
+			const bIds = [b.entity1.id,b.entity2.id];
+			return intersection(aIds,bIds).length===2 || a.id === b.id;
 		});
 	}
 }

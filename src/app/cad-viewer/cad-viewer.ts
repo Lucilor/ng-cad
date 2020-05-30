@@ -108,19 +108,6 @@ export class CadViewer {
 		this.data = data;
 		this.config = {...this.config, ...config};
 		const {width, height, padding, backgroundColor, backgroundAlpha} = this.config;
-		if (typeof padding === "number") {
-			this.config.padding = [padding, padding, padding, padding];
-		} else if (!Array.isArray(padding) || padding.length === 0) {
-			this.config.padding = [0, 0, 0, 0];
-		} else if (padding.length === 0) {
-			this.config.padding = [0, 0, 0, 0];
-		} else if (padding.length === 1) {
-			this.config.padding = [padding[0], padding[0], padding[0], padding[0]];
-		} else if (padding.length === 2) {
-			this.config.padding = [padding[0], padding[1], padding[0], padding[1]];
-		} else if (padding.length === 3) {
-			this.config.padding = [padding[0], padding[1], padding[0], padding[2]];
-		}
 
 		const scene = new Scene();
 		const camera = new PerspectiveCamera(60, width / height, 0.1, 15000);
@@ -231,7 +218,20 @@ export class CadViewer {
 	center(entities?: CadEntities) {
 		const rect = this.getBounds(entities);
 		const {width, height} = this;
-		const padding = this.config.padding;
+		let padding = this.config.padding;
+		if (typeof padding === "number") {
+			padding = [padding, padding, padding, padding];
+		} else if (!Array.isArray(padding) || padding.length === 0) {
+			padding = [0, 0, 0, 0];
+		} else if (padding.length === 0) {
+			padding = [0, 0, 0, 0];
+		} else if (padding.length === 1) {
+			padding = [padding[0], padding[0], padding[0], padding[0]];
+		} else if (padding.length === 2) {
+			padding = [padding[0], padding[1], padding[0], padding[1]];
+		} else if (padding.length === 3) {
+			padding = [padding[0], padding[1], padding[0], padding[2]];
+		}
 		const scaleX = (width - padding[1] - padding[3]) / rect.width;
 		const scaleY = (height - padding[0] - padding[2]) / rect.height;
 		const scale = Math.min(scaleX, scaleY);
@@ -336,6 +336,22 @@ export class CadViewer {
 				// lengthText.padding = 0;
 				this._setAnchor(lengthText, middle, anchor);
 				object.add(lengthText);
+				// lengthText.geometry.computeBoundingBox();
+				// const box1 = lengthText.geometry.boundingBox;
+				// box1.max.add(lengthText.position);
+				// box1.min.add(lengthText.position);
+				// console.log(lengthText);
+				// this.data.entities.line.forEach(e=>{
+				// 	const o = this.objects[e.id];
+				// 	if(o){
+				// 		const child = o.children[0] as Mesh;
+				// 		child.geometry.computeBoundingBox();
+				// 		const box2 = child.geometry.boundingBox;
+				// 		box2.min.add(child.position);
+				// 		box2.max.add(child.position);
+				// 		console.log(box2.intersectsBox(box1));
+				// 	}
+				// })
 			}
 		}
 	}
@@ -404,7 +420,7 @@ export class CadViewer {
 			object = new TextSprite({fontSize: fontSize * 1.25, fillStyle: colorStr, text, fontStyle});
 			object.name = entity.id;
 			object.userData.selectable = true;
-			// object.padding = 0;
+			object.padding = 0.1;
 			objects[entity.id] = object;
 			scene.add(object);
 		}

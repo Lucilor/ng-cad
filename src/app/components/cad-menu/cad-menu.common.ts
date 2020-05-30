@@ -37,6 +37,7 @@ export class CadMenu {
 	viewMode: "normal" | "partners" | "components" | "slice" = "normal";
 	drawDimensions = true;
 	drawMTexts = true;
+	entitiesDraggable = false;
 	readonly accuracy = 1;
 	readonly selectedColor = 0xffff00;
 	readonly hoverColor = 0x00ffff;
@@ -64,7 +65,7 @@ export class CadMenu {
 				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
 				const selected = cad.selectedEntities;
-				if (selected.length) {
+				if (this.entitiesDraggable && selected.length) {
 					selected.transform(new CadTransformation({translate}));
 				} else if (this.viewMode === "components") {
 					if (this.cadIdxs2.length) {

@@ -19,6 +19,9 @@ export class PrintCadComponent implements AfterViewInit {
 	scale = 16;
 	miniMenu = false;
 	padding = [40, 110];
+	showLineLength = 0;
+	showAll = false;
+	suofang = false;
 	constructor(private dialog: MatDialog) {
 		// tslint:disable-next-line
 		window["view"] = this;
@@ -27,10 +30,10 @@ export class PrintCadComponent implements AfterViewInit {
 	async ngAfterViewInit() {
 		document.title = "打印CAD";
 		let data: CadData;
-		let showLineLength = 0;
 		try {
 			data = JSON.parse(sessionStorage.getItem("cache-cad-data"));
-			showLineLength = Number(sessionStorage.getItem("show-line-length"));
+			const params = JSON.parse(sessionStorage.getItem("params"));
+			Object.assign(this, params);
 		} catch (error) {
 			console.warn(error);
 		}
@@ -43,16 +46,18 @@ export class PrintCadComponent implements AfterViewInit {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
-			showLineLength,
+			showLineLength: this.showLineLength,
 			backgroundColor: 0xffffff,
 			padding: this.padding
 		});
 		this.cad = cad;
-		cad.setControls({dragAxis: "y", selectMode: "none", enableScale: false});
+		cad.setControls({dragAxis: this.suofang ? "" : "y", selectMode: "none", enableScale: this.suofang});
 		this.cadContainer.nativeElement.append(cad.dom);
 
-		cad.dom.style.overflowX = "hidden";
-		cad.dom.style.overflowY = "auto";
+		if (!this.showAll) {
+			cad.dom.style.overflowX = "hidden";
+			cad.dom.style.overflowY = "auto";
+		}
 		this.resetCad();
 	}
 
@@ -73,9 +78,12 @@ export class PrintCadComponent implements AfterViewInit {
 
 	resetCad() {
 		const {cad, padding} = this;
-		const rect = cad.getBounds();
-		const scale = (innerWidth - padding[1] * 2) / rect.width;
-		const h = rect.height * scale + padding[0] * 2;
+		let h = innerHeight;
+		if (!this.showAll) {
+			const rect = cad.getBounds();
+			const scale = (innerWidth - padding[1] * 2) / rect.width;
+			h = rect.height * scale + padding[0] * 2;
+		}
 		cad.resize(innerWidth, h).render(true);
 		cad.dom.style.height = innerHeight + "px";
 	}

@@ -97,7 +97,7 @@ export class CadViewerControls {
 
 	// Normalized Device Coordinate
 	private _getNDC(point: Vector2) {
-		const rect = this.cad.dom.getBoundingClientRect();
+		const rect = this.cad.renderer.domElement.getBoundingClientRect();
 		return new Vector3(((point.x - rect.left) / rect.width) * 2 - 1, (-(point.y - rect.top) / rect.height) * 2 + 1, 0.5);
 	}
 
@@ -156,7 +156,7 @@ export class CadViewerControls {
 				cad.position.sub(new Vector3(offset.x, offset.y, 0));
 			} else if (button === 0) {
 				let triggerMultiple = this.config.selectMode === "multiple";
-				triggerMultiple = !this._dragObject(p, offset);
+				triggerMultiple = triggerMultiple && !this._dragObject(p, offset);
 				if (triggerMultiple) {
 					this._multiSelector.hidden = false;
 					this._multiSelector.style.left = Math.min(pFrom.x, pTo.x) + "px";
@@ -207,18 +207,16 @@ export class CadViewerControls {
 					min.add(object.position);
 					max.add(object.position);
 					const objBox = new Box2(new Vector2(min.x, min.y), new Vector2(max.x, max.y));
-					if (box.containsBox(objBox) && object.userData.selectable) {
+					if (box.containsBox(objBox) && object.userData.selectable === true) {
 						toSelect.push(object);
 					}
 				}
 				if (toSelect.every((o) => o.userData.selected)) {
 					toSelect.forEach((o) => (o.userData.selected = false));
-					const name: keyof CadEvents = "entitiesunselect";
-					this._emitter.emit(name, event);
+					this._emitter.emit("entitiesunselect" as keyof CadEvents, event);
 				} else {
 					toSelect.forEach((object) => (object.userData.selected = true));
-					const name: keyof CadEvents = "entitiesselect";
-					this._emitter.emit(name, event);
+					this._emitter.emit("entitiesselect" as keyof CadEvents, event);
 				}
 				cad.render();
 			}

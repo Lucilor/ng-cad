@@ -68,6 +68,7 @@ export class CadAssembleComponent implements OnInit {
 									this.dialog.open(AlertComponent, {data: {content: error.message}});
 								} finally {
 									ids.length = 0;
+									names.length = 0;
 									lines.length = 0;
 									cad.unselectAll();
 								}
