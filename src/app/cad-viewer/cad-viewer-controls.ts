@@ -312,7 +312,7 @@ export class CadViewerControls {
 		const object = this._getInterSection(_status.pTo);
 		const selectable = object && object.userData.selectable;
 		if (selectable) {
-			object.userData.hover = !object.userData.selected;
+			object.userData.hover = true;
 			cad.render();
 			cad.dom.style.cursor = "pointer";
 			this.currentObject = object;

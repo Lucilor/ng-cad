@@ -8,14 +8,15 @@
 			<label>内容</label>
 			<mat-form-field>
 				<mat-label></mat-label>
-				<input
+				<textarea
 					matInput
-					type="text"
+					cdkTextareaAutosize
+					[cdkAutosizeMaxRows]="5"
 					[ngModel]="getInfo('text')"
 					(change)="setInfo('text', $event)"
 					placeholder="请输入内容"
 					name="mtext"
-				/>
+				></textarea>
 			</mat-form-field>
 		</div>
 		<div class="form-item font-size">

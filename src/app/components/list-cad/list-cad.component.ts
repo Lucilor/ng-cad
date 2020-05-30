@@ -4,6 +4,7 @@ import {MatDialogRef, MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {CadData, CadOption} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadDataService} from "@services/cad-data.service";
+import {timeout} from "@src/app/app.common";
 
 @Component({
 	selector: "app-list-cad",
@@ -50,7 +51,7 @@ export class ListCadComponent implements AfterViewInit {
 		const data = await this.dataService.getCadDataPage(page, this.paginator.pageSize, this.searchValue, true, options);
 		this.length = data.count;
 		this.pageData.length = 0;
-		data.data.forEach((d) => {
+		for (const d of data.data) {
 			try {
 				d.entities.dimension.forEach((v) => (v.visible = false));
 				d.entities.mtext.forEach((v) => (v.visible = false));
@@ -59,6 +60,8 @@ export class ListCadComponent implements AfterViewInit {
 				const img = cad.exportImage().src;
 				this.pageData.push({data: cad.data, img, checked});
 				cad.destroy();
+				// (trying to) prevent WebGL contexts lost
+				await timeout(0);
 			} catch (e) {
 				console.warn(e);
 				this.pageData.push({
@@ -67,7 +70,7 @@ export class ListCadComponent implements AfterViewInit {
 					checked: false
 				});
 			}
-		});
+		}
 		return data;
 	}
 

@@ -83,10 +83,10 @@
 			</mat-form-field>
 		</div>
 		<div class="form-item zhankaikuan">
-			<label>展开宽</label>
+			<label>展开</label>
 			<mat-form-field>
 				<mat-label></mat-label>
-				<input matInput type="text" [matAutocomplete]="auto" [(ngModel)]="data.zhankaikuan" placeholder="展开宽" name="zhankaikuan" />
+				<input matInput type="text" [matAutocomplete]="auto" [(ngModel)]="data.zhankaikuan" placeholder="展开" name="zhankaikuan" />
 				<mat-autocomplete #auto="matAutocomplete">
 					<mat-option *ngFor="let str of sampleFormulas" [value]="str">
 						{{ str }}
@@ -95,10 +95,10 @@
 			</mat-form-field>
 		</div>
 		<div class="form-item zhankaigao">
-			<label>展开高</label>
+			<label style="width: 32px;"></label>
 			<mat-form-field>
 				<mat-label></mat-label>
-				<input matInput type="text" [(ngModel)]="data.zhankaigao" placeholder="请输入展开高" name="zhankaigao" />
+				<input matInput type="text" [(ngModel)]="data.zhankaigao" placeholder="请输入展开" name="zhankaigao" />
 			</mat-form-field>
 		</div>
 		<div class="form-item shuliang">

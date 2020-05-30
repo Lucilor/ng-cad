@@ -9,8 +9,7 @@ import {LoadingComponent} from "./components/loading/loading.component";
 import {StoreModule} from "@ngrx/store";
 import {reducers, metaReducers} from "./store/reducers";
 import {HttpClientModule} from "@angular/common/http";
-import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
-import {AlertComponent} from "./components/alert/alert.component";
+
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatButtonModule} from "@angular/material/button";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
@@ -29,6 +28,8 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
 import {ColorPickerModule} from "@syncfusion/ej2-angular-inputs";
 
+import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
+import {AlertComponent} from "./components/alert/alert.component";
 import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {ListCadComponent} from "@components/list-cad/list-cad.component";
@@ -89,6 +90,7 @@ import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.compo
 		MatTooltipModule,
 		MatAutocompleteModule,
 		DragDropModule,
+		ScrollingModule,
 		FormsModule,
 		ReactiveFormsModule,
 		ColorPickerModule
