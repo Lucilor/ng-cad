@@ -22,7 +22,7 @@
     "@angular/platform-browser": "^9.1.9",
     "@angular/platform-browser-dynamic": "^9.1.9",
     "@angular/router": "^9.1.9",
-    "@lucilor/cad-viewer": "^2.2.2",
+    "@lucilor/cad-viewer": "^2.2.3",
     "@lucilor/utils": "^1.0.19",
     "@ngrx/store": "^9.2.0",
     "@seregpie/three.text-sprite": "^2.0.0",
@@ -39,8 +39,8 @@
     "@angular/language-service": "^9.1.9",
     "@types/jasmine": "^3.5.10",
     "@types/jasminewd2": "~2.0.8",
-    "@types/lodash": "^4.14.153",
-    "@types/node": "^14.0.5",
+    "@types/lodash": "^4.14.154",
+    "@types/node": "^14.0.6",
     "@types/stats.js": "^0.17.0",
     "codelyzer": "^5.2.2",
     "jasmine-core": "~3.5.0",
@@ -55,9 +55,5 @@
     "ts-node": "~8.10.2",
     "tslint": "~6.1.2",
     "typescript": "~3.8.3"
-  },
-  "resolutions": {
-    "**/minimist": "^1.2.3",
-    "**/yargs-parser": "^18.1.2"
   }
 }
