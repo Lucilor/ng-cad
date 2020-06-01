@@ -312,6 +312,15 @@ export class CadViewer {
 			this._setLineMaterial(object, color, linewidth, opacity);
 			const lengthText = object.children.find((o) => (o as any).isTextSprite) as TextSprite;
 			if (lengthText) {
+				if (showLineLength > 0) {
+					lengthText.text = Math.round(length).toString();
+					lengthText.fontSize = showLineLength;
+					lengthText.fillStyle = colorStr;
+					lengthText.fontStyle = fontStyle;
+					this._setAnchor(lengthText, middle, anchor);
+				} else {
+					object.remove(lengthText);
+				}
 				lengthText.text = Math.round(length).toString();
 				lengthText.fontSize = showLineLength;
 				lengthText.fillStyle = colorStr;
