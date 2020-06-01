@@ -51,7 +51,7 @@ export class PrintCadComponent implements AfterViewInit {
 			padding: this.padding
 		});
 		this.cad = cad;
-		cad.setControls({dragAxis: this.suofang ? "" : "y", selectMode: "none", enableScale: this.suofang});
+		cad.setControls({dragAxis: "y", selectMode: "none", enableScale: this.suofang});
 		this.cadContainer.nativeElement.append(cad.dom);
 
 		if (!this.showAll) {

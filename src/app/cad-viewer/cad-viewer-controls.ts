@@ -249,9 +249,11 @@ export class CadViewerControls {
 	}
 
 	private _keyDown(event: KeyboardEvent) {
-		const {cad} = this;
+		const {cad, config} = this;
 		const position = cad.position;
 		const step = 10 / cad.scale;
+		const stepX = config.dragAxis.includes("x") ? step : 0;
+		const stepY = config.dragAxis.includes("y") ? step : 0;
 		if (event.ctrlKey) {
 			if (event.key === "a") {
 				cad.selectAll();
@@ -261,19 +263,19 @@ export class CadViewerControls {
 			switch (event.key) {
 				case "w":
 				case "ArrowUp":
-					position.y -= step;
+					position.y -= stepY;
 					break;
 				case "a":
 				case "ArrowLeft":
-					position.x += step;
+					position.x += stepX;
 					break;
 				case "s":
 				case "ArrowDown":
-					position.y += step;
+					position.y += stepY;
 					break;
 				case "d":
 				case "ArrowRight":
-					position.x -= step;
+					position.x -= stepX;
 					break;
 				case "Escape":
 					cad.unselectAll();

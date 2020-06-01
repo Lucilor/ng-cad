@@ -65,9 +65,11 @@ export class CadDimensionComponent implements OnInit {
 				const e1 = cad.data.findEntity(dimension.entity1.id);
 				const e2 = cad.data.findEntity(dimension.entity2.id);
 				if (e1 instanceof CadLine && e2 instanceof CadLine) {
-					const delta = e1.theta - e2.theta;
-					if (Math.abs(delta) <= 0.1) {
-						if (Math.abs(e1.slope) <= 0.1) {
+					const slope1 = e1.slope;
+					const slope2 = e2.slope;
+					// default axis: x
+					if (Math.abs(slope1 - slope2) <= 1) {
+						if (Math.abs(slope1) <= 1) {
 							dimension.axis = "y";
 						} else {
 							dimension.axis = "x";
@@ -77,9 +79,11 @@ export class CadDimensionComponent implements OnInit {
 				cad.render();
 			}
 		});
-		cad.dom.addEventListener("keydown", ({key}) => {
+		window.addEventListener("keydown", ({key}) => {
 			if (key === "Escape") {
-				this.selectDimLine(mode.index);
+				if (mode.index >= 0) {
+					this.selectDimLine(mode.index);
+				}
 			}
 		});
 	}
@@ -117,6 +121,7 @@ export class CadDimensionComponent implements OnInit {
 		const cad = menu.cad;
 		if (menu.mode.type === "dimension" && menu.mode.index === i) {
 			menu.selectLineEnd();
+			menu.mode.index = -1;
 		} else {
 			const {entity1, entity2} = data[i] || {};
 			cad.traverse((o, e) => {
