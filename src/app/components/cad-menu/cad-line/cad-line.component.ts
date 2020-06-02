@@ -6,7 +6,6 @@ import {MatSelectChange} from "@angular/material/select";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
 import {CadEntity} from "@src/app/cad-viewer/cad-data/cad-entity/cad-entity";
-import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 import {CadArc} from "@src/app/cad-viewer/cad-data/cad-entity/cad-arc";
 
 @Component({
@@ -44,6 +43,7 @@ export class CadLineComponent implements OnInit {
 		cad.controls.on("entitiesdelete", () => {
 			this.updateTLine();
 		});
+		this.menu.on("aftersubmit", () => this.updateTLine());
 	}
 
 	expandLine(line: CadLine, d: number) {

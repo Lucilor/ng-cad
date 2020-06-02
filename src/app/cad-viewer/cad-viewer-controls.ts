@@ -1,5 +1,5 @@
 import {CadViewer} from "./cad-viewer";
-import {Vector2, Vector3, Line, LineBasicMaterial, Object3D, MathUtils, Box2, Mesh, Geometry} from "three";
+import {Vector2, Vector3, Object3D, MathUtils, Box2} from "three";
 import {EventEmitter} from "events";
 import {CadEntity} from "./cad-data/cad-entity/cad-entity";
 import {CadEntities} from "./cad-data/cad-entities";
@@ -17,9 +17,9 @@ export interface CadViewerControlsConfig {
 export interface CadEvents {
 	entityselect: [PointerEvent, CadEntity, Object3D];
 	entityunselect: [PointerEvent, CadEntity, Object3D];
-	entitiesselect: [PointerEvent, never, never];
+	entitiesselect: [PointerEvent | KeyboardEvent, never, never];
 	entitiesdelete: [KeyboardEvent, never, never];
-	entitiesunselect: [PointerEvent, never, never];
+	entitiesunselect: [PointerEvent | KeyboardEvent, never, never];
 	dragstart: [PointerEvent, never, never];
 	drag: [PointerEvent, never, never];
 	dragend: [PointerEvent, never, never];
@@ -30,7 +30,7 @@ export interface CadEvents {
 	// scale = "scale"
 }
 
-export class CadViewerControls {
+export class CadViewerControls extends EventEmitter {
 	cad: CadViewer;
 	config: CadViewerControlsConfig = {
 		dragAxis: "xy",
@@ -50,8 +50,8 @@ export class CadViewerControls {
 		ctrl: false
 	};
 	private _multiSelector: HTMLDivElement;
-	private _emitter = new EventEmitter();
 	constructor(cad: CadViewer, config?: CadViewerControlsConfig) {
+		super();
 		this.cad = cad;
 		const dom = cad.dom;
 		if (typeof config === "object") {
@@ -88,11 +88,12 @@ export class CadViewerControls {
 		// }
 	}
 
-	on<K extends keyof CadEvents>(
-		event: K,
-		listener: (event: CadEvents[K][0], entity?: CadEvents[K][1], object?: CadEvents[K][2]) => void
-	) {
-		this._emitter.on(event, listener);
+	emit<K extends keyof CadEvents>(type: K, event: CadEvents[K][0], entity?: CadEvents[K][1], object?: CadEvents[K][2]) {
+		return super.emit(type, event, entity, object);
+	}
+
+	on<K extends keyof CadEvents>(type: K, listener: (event: CadEvents[K][0], entity?: CadEvents[K][1], object?: CadEvents[K][2]) => void) {
+		return super.on(type, listener);
 	}
 
 	// Normalized Device Coordinate
@@ -135,8 +136,7 @@ export class CadViewerControls {
 		this._status.pTo.set(x, y);
 		this._status.dragging = true;
 		this._status.button = event.button;
-		const name: keyof CadEvents = "dragstart";
-		this._emitter.emit(name, event);
+		this.emit("dragstart", event);
 	}
 
 	private _pointerMove(event: PointerEvent) {
@@ -165,8 +165,7 @@ export class CadViewerControls {
 					this._multiSelector.style.height = Math.abs(pFrom.y - pTo.y) + "px";
 				}
 			}
-			const name: keyof CadEvents = "drag";
-			this._emitter.emit(name, event);
+			this.emit("drag", event);
 		}
 		if (this.config.selectMode !== "none" && !this._status.pointerLock) {
 			this._hover();
@@ -213,15 +212,14 @@ export class CadViewerControls {
 				}
 				if (toSelect.every((o) => o.userData.selected)) {
 					toSelect.forEach((o) => (o.userData.selected = false));
-					this._emitter.emit("entitiesunselect" as keyof CadEvents, event);
+					this.emit("entitiesunselect", event);
 				} else {
 					toSelect.forEach((object) => (object.userData.selected = true));
-					this._emitter.emit("entitiesselect" as keyof CadEvents, event);
+					this.emit("entitiesselect", event);
 				}
 				cad.render();
 			}
-			const name: keyof CadEvents = "dragend";
-			this._emitter.emit(name, event);
+			this.emit("dragend", event);
 		}
 		const p = new Vector2(event.clientX, event.clientY);
 		if (p.distanceTo(pFrom) <= 5) {
@@ -230,8 +228,7 @@ export class CadViewerControls {
 		if (!ctrl) {
 			this._status.pointerLock = false;
 		}
-		const name: keyof CadEvents = "click";
-		this._emitter.emit(name, event);
+		this.emit("click", event);
 		this._status.dragging = false;
 	}
 
@@ -244,8 +241,7 @@ export class CadViewerControls {
 				cad.scale = Math.min(config.maxScale, cad.scale * 1.1);
 			}
 		}
-		const name: keyof CadEvents = "wheel";
-		this._emitter.emit(name, event);
+		this.emit("wheel", event);
 	}
 
 	private _keyDown(event: KeyboardEvent) {
@@ -279,7 +275,7 @@ export class CadViewerControls {
 					break;
 				case "Escape":
 					cad.unselectAll();
-					this._emitter.emit("entitiesunselect" as keyof CadEvents, event);
+					this.emit("entitiesunselect", event);
 					break;
 				case "[":
 					cad.scale /= 1.1;
@@ -290,13 +286,12 @@ export class CadViewerControls {
 				case "Delete":
 				case "Backspace":
 					cad.removeEntities(cad.selectedEntities);
-					this._emitter.emit("entitiesdelete" as keyof CadEvents, event);
+					this.emit("entitiesdelete", event);
 					break;
 				default:
 			}
 		}
-		const name: keyof CadEvents = "keyboard";
-		this._emitter.emit(name, event);
+		this.emit("keyboard", event);
 	}
 
 	private _keyUp(event: KeyboardEvent) {
@@ -343,13 +338,13 @@ export class CadViewerControls {
 			const entity = cad.data.findEntity(object.name);
 			if (object.userData.selected === true) {
 				object.userData.selected = false;
-				this._emitter.emit("entityunselect" as keyof CadEvents, event, entity, object);
+				this.emit("entityunselect", event, entity, object);
 			} else if (object.userData.selectable === true) {
 				if (this.config.selectMode === "single") {
 					cad.unselectAll();
 				}
 				object.userData.selected = true;
-				this._emitter.emit("entityselect" as keyof CadEvents, event, entity, object);
+				this.emit("entityselect", event, entity, object);
 			}
 			_status.pointerLock = false;
 			this._hover();

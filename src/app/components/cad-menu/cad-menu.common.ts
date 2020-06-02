@@ -10,6 +10,7 @@ import {CadData, CadOption, CadBaseLine, CadJointPoint} from "@src/app/cad-viewe
 import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
 import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 import {environment} from "@src/environments/environment";
+import {EventEmitter} from "events";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension" | "jointPoint" | "assemble";
@@ -23,7 +24,7 @@ interface LinesAtPoint {
 	selected: boolean;
 }
 
-export class CadMenu {
+export class CadMenu extends EventEmitter {
 	cad: CadViewer;
 	dialog: MatDialog;
 	dataService: CadDataService;
@@ -43,6 +44,7 @@ export class CadMenu {
 	readonly hoverColor = 0x00ffff;
 
 	constructor(dialog: MatDialog, cad: CadViewer, dataService: CadDataService) {
+		super();
 		this.cad = cad;
 		this.dialog = dialog;
 		this.mode = {type: "normal", index: 0};
@@ -139,6 +141,7 @@ export class CadMenu {
 		this.setData(this.getData(cadIdx, -1));
 		cad.reset();
 		this.focus();
+		this.emit("aftersubmit");
 	}
 
 	addOption(i: number, data = this.getData()) {
