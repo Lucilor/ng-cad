@@ -48,6 +48,30 @@ export class CadInfoComponent implements OnInit {
 				}
 			}
 		});
+		cad.controls.on("entityunselect", (event, entity, object) => {
+			const {type, index} = mode;
+			const data = this.menu.getData();
+			if (type === "baseLine") {
+				if (entity instanceof CadLine && object instanceof Line) {
+					const slope = entity.slope;
+					const baseLine = data.baseLines[index];
+					if (slope === 0) {
+						baseLine.idY = "";
+					}
+					if (!isFinite(slope)) {
+						baseLine.idX = "";
+					}
+					data.updateBaseLines();
+					data.entities.forEach((e) => {
+						const object = cad.objects[e.id];
+						if (object) {
+							object.userData.selected = [baseLine.idX, baseLine.idY].includes(e.id);
+						}
+					});
+					cad.render();
+				}
+			}
+		});
 		this.sampleFormulas = await this.dataService.getSampleFormulas();
 	}
 
@@ -136,7 +160,6 @@ export class CadInfoComponent implements OnInit {
 			ref.afterClosed().subscribe((v) => {
 				if (Array.isArray(v)) {
 					data.huajian = v.join(",");
-					data.name = data.huajian;
 				}
 			});
 		}

@@ -95,7 +95,8 @@
 				"serve": {
 					"builder": "@angular-devkit/build-angular:dev-server",
 					"options": {
-						"browserTarget": "ng-cad:build"
+						"browserTarget": "ng-cad:build",
+						"proxyConfig": "proxy.config.json"
 					},
 					"configurations": {
 						"production": {

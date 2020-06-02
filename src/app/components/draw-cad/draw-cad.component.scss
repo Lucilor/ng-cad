@@ -22,6 +22,7 @@
 .checkbox-group {
 	display: flex;
 	flex-wrap: wrap;
+	width: 100%;
 }
 
 .data-container {
@@ -30,6 +31,7 @@
 	text-align: center;
 	padding: 12px;
 	box-sizing: border-box;
+	width: 100%;
 
 	img {
 		object-fit: scale-down;
@@ -43,4 +45,15 @@
     padding: 0 10px;
     box-sizing: border-box;
     color: #444444;
+}
+
+.options {
+	mat-form-field {
+		&:nth-of-type(1) {
+			width: calc(100% - 200px);
+		}
+		&:nth-of-type(2) {
+			width: calc(100% - 140px);
+		}
+	}
 }

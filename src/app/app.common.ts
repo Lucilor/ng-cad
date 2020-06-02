@@ -1,10 +1,16 @@
 import {environment} from "src/environments/environment";
+import {SessionStorage} from "@lucilor/utils";
 
 const host = environment.host;
 // export const apiBasePath = host + "/n/zy/index";
 export const apiBasePath = localStorage.getItem("baseURL");
 
+export const projectName = "NgCad";
+
+export const session = new SessionStorage(projectName);
+
 export const paths = {
+	index: "index",
 	playground: "playground",
 	"draw-cad": "draw-cad",
 	"edit-cad": "edit-cad",

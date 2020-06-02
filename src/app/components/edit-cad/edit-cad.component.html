@@ -2,7 +2,7 @@
 <div class="menu left">
 	<button mat-raised-button color="primary" (click)="flip(true, false)">垂直翻转</button>
 	<button mat-raised-button color="primary" (click)="flip(false, true)">水平翻转</button>
-	<button mat-raised-button color="primary" (click)="flip(false, true)">中心对称</button>
+	<button mat-raised-button color="primary" (click)="flip(true, true)">中心对称</button>
 	<button mat-raised-button color="primary" (click)="rotate(true)">顺时针旋转</button>
 	<button mat-raised-button color="primary" (click)="rotate(false)">逆时针旋转</button>
 	<input matInput type="number" [(ngModel)]="rotateAngle" />

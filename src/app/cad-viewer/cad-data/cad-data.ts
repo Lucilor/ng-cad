@@ -194,7 +194,7 @@ export class CadData {
 	transform(trans: CadTransformation) {
 		this.entities.transform(trans);
 		this.partners.forEach((v) => v.transform(trans));
-		this.components.data.forEach((v) => v.transform(trans));
+		this.components.transform(trans);
 		const matrix = trans.matrix;
 		this.baseLines.forEach((v) => {
 			const point = new Vector2(v.valueX, v.valueY);
@@ -698,6 +698,20 @@ export class CadComponents {
 		if (Array.isArray(data.connections)) {
 			data.connections.forEach((c) => this.connections.push(new CadConnection(c)));
 		}
+	}
+
+	transform(trans: CadTransformation) {
+		const {vertical, horizontal} = trans.flip;
+		this.connections.forEach((v) => {
+			console.log(v);
+			if ((vertical && v.axis === "y") || (horizontal && v.axis === "x")) {
+				const space = -Number(v.space);
+				if (!isNaN(space)) {
+					v.space = space.toString();
+				}
+			}
+		});
+		this.data.forEach((v) => v.transform(trans));
 	}
 
 	export() {

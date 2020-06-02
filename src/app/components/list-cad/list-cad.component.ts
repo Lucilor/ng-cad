@@ -16,16 +16,20 @@ export class ListCadComponent implements AfterViewInit {
 	pageSizeOptions = [1, 10, 20, 50, 100];
 	pageSize = 10;
 	pageData: {data: CadData; img: string; checked: boolean}[] = [];
+	tableData: any = [];
+	displayedColumns = ["select", "mingzi", "wenjian", "create_time", "modify_time"];
 	width = 300;
 	height = 150;
 	searchInput = "";
 	searchValue = "";
 	checkedIndex = -1;
 	checkedItems: CadData[] = [];
+	checkedColumns: any[] = [];
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;
 	constructor(
 		public dialogRef: MatDialogRef<ListCadComponent, CadData[]>,
-		@Inject(MAT_DIALOG_DATA) public data: {selectMode: "single" | "multiple"; checkedItems?: CadData[]; options?: CadOption[]},
+		@Inject(MAT_DIALOG_DATA)
+		public data: {selectMode: "single" | "multiple" | "table"; checkedItems?: CadData[]; options?: CadOption[]; type: string},
 		private dataService: CadDataService
 	) {}
 
@@ -48,35 +52,49 @@ export class ListCadComponent implements AfterViewInit {
 			options = this.data.options || [];
 			console.log(options);
 		}
-		const data = await this.dataService.getCadDataPage(page, this.paginator.pageSize, this.searchValue, true, options);
-		this.length = data.count;
-		this.pageData.length = 0;
-		for (const d of data.data) {
-			try {
-				d.entities.dimension.forEach((v) => (v.visible = false));
-				d.entities.mtext.forEach((v) => (v.visible = false));
-				const cad = new CadViewer(d, {width: this.width, height: this.height, padding: 10});
-				const checked = this.checkedItems.find((v) => v.id === d.id) ? true : false;
-				const img = cad.exportImage().src;
-				this.pageData.push({data: cad.data, img, checked});
-				cad.destroy();
-				// (trying to) prevent WebGL contexts lost
-				await timeout(0);
-			} catch (e) {
-				console.warn(e);
-				this.pageData.push({
-					data: new CadData({id: d.id, name: d.name}),
-					img: "",
-					checked: false
-				});
+		const limit = this.paginator.pageSize;
+		const type = this.data.type;
+		if (this.data.selectMode === "table") {
+			const data = await this.dataService.getCadListPage(type, page, limit, this.searchValue);
+			this.length = data.count;
+			this.pageData.length = 0;
+			this.tableData = data.data;
+		} else {
+			const data = await this.dataService.getCadDataPage(type, page, limit, this.searchValue, true, options);
+			this.length = data.count;
+			this.pageData.length = 0;
+			for (const d of data.data) {
+				try {
+					d.entities.dimension.forEach((v) => (v.visible = false));
+					d.entities.mtext.forEach((v) => (v.visible = false));
+					const cad = new CadViewer(d, {width: this.width, height: this.height, padding: 10});
+					const checked = this.checkedItems.find((v) => v.id === d.id) ? true : false;
+					const img = cad.exportImage().src;
+					this.pageData.push({data: cad.data, img, checked});
+					cad.destroy();
+					// (trying to) prevent WebGL contexts lost
+					await timeout(0);
+				} catch (e) {
+					console.warn(e);
+					this.pageData.push({
+						data: new CadData({id: d.id, name: d.name}),
+						img: "",
+						checked: false
+					});
+				}
 			}
+			return data;
 		}
-		return data;
 	}
 
-	submit() {
-		this.syncCheckedItems();
-		this.dialogRef.close(this.checkedItems.map((v) => new CadData(v.export())));
+	async submit() {
+		if (this.data.selectMode === "table") {
+			const data = await this.dataService.getCadData({vid: this.checkedColumns[0].vid});
+			this.dialogRef.close(data);
+		} else {
+			this.syncCheckedItems();
+			this.dialogRef.close(this.checkedItems.map((v) => new CadData(v.export())));
+		}
 	}
 
 	close() {

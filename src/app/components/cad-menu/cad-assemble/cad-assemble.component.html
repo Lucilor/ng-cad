@@ -33,6 +33,7 @@
 	<mat-expansion-panel-header>
 		<mat-panel-title>配合</mat-panel-title>
 	</mat-expansion-panel-header>
+	<button mat-raised-button color="primary" (click)="clearConnections()">清空</button>
 	<div class="connection" *ngFor="let c of data.components?.connections; let i = index">
 		<p>名字: {{ c.names[0] }} &harr; {{ c.names[1] }}</p>
 		<p>方向: {{ c.axis }}</p>

@@ -22,6 +22,9 @@ import {MatRadioModule} from "@angular/material/radio";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {MatAutocompleteModule} from "@angular/material/autocomplete";
+import {MatMenuModule} from "@angular/material/menu";
+import {MatTableModule} from "@angular/material/table";
+
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {ScrollingModule} from "@angular/cdk/scrolling";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
@@ -43,6 +46,10 @@ import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.co
 import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assemble.component";
 import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options.component";
 import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.component";
+import {IndexComponent} from "./components/index/index.component";
+import {AngleInputComponent} from "./components/index/angle-input/angle-input.component";
+import { TopMenuComponent } from './components/menu/top-menu/top-menu.component';
+import { LeftMenuComponent } from './components/menu/left-menu/left-menu.component';
 
 @NgModule({
 	declarations: [
@@ -62,7 +69,11 @@ import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.compo
 		CadSubcadComponent,
 		CadAssembleComponent,
 		CadOptionsComponent,
-		CadMtextComponent
+		CadMtextComponent,
+		IndexComponent,
+		AngleInputComponent,
+		TopMenuComponent,
+		LeftMenuComponent
 	],
 	imports: [
 		BrowserModule,
@@ -89,6 +100,8 @@ import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.compo
 		MatCheckboxModule,
 		MatTooltipModule,
 		MatAutocompleteModule,
+		MatMenuModule,
+		MatTableModule,
 		DragDropModule,
 		ScrollingModule,
 		FormsModule,

@@ -1,0 +1,25 @@
+<div class="menu2 top">
+	<button mat-icon-button [matMenuTriggerFor]="file">文件</button>
+	<mat-menu #file="matMenu">
+		<button mat-menu-item [matMenuTriggerFor]="openType">打开</button>
+		<button mat-menu-item (click)="save()" [disabled]="!canSave">保存</button>
+		<!-- <button mat-menu-item>另存为</button> -->
+	</mat-menu>
+	<mat-menu #openType="matMenu">
+		<button mat-menu-item (click)="open('p_yuanshicadwenjian')">原始CAD文件</button>
+		<button mat-menu-item (click)="open('cad')">CAD</button>
+		<button mat-menu-item (click)="open('cadmuban')">CAD模板</button>
+		<button mat-menu-item (click)="open('qiliaozuhe')">企料组合</button>
+		<button mat-menu-item (click)="open('qieliaocad')">切料CAD</button>
+	</mat-menu>
+
+	<button mat-icon-button [matMenuTriggerFor]="edit">编辑</button>
+	<mat-menu #edit="matMenu">
+		<button mat-menu-item (click)="flip(true, false)">垂直翻转</button>
+		<button mat-menu-item (click)="flip(false, true)">水平翻转</button>
+		<button mat-menu-item (click)="flip(true, true)">中心对称</button>
+		<button mat-menu-item (click)="rotate(true)">顺时针旋转</button>
+		<button mat-menu-item (click)="rotate(false)">逆时针旋转</button>
+		<button mat-menu-item (click)="rotate()">旋转</button>
+	</mat-menu>
+</div>

@@ -4,6 +4,7 @@ import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadMenu} from "../cad-menu.common";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
+import {RSAEncrypt} from "@lucilor/utils";
 
 @Component({
 	selector: "app-cad-subcad",
@@ -120,7 +121,7 @@ export class CadSubcadComponent implements OnInit {
 		this.menu.focus();
 	}
 
-	deleteSubcads() {
+	deleteSelected() {
 		const {menu} = this;
 		const data = menu.getData(menu.cadIdx, -1);
 		if (menu.viewMode === "partners") {
@@ -133,5 +134,21 @@ export class CadSubcadComponent implements OnInit {
 		this.updateList();
 		menu.cad.reset();
 		menu.focus();
+	}
+
+	editSelected() {
+		const {menu} = this;
+		const data = menu.getData(menu.cadIdx, -1);
+		let ids: string[];
+		if (menu.viewMode === "partners") {
+			ids = data.partners.filter((_v, i) => menu.cadIdxs2.includes(i)).map((v) => v.id);
+		}
+		if (menu.viewMode === "components") {
+			ids = data.components.data.filter((_v, i) => menu.cadIdxs2.includes(i)).map((v) => v.id);
+		}
+		if (ids.length) {
+			sessionStorage.setItem("tmpData", RSAEncrypt({ids}));
+			open("edit-cad");
+		}
 	}
 }

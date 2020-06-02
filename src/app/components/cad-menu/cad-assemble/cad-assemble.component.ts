@@ -135,4 +135,10 @@ export class CadAssembleComponent implements OnInit {
 		});
 		menu.cad.render();
 	}
+
+	clearConnections(){
+		const {menu} = this;
+		const data = menu.getData(menu.cadIdx, -1);
+		data.components.connections.length = 0;
+	}
 }

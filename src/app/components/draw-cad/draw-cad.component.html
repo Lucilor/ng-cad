@@ -7,7 +7,8 @@
 	<button mat-raised-button color="primary" (click)="cad.scale = cad.scale - 0.1">缩小</button>
 	<button mat-raised-button color="primary" (click)="toggleDimensions()">{{ drawDimensions ? "隐藏" : "显示" }}标注</button>
 	<button mat-raised-button color="primary" (click)="toggleMtexts()">{{ drawMTexts ? "隐藏" : "显示" }}MTexts</button>
-	<button mat-raised-button color="accent" (click)="back()" *ngIf="fromEdit">确定并返回</button>
+	<button mat-raised-button color="primary" (click)="back(false)" *ngIf="fromEdit">返回</button>
+	<button mat-raised-button color="accent" (click)="back(true)" *ngIf="fromEdit">确定并返回</button>
 </div>
 <div class="menu right">
 	<div class="tooltip-container">
@@ -19,27 +20,84 @@
 	</div> -->
 	<div class="checkbox-group">
 		<div class="data-container" *ngFor="let item of cads; let i = index">
+			<div style="text-align: left;">总长: {{ item.length }}</div>
 			<!-- <mat-checkbox class="example-margin" [(ngModel)]="item.checked">{{ item.data.name }}</mat-checkbox> -->
 			<mat-form-field>
 				<mat-label>名字</mat-label>
 				<input matInput type="text" [(ngModel)]="item.data.name" placeholder="请输入名字" />
 			</mat-form-field>
 			<mat-form-field>
-				<mat-label>展开宽</mat-label>
-				<input matInput type="text" [(ngModel)]="item.data.zhankaikuan" placeholder="请输入展开宽" />
+				<mat-label>花件</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.huajian" placeholder="请输入花件" />
+				<mat-icon matSuffix color="primary" (click)="selectOptions('huajian', i)">list</mat-icon>
 			</mat-form-field>
 			<mat-form-field>
-				<mat-label>展开高</mat-label>
-				<input matInput type="text" [(ngModel)]="item.data.zhankaigao" placeholder="请输入展开高" />
+				<mat-label>分类</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.type" placeholder="请输入分类" name="type" />
 			</mat-form-field>
+			<div class="form-item options" *ngFor="let o of item.data.options; let i = index">
+				<label>{{ i === 0 ? "选项" : "" }}</label>
+				<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="o.name" placeholder="选项" name="optionKey" />
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="o.value" placeholder="选项" name="optionValue" />
+					<mat-icon matSuffix color="primary" (click)="selectOptions(o, i)">list</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="addOption(item.data, i)">add_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeOption(item.data, i)">remove_circle</mat-icon>
+				</mat-form-field>
+			</div>
+			<div class="form-item conditions" *ngFor="let c of item.data.conditions; let i = index">
+				<label>{{ i === 0 ? "条件" : "" }}</label>
+				<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
+					<mat-label></mat-label>
+					<input
+						matInput
+						type="text"
+						[ngModel]="c"
+						(change)="item.data.conditions[i] = $event.target.value"
+						placeholder="条件"
+						name="condition"
+					/>
+					<mat-icon matSuffix color="primary" (click)="addCondition(item.data, i)">add_circle</mat-icon>
+					<mat-icon matSuffix color="primary" (click)="removeCondition(item.data, i)">remove_circle</mat-icon>
+				</mat-form-field>
+			</div>
+			<div class="form-item zhankaikuan">
+				<label>展开</label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input
+						matInput
+						type="text"
+						[matAutocomplete]="auto"
+						[(ngModel)]="item.data.zhankaikuan"
+						placeholder="展开"
+						name="zhankaikuan"
+					/>
+					<mat-autocomplete #auto="matAutocomplete">
+						<mat-option *ngFor="let str of sampleFormulas" [value]="str">
+							{{ str }}
+						</mat-option>
+					</mat-autocomplete>
+				</mat-form-field>
+			</div>
+			<div class="form-item zhankaigao">
+				<label style="width: 32px;"></label>
+				<mat-form-field>
+					<mat-label></mat-label>
+					<input matInput type="text" [(ngModel)]="item.data.zhankaigao" placeholder="请输入展开" name="zhankaigao" />
+				</mat-form-field>
+			</div>
 			<mat-form-field>
 				<mat-label>数量</mat-label>
 				<input matInput type="text" [(ngModel)]="item.data.shuliang" placeholder="请输入数量" />
 			</mat-form-field>
 			<mat-form-field>
-				<mat-label>花件</mat-label>
-				<input matInput type="text" [(ngModel)]="item.data.huajian" placeholder="请输入花件" />
-				<button matSuffix mat-raised-button color="primary" (click)="selectOptions(i)">选择</button>
+				<mat-label>数量倍数</mat-label>
+				<input matInput type="text" [(ngModel)]="item.data.shuliangbeishu" placeholder="请输入数量倍数" />
 			</mat-form-field>
 			<img [src]="item.src" (click)="item.checked = !item.checked" />
 			<div class="btn-group">

@@ -1,0 +1,11 @@
+<h1 mat-dialog-title>输入角度</h1>
+<div mat-dialog-content>
+	<mat-form-field>
+		<mat-label>角度</mat-label>
+		<input matInput [(ngModel)]="value" />
+	</mat-form-field>
+</div>
+<div mat-dialog-actions>
+	<button mat-button [mat-dialog-close]="value" cdkFocusInitial>确定</button>
+	<button mat-button (click)="cancle()">取消</button>
+</div>

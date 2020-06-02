@@ -11,6 +11,14 @@
 				<input matInput type="text" [(ngModel)]="data.name" placeholder="请输入名字" name="name" />
 			</mat-form-field>
 		</div>
+		<div class="form-item huajian">
+			<label>花件</label>
+			<mat-form-field>
+				<mat-label></mat-label>
+				<mat-icon matSuffix color="primary" (click)="selectOptions('huajian')">list</mat-icon>
+				<input matInput type="text" [(ngModel)]="data.huajian" placeholder="请输入花件" name="huajian" />
+			</mat-form-field>
+		</div>
 		<div class="form-item type">
 			<label>分类</label>
 			<mat-form-field>
@@ -113,14 +121,6 @@
 			<mat-form-field>
 				<mat-label></mat-label>
 				<input matInput type="text" [(ngModel)]="data.shuliangbeishu" placeholder="请输入数量倍数" name="shuliangbeishu" />
-			</mat-form-field>
-		</div>
-		<div class="form-item huajian">
-			<label>花件</label>
-			<mat-form-field>
-				<mat-label></mat-label>
-				<mat-icon matSuffix color="primary" (click)="selectOptions('huajian')">list</mat-icon>
-				<input matInput type="text" [(ngModel)]="data.huajian" placeholder="请输入花件" name="huajian" />
 			</mat-form-field>
 		</div>
 		<div class="btn-group">
