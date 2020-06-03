@@ -30,11 +30,25 @@
 			<label>{{ i === 0 ? "选项" : "" }}</label>
 			<mat-form-field [style]="i === 0 ? '' : 'margin-left:42px;'">
 				<mat-label></mat-label>
-				<input matInput type="text" [(ngModel)]="o.name" placeholder="选项" name="optionKey" />
+				<input
+					matInput
+					type="text"
+					[value]="o.name"
+					(change)="data.options[i].name = $event.target.value"
+					placeholder="选项"
+					name="optionKey"
+				/>
 			</mat-form-field>
 			<mat-form-field>
 				<mat-label></mat-label>
-				<input matInput type="text" [(ngModel)]="o.value" placeholder="选项" name="optionValue" />
+				<input
+					matInput
+					type="text"
+					[value]="o.value"
+					(change)="data.options[i].value = $event.target.value"
+					placeholder="选项"
+					name="optionValue"
+				/>
 				<mat-icon matSuffix color="primary" (click)="selectOptions(o)">list</mat-icon>
 				<mat-icon matSuffix color="primary" (click)="menu.addOption(i)">add_circle</mat-icon>
 				<mat-icon matSuffix color="primary" (click)="menu.removeOption(i)">remove_circle</mat-icon>
@@ -47,7 +61,7 @@
 				<input
 					matInput
 					type="text"
-					[ngModel]="c"
+					[value]="c"
 					(change)="data.conditions[i] = $event.target.value"
 					placeholder="条件"
 					name="condition"

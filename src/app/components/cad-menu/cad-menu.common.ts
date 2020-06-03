@@ -47,7 +47,7 @@ export class CadMenu extends EventEmitter {
 		super();
 		this.cad = cad;
 		this.dialog = dialog;
-		this.mode = {type: "normal", index: 0};
+		this.mode = {type: "normal", index: -1};
 		this.dataService = dataService;
 	}
 
