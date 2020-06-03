@@ -1,3 +1,3 @@
 <div #cadContainer></div>
 <app-top-menu #topMenu [cad]="cad" (openCad)="afterOpenCad($event)"></app-top-menu>
-<app-left-menu #leftMenu></app-left-menu>
+<app-left-menu #leftMenu [cad]="cad" [currCads]="currCads"></app-left-menu>

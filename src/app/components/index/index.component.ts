@@ -5,6 +5,9 @@ import {environment} from "@src/environments/environment";
 import {TopMenuComponent} from "../menu/top-menu/top-menu.component";
 import {LeftMenuComponent} from "../menu/left-menu/left-menu.component";
 import {session, timeout} from "@src/app/app.common";
+import {Store} from "@ngrx/store";
+import {State} from "@src/app/store/state";
+import {getCurrCads} from "@src/app/store/selectors";
 
 @Component({
 	selector: "app-index",
@@ -14,13 +17,15 @@ import {session, timeout} from "@src/app/app.common";
 export class IndexComponent implements OnInit, AfterViewInit {
 	cad: CadViewer;
 	collection = "";
+	currCads: CadData[];
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
 	@ViewChild("topMenu", {read: TopMenuComponent}) topMenu: TopMenuComponent;
 	@ViewChild("leftMenu", {read: LeftMenuComponent}) leftMenu: LeftMenuComponent;
-	constructor() {}
+
+	constructor(private store: Store<State>) {}
 
 	ngOnInit() {
-		this.cad = new CadViewer(new CadData(session.load("cadData", true)), {
+		this.cad = new CadViewer(new CadData(session.load("cadData", true) || {}), {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
@@ -32,6 +37,10 @@ export class IndexComponent implements OnInit, AfterViewInit {
 			this.cad.stats.dom.style.right = "0";
 			this.cad.stats.dom.style.left = "";
 		}
+		this.store.select(getCurrCads).subscribe((cads) => {
+			this.currCads = this.cad.data.components.data.filter((v) => cads.has(v.id));
+			console.log(cads);
+		});
 		Object.assign(window, {view: this});
 	}
 

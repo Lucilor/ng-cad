@@ -24,6 +24,7 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import {MatMenuModule} from "@angular/material/menu";
 import {MatTableModule} from "@angular/material/table";
+import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {ScrollingModule} from "@angular/cdk/scrolling";
@@ -48,8 +49,8 @@ import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options
 import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.component";
 import {IndexComponent} from "./components/index/index.component";
 import {AngleInputComponent} from "./components/index/angle-input/angle-input.component";
-import { TopMenuComponent } from './components/menu/top-menu/top-menu.component';
-import { LeftMenuComponent } from './components/menu/left-menu/left-menu.component';
+import {TopMenuComponent} from "./components/menu/top-menu/top-menu.component";
+import {LeftMenuComponent} from "./components/menu/left-menu/left-menu.component";
 
 @NgModule({
 	declarations: [
@@ -102,6 +103,7 @@ import { LeftMenuComponent } from './components/menu/left-menu/left-menu.compone
 		MatAutocompleteModule,
 		MatMenuModule,
 		MatTableModule,
+		MatSlideToggleModule,
 		DragDropModule,
 		ScrollingModule,
 		FormsModule,

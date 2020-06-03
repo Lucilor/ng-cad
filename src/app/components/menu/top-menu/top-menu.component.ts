@@ -7,6 +7,10 @@ import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation
 import {AngleInputComponent} from "../../index/angle-input/angle-input.component";
 import {CadViewer} from "@src/app/cad-viewer/cad-viewer";
 import {CadDataService} from "@src/app/services/cad-data.service";
+import {Store} from "@ngrx/store";
+import {State} from "@src/app/store/state";
+import {getCurrCads} from "@src/app/store/selectors";
+import {CurrCadsAction} from "@src/app/store/actions";
 
 @Component({
 	selector: "app-top-menu",
@@ -18,26 +22,31 @@ export class TopMenuComponent implements OnInit {
 	@Output() openCad = new EventEmitter<CadData[]>();
 	canSave = false;
 	collection = "";
-	constructor(private dialog: MatDialog, private dataService: CadDataService) {}
+	currCads: CadData[];
+	constructor(private dialog: MatDialog, private dataService: CadDataService, private store: Store<State>) {}
 
 	ngOnInit() {
 		this.canSave = this.cad.data.components.data.length > 0;
+		this.store.select(getCurrCads).subscribe((cads) => {
+			this.currCads = this.cad.data.components.data.filter((v) => cads.has(v.id));
+		});
 	}
 
 	open(collection: string) {
 		const selectMode = collection === "p_yuanshicadwenjian" ? "table" : "multiple";
 		const ref: MatDialogRef<ListCadComponent, CadData[]> = this.dialog.open(ListCadComponent, {
-			data: {type: collection, selectMode},
+			data: {type: collection, selectMode, checkedItems: this.cad.data.components.data},
 			width: "80vw"
 		});
 		ref.afterClosed().subscribe((data) => {
-			if (data && data.length) {
+			if (data) {
 				this.cad.data.components.data = data;
 				this.cad.reset();
 				document.title = data.map((v) => v.name).join(", ");
 				this.canSave = collection !== "p_yuanshicadwenjian";
 				this.collection = collection;
 				this.openCad.emit(data);
+				this.store.dispatch<CurrCadsAction>({type: "clear curr cads"});
 			}
 		});
 	}
@@ -71,25 +80,26 @@ export class TopMenuComponent implements OnInit {
 
 	transform(trans: CadTransformation, rotateDimension = false) {
 		const {cad} = this;
-		const fn = (data: CadData) => {
-			const {x, y} = data.getAllEntities().getBounds();
-			trans.anchor.set(x, y);
-			data.transform(trans);
-			if (rotateDimension) {
-				data.getAllEntities().dimension.forEach((d) => {
-					if (d.axis === "x") {
-						d.axis = "y";
-					} else {
-						d.axis = "x";
-					}
-				});
-			}
-		};
 		const seleted = cad.selectedEntities;
 		if (seleted.length) {
 			const {x, y} = seleted.getBounds();
 			trans.anchor.set(x, y);
 			seleted.transform(trans);
+		} else {
+			this.currCads.forEach((data) => {
+				const {x, y} = data.getAllEntities().getBounds();
+				trans.anchor.set(x, y);
+				data.transform(trans);
+				if (rotateDimension) {
+					data.getAllEntities().dimension.forEach((d) => {
+						if (d.axis === "x") {
+							d.axis = "y";
+						} else {
+							d.axis = "x";
+						}
+					});
+				}
+			});
 		}
 		cad.data.updatePartners().updateComponents();
 		cad.render();

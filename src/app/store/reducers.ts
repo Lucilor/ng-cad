@@ -1,4 +1,4 @@
-import {ActionTypes, LoadingAction} from "./actions";
+import {LoadingAction, CurrCadsAction} from "./actions";
 import {State, initialState} from "./state";
 import {ActionReducerMap, MetaReducer} from "@ngrx/store";
 import {environment} from "src/environments/environment";
@@ -6,13 +6,11 @@ import {cloneDeep} from "lodash";
 
 export function loadingReducer(loading = initialState.loading, action: LoadingAction) {
 	const newLoading: State["loading"] = cloneDeep(loading);
-	if (action.type === ActionTypes.AddLoading) {
+	if (action.type === "add loading") {
 		newLoading.list.add(action.name);
-	}
-	if (action.type === ActionTypes.RemoveLoading) {
+	} else if (action.type === "remove loading") {
 		newLoading.list.delete(action.name);
-	}
-	if (action.type === ActionTypes.setLoadingProgress) {
+	} else if (action.type === "set loading progress") {
 		const progress = action.progress;
 		if (progress < 0 || progress > 1) {
 			newLoading.list.delete(action.name);
@@ -27,8 +25,21 @@ export function loadingReducer(loading = initialState.loading, action: LoadingAc
 	return newLoading;
 }
 
+export function currCadsReducer(currCads = initialState.currCads, action: CurrCadsAction) {
+	const cads = new Set(currCads);
+	if (action.type === "add curr cad") {
+		cads.add(action.cad);
+	} else if (action.type === "remove curr cad") {
+		cads.delete(action.cad);
+	} else if (action.type === "clear curr cads") {
+		cads.clear();
+	}
+	return cads;
+}
+
 export const reducers: ActionReducerMap<State> = {
-	loading: loadingReducer
+	loading: loadingReducer,
+	currCads: currCadsReducer
 };
 
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];

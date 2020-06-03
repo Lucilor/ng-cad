@@ -5,7 +5,7 @@ import {HttpClient} from "@angular/common/http";
 import {MatDialog} from "@angular/material/dialog";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {AlertComponent} from "../components/alert/alert.component";
-import {LoadingAction, ActionTypes} from "../store/actions";
+import {LoadingAction} from "../store/actions";
 import {Response} from "../app.common";
 import {CadData, CadOption} from "../cad-viewer/cad-data/cad-data";
 import {CadViewer} from "../cad-viewer/cad-viewer";
@@ -43,7 +43,7 @@ export class CadDataService {
 
 	private async _request(url: string, name: string, method: "GET" | "POST", postData: any = {}) {
 		const {baseURL, encode, data} = this;
-		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name});
+		this.store.dispatch<LoadingAction>({type: "add loading", name});
 		url = `${baseURL}/${url}/${encode}`;
 		if (postData && typeof postData !== "string") {
 			postData = RSAEncrypt(postData);
@@ -70,7 +70,7 @@ export class CadDataService {
 			this.alert(error);
 			return null;
 		} finally {
-			this.store.dispatch<LoadingAction>({type: ActionTypes.RemoveLoading, name});
+			this.store.dispatch<LoadingAction>({type: "remove loading", name});
 		}
 	}
 
@@ -108,7 +108,7 @@ export class CadDataService {
 		let counter = 0;
 		let successCounter = 0;
 		this.store.dispatch<LoadingAction>({
-			type: ActionTypes.setLoadingProgress,
+			type: "set loading progress",
 			name: "postCadData",
 			progress: 0
 		});
@@ -134,14 +134,14 @@ export class CadDataService {
 					counter++;
 				}
 				this.store.dispatch<LoadingAction>({
-					type: ActionTypes.setLoadingProgress,
+					type: "set loading progress",
 					name: "postCadData",
 					progress: counter / cadData.length
 				});
 				if (counter >= cadData.length) {
 					setTimeout(() => {
 						this.store.dispatch<LoadingAction>({
-							type: ActionTypes.setLoadingProgress,
+							type: "set loading progress",
 							name: "postCadData",
 							progress: -1
 						});
