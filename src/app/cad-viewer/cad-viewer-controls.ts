@@ -98,8 +98,8 @@ export class CadViewerControls extends EventEmitter {
 
 	// Normalized Device Coordinate
 	private _getNDC(point: Vector2) {
-		const rect = this.cad.renderer.domElement.getBoundingClientRect();
-		return new Vector3(((point.x - rect.left) / rect.width) * 2 - 1, (-(point.y - rect.top) / rect.height) * 2 + 1, 0.5);
+		const {width, height, top, left} = this.cad.renderer.domElement.getBoundingClientRect();
+		return new Vector3(((point.x - left) / width) * 2 - 1, (-(point.y - top) / height) * 2 + 1, 0.5);
 	}
 
 	private _getInterSection(pointer: Vector2) {
@@ -234,11 +234,20 @@ export class CadViewerControls extends EventEmitter {
 
 	private _wheel(event: WheelEvent) {
 		const {cad, config} = this;
+		const step = 0.1;
+		const {width, height, top, left} = this.cad.renderer.domElement.getBoundingClientRect();
+		const offset = new Vector3(event.clientX - width / 2 + left, height / 2 - event.clientY + top, 0);
+		// TODO: make it more accurate
+		offset.multiplyScalar(step);
 		if (config.enableScale) {
 			if (event.deltaY > 0) {
-				cad.scale = Math.max(config.minScale, cad.scale / 1.1);
+				const scale = Math.max(config.minScale, cad.scale / (1 + step));
+				cad.scale = scale;
+				cad.position.sub(offset.divideScalar(scale));
 			} else if (event.deltaY < 0) {
-				cad.scale = Math.min(config.maxScale, cad.scale * 1.1);
+				const scale = Math.min(config.maxScale, cad.scale * (1 + step));
+				cad.scale = scale;
+				cad.position.add(offset.divideScalar(scale));
 			}
 		}
 		this.emit("wheel", event);
