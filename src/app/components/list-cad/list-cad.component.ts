@@ -25,6 +25,7 @@ export class ListCadComponent implements AfterViewInit {
 	checkedIndex = -1;
 	checkedItems: CadData[] = [];
 	checkedColumns: any[] = [];
+	checkedInOtherPages = false;
 	@ViewChild("paginator", {read: MatPaginator}) paginator: MatPaginator;
 	constructor(
 		public dialogRef: MatDialogRef<ListCadComponent, CadData[]>,
@@ -50,7 +51,6 @@ export class ListCadComponent implements AfterViewInit {
 		let options: CadOption[] = [];
 		if (withOption) {
 			options = this.data.options || [];
-			console.log(options);
 		}
 		const limit = this.paginator.pageSize;
 		const type = this.data.type;
@@ -83,6 +83,7 @@ export class ListCadComponent implements AfterViewInit {
 					});
 				}
 			}
+			this.syncCheckedItems();
 			return data;
 		}
 	}
@@ -114,16 +115,48 @@ export class ListCadComponent implements AfterViewInit {
 	}
 
 	syncCheckedItems() {
-		// this.pageData.forEach((v) => {
-		// 	if (v.checked) {
-		// 		const index = this.checkedItems.findIndex((vv) => vv.id === v.data.id);
-		// 		if (index === -1) {
-		// 			this.checkedItems.push(v.data);
-		// 		} else {
-		// 			this.checkedItems[index] = v.data;
-		// 		}
-		// 	}
-		// });
-		this.checkedItems = this.pageData.filter((v) => v.checked).map((v) => v.data);
+		if (this.checkedIndex === -1) {
+			const toRemove = [];
+			let checkedNum = 0;
+			this.pageData.forEach((v) => {
+				const index = this.checkedItems.findIndex((vv) => vv.id === v.data.id);
+				if (v.checked) {
+					if (index === -1) {
+						this.checkedItems.push(v.data);
+					} else {
+						this.checkedItems[index] = v.data;
+					}
+					checkedNum++;
+				} else if (index > -1) {
+					toRemove.push(v.data.id);
+				}
+			});
+			this.checkedItems = this.checkedItems.filter((v) => !toRemove.includes(v.id));
+			this.checkedInOtherPages = checkedNum < this.checkedItems.length;
+		} else {
+			this.checkedItems = [this.pageData[this.checkedIndex].data];
+		}
+	}
+
+	toggleSelectAll() {
+		if (this.allChecked()) {
+			this.pageData.forEach((v) => (v.checked = false));
+			this.checkedItems.length = 0;
+		} else {
+			this.pageData.forEach((v) => (v.checked = true));
+			this.syncCheckedItems();
+		}
+	}
+
+	allChecked() {
+		return !this.pageData.every((v) => !v.checked);
+	}
+
+	partiallyChecked() {
+		if (this.checkedInOtherPages) {
+			return true;
+		}
+		const ckeckedNum = this.pageData.filter((v) => v.checked).length;
+		return ckeckedNum > 0 && ckeckedNum < this.pageData.length;
 	}
 }

@@ -190,7 +190,6 @@ export class CadDataService {
 	}
 
 	async replaceData(source: CadData, target: string) {
-		this.store.dispatch<LoadingAction>({type: ActionTypes.AddLoading, name: "getCadDataPage"});
 		source.sortComponents();
 		const response = await this._request("peijian/cad/replaceCad", "replaceData", "POST", {source: source.export(), target});
 		if (!response) {

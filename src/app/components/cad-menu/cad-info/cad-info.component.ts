@@ -79,8 +79,8 @@ export class CadInfoComponent implements OnInit {
 		const data = this.menu.getData(this.menu.cadIdx, -1);
 		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single", options: data.options}, width: "80vw"});
 		ref.afterClosed().subscribe((data) => {
-			if (data) {
-				this.dataService.replaceData(this.menu.getData(), data.id);
+			if (data && data[0]) {
+				this.dataService.replaceData(this.menu.getData(), data[0].id);
 			}
 		});
 	}

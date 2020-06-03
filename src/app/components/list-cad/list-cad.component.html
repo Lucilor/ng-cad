@@ -1,10 +1,18 @@
-<form>
+<form class="toolbar">
 	<mat-form-field>
 		<mat-label>搜索CAD</mat-label>
 		<input name="search" matInput type="search" (keydown)="searchKeydown($event)" [(ngModel)]="searchInput" />
 		<mat-icon class="search-button" ty matSuffix (click)="search()">search</mat-icon>
 	</mat-form-field>
 	<button mat-raised-button color="primary" (click)="search(true)" *ngIf="data.selectMode !== 'table'">父级搜索</button>
+	<mat-checkbox
+		[checked]="allChecked()"
+		[indeterminate]="partiallyChecked()"
+		*ngIf="data.selectMode === 'multiple'"
+		(change)="toggleSelectAll()"
+	>
+		全选<span *ngIf="checkedInOtherPages">(其他页已选)</span>
+	</mat-checkbox>
 </form>
 
 <ng-container *ngIf="data.selectMode === 'single'">
@@ -21,7 +29,7 @@
 <ng-container *ngIf="data.selectMode === 'multiple'">
 	<div class="checkbox-group add-empty-msg">
 		<div class="data-container" *ngFor="let item of pageData; let i = index">
-			<mat-checkbox class="example-margin" [(ngModel)]="item.checked">{{ item.data.name }}</mat-checkbox>
+			<mat-checkbox [(ngModel)]="item.checked">{{ item.data.name }}</mat-checkbox>
 			<img [src]="item.img" (click)="item.checked = !item.checked" />
 		</div>
 	</div>

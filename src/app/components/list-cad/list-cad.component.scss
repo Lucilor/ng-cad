@@ -41,3 +41,9 @@ mat-radio-group,
 table {
 	width: 100%;
 }
+
+.toolbar {
+	> *:not(:last-child) {
+		margin-right: 10px;
+	}
+}
