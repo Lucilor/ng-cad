@@ -12,7 +12,7 @@ import {CadData, CadConnection} from "@src/app/cad-viewer/cad-data/cad-data";
 export class CadAssembleComponent implements OnInit {
 	@Input() menu: CadMenu;
 	get data() {
-	return this.menu.getData(this.menu.cadIdx, -1);
+		return this.menu.getData(this.menu.cadIdx, -1);
 	}
 	options = {space: "0", position: "absolute"};
 	assembling = false;
@@ -22,7 +22,8 @@ export class CadAssembleComponent implements OnInit {
 	constructor(private dialog: MatDialog) {}
 
 	ngOnInit() {
-		const cad = this.menu.cad;
+		const menu = this.menu;
+		const cad = menu.cad;
 		cad.controls.on("entityselect", (event, entity, object) => {
 			if (this.assembling) {
 				const data = this.data;
@@ -136,7 +137,7 @@ export class CadAssembleComponent implements OnInit {
 		menu.cad.render();
 	}
 
-	clearConnections(){
+	clearConnections() {
 		const {menu} = this;
 		const data = menu.getData(menu.cadIdx, -1);
 		data.components.connections.length = 0;

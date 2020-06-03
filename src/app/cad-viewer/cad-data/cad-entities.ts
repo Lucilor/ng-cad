@@ -126,7 +126,7 @@ export class CadEntities {
 		}
 	}
 
-	getBounds() {
+	getBoundingBox(){
 		const box = new Box2();
 		this.line.forEach((entity) => {
 			if (entity.visible) {
@@ -158,6 +158,11 @@ export class CadEntities {
 				box.expandByPoint(center.clone().subScalar(radius));
 			}
 		});
+		return box;
+	}
+
+	getBounds() {
+		const box = this.getBoundingBox();
 		const center = new Vector2();
 		const size = new Vector2();
 		box.getCenter(center);

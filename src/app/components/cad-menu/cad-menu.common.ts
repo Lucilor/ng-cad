@@ -242,7 +242,7 @@ export class CadMenu extends EventEmitter {
 			if (linesAtPoint) {
 				linesAtPoint.lines.push(line);
 			} else {
-				pointsMap.push({point, lines: [line], tPoint: this.cad.translatePoint(point), selected: false});
+				pointsMap.push({point, lines: [line], tPoint: this.cad.getScreenPoint(point), selected: false});
 			}
 		};
 		entities.line.forEach((entity) => {

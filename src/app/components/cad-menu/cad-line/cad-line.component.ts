@@ -193,8 +193,8 @@ export class CadLineComponent implements OnInit {
 		if (lines.length === 1) {
 			const line = lines[0];
 			if (line instanceof CadLine) {
-				const start = this.menu.cad.translatePoint(line.start);
-				const end = this.menu.cad.translatePoint(line.end);
+				const start = this.menu.cad.getScreenPoint(line.start);
+				const end = this.menu.cad.getScreenPoint(line.end);
 				this.tLine = {start, end};
 				return;
 			}

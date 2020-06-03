@@ -644,11 +644,19 @@ export class CadViewer {
 		return this.render(true);
 	}
 
-	translatePoint(point: Vector2 | Vector2) {
+	getScreenPoint(point: Vector2) {
 		const result = new Vector2();
-		const {scale, width, height} = this;
-		result.x = (point.x - this.position.x) * scale + width / 2;
-		result.y = height / 2 - (point.y - this.position.y) * scale;
+		const {scale, width, height, position} = this;
+		result.x = (point.x - position.x) * scale + width / 2;
+		result.y = height / 2 - (point.y - position.y) * scale;
+		return result;
+	}
+
+	getWorldPoint(point: Vector2) {
+		const result = new Vector2();
+		const {scale, width, height, position} = this;
+		result.x = (point.x - width / 2) / scale + position.x;
+		result.y = (height / 2 - point.y) / scale + position.y;
 		return result;
 	}
 

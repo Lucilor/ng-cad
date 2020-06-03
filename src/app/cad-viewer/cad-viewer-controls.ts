@@ -371,8 +371,8 @@ export class CadViewerControls extends EventEmitter {
 			if (!point1 || !point2) {
 				return false;
 			}
-			point1 = cad.translatePoint(point1);
-			point2 = cad.translatePoint(point2);
+			point1 = cad.getScreenPoint(point1);
+			point2 = cad.getScreenPoint(point2);
 			const left = Math.min(point1.x, point2.x);
 			const right = Math.max(point1.x, point2.x);
 			const top = Math.max(point1.y, point2.y);

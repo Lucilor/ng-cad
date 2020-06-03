@@ -14,6 +14,7 @@ import {trigger, transition, style, animate} from "@angular/animations";
 import {CadAssembleComponent} from "../cad-menu/cad-assemble/cad-assemble.component";
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
+import {Vector2} from "three/src/math/Vector2";
 
 const title = "编辑CAD";
 @Component({
@@ -102,6 +103,22 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 			window.addEventListener("resize", () => {
 				this.cad.resize(innerWidth, innerHeight);
 			});
+		});
+		const {menu, cad} = this;
+		cad.dom.addEventListener("click", ({clientX, clientY}) => {
+			if (menu.viewMode === "components") {
+				const point = cad.getWorldPoint(new Vector2(clientX, clientY));
+				const data = menu.getData(menu.cadIdx, -1);
+				data.components.data.forEach((v) => {
+					const box = v.getAllEntities().getBoundingBox();
+					if (box.containsPoint(point)) {
+						const found = this.subcad.list.find((vv) => vv.id === v.id);
+						if (found) {
+							found.checked = !found.checked;
+						}
+					}
+				});
+			}
 		});
 	}
 
