@@ -38,6 +38,9 @@ export class CadMenu extends EventEmitter {
 	viewMode: "normal" | "partners" | "components" | "slice" = "normal";
 	drawDimensions = true;
 	drawMTexts = true;
+	get selectMode() {
+		return this.cad.controls.config.selectMode === "single" ? "单选" : "多选";
+	}
 	entitiesDraggable = false;
 	readonly accuracy = 1;
 	readonly selectedColor = 0xffff00;
@@ -376,6 +379,11 @@ export class CadMenu extends EventEmitter {
 		this.drawMTexts = !this.drawMTexts;
 		this.cad.data.getAllEntities().mtext.forEach((e) => (e.visible = this.drawMTexts));
 		this.cad.render();
+	}
+
+	toggleSelectMode() {
+		const config = this.cad.controls.config;
+		config.selectMode = config.selectMode === "single" ? "multiple" : "single";
 	}
 
 	private _beforeRemove() {

@@ -56,14 +56,14 @@ export class DrawCadComponent implements AfterViewInit, OnDestroy {
 				const cad = new CadViewer(d, {padding: 10});
 				this.cads.push({src: cad.exportImage().src, data: d, checked: false, length: this.getCadLength(d)});
 				this.cad.removeEntities(d.entities);
+				if (d.conditions.length < 1) {
+					d.conditions.push("");
+				}
+				if (d.options.length < 1) {
+					d.options.push(new CadOption());
+				}
 			});
 			data.components.data = [];
-			if (data.conditions.length < 1) {
-				data.conditions.push("");
-			}
-			if (data.options.length < 1) {
-				data.options.push(new CadOption());
-			}
 		}
 
 		window.addEventListener("keydown", (event) => {
