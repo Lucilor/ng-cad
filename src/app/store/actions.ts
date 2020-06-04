@@ -8,8 +8,9 @@ export interface LoadingAction extends Action {
 	progress?: number;
 }
 
-export type CurrCadsActionType = "add curr cad" | "remove curr cad" | "clear curr cads";
+export type CurrCadsActionType = "add curr cad" | "remove curr cad" | "clear curr cads" | "set curr cads";
 export interface CurrCadsAction extends Action {
 	readonly type: CurrCadsActionType;
-	cad?: string;
+	id?: string;
+	ids?: string[];
 }

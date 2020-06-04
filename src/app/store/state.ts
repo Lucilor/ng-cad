@@ -1,5 +1,3 @@
-import {CadData} from "../cad-viewer/cad-data/cad-data";
-
 export interface State {
 	loading: {list: Set<string>; progress: number};
 	currCads: Set<string>;

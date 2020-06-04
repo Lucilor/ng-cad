@@ -1,10 +1,10 @@
 $offset-top: 40px;
-.left {
+.right {
     top: $offset-top;
     height: calc(100vh - #{$offset-top});
     width: 200px;
     padding: 10px;
     flex-direction: column;
     overflow: auto;
-    left: 0;
+    right: 0;
 }

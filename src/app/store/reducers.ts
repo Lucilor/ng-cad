@@ -3,6 +3,7 @@ import {State, initialState} from "./state";
 import {ActionReducerMap, MetaReducer} from "@ngrx/store";
 import {environment} from "src/environments/environment";
 import {cloneDeep} from "lodash";
+import {CadData} from "../cad-viewer/cad-data/cad-data";
 
 export function loadingReducer(loading = initialState.loading, action: LoadingAction) {
 	const newLoading: State["loading"] = cloneDeep(loading);
@@ -26,13 +27,16 @@ export function loadingReducer(loading = initialState.loading, action: LoadingAc
 }
 
 export function currCadsReducer(currCads = initialState.currCads, action: CurrCadsAction) {
-	const cads = new Set(currCads);
-	if (action.type === "add curr cad") {
-		cads.add(action.cad);
-	} else if (action.type === "remove curr cad") {
-		cads.delete(action.cad);
-	} else if (action.type === "clear curr cads") {
-		cads.clear();
+	let cads = new Set(currCads);
+	const {type, id, ids} = action;
+	if (type === "add curr cad") {
+		cads.add(id);
+	} else if (type === "remove curr cad") {
+		cads.delete(id);
+	} else if (type === "clear curr cads") {
+		cads.clear()
+	} else if (type === "set curr cads") {
+		cads = new Set(ids)
 	}
 	return cads;
 }

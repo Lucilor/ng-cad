@@ -4,6 +4,7 @@ import {EventEmitter} from "events";
 import {CadEntity} from "./cad-data/cad-entity/cad-entity";
 import {CadEntities} from "./cad-data/cad-entities";
 import {CadDimension} from "./cad-data/cad-entity/cad-dimension";
+import {CadTransformation} from "./cad-data/cad-transformation";
 
 export interface CadViewerControlsConfig {
 	dragAxis?: "x" | "y" | "xy" | "";
@@ -399,8 +400,12 @@ export class CadViewerControls extends EventEmitter {
 				}
 			}
 			this._status.pointerLock = true;
+		} else if (object.userData.selected) {
+			const entities = cad.selectedEntities;
+			entities.transform(new CadTransformation({translate: offset}));
+			this._status.pointerLock = true;
 		}
-		cad.render(false, new CadEntities().add(entity));
+		cad.render();
 		return true;
 	}
 }

@@ -145,6 +145,32 @@ export class CadData {
 		return this.getAllEntities().find(id);
 	}
 
+	findChildren(ids: string[]) {
+		const result: CadData[] = [];
+		ids.forEach((id) => {
+			const child = this.findChild(id);
+			if (child) {
+				result.push(child);
+			}
+		});
+		return result;
+	}
+
+	findChild(id: string) {
+		const children = [...this.partners, ...this.components.data];
+		for (const data of children) {
+			if (data.id === id) {
+				return data;
+			} else {
+				const result = data.findChild(id);
+				if (result) {
+					return result;
+				}
+			}
+		}
+		return null;
+	}
+
 	clone(resetIds = false) {
 		const data = new CadData(this.export());
 		if (resetIds) {
@@ -271,9 +297,11 @@ export class CadData {
 		// if (rect1.width && rect1.height) {
 		// 	const rect2 = component.getAllEntities().getBounds();
 		// 	const translate = new Vector2(rect1.x - rect2.x, rect1.y - rect2.y);
-		// 	translate.x += (rect1.width + rect2.width) / 2 + 15;
-		// 	// offset1[1] += (rect1.height - rect2.height) / 2;
-		// 	component.transform(new CadTransformation({translate}));
+		// 	if (translate.x > 1000 || translate.y > 1000) {
+		// 		translate.x += (rect1.width + rect2.width) / 2 + 15;
+		// 		// offset1[1] += (rect1.height - rect2.height) / 2;
+		// 		component.transform(new CadTransformation({translate}));
+		// 	}
 		// }
 		const data = this.components.data;
 		const prev = data.findIndex((v) => v.id === component.id);
@@ -703,7 +731,6 @@ export class CadComponents {
 	transform(trans: CadTransformation) {
 		const {vertical, horizontal} = trans.flip;
 		this.connections.forEach((v) => {
-			console.log(v);
 			if ((vertical && v.axis === "y") || (horizontal && v.axis === "x")) {
 				const space = -Number(v.space);
 				if (!isNaN(space)) {

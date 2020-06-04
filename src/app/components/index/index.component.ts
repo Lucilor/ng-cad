@@ -29,7 +29,7 @@ export class IndexComponent implements OnInit, AfterViewInit {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
-			padding: [50, 30, 30, 30],
+			padding: [50, 30, 30, 250],
 			showLineLength: 8
 		});
 		this.cad.setControls({selectMode: "multiple"});
@@ -38,10 +38,33 @@ export class IndexComponent implements OnInit, AfterViewInit {
 			this.cad.stats.dom.style.left = "";
 		}
 		this.store.select(getCurrCads).subscribe((cads) => {
-			this.currCads = this.cad.data.components.data.filter((v) => cads.has(v.id));
-			console.log(cads);
+			this.currCads = this.cad.data.findChildren(Array.from(cads));
+			if (this.currCads.length) {
+				this.cad.traverse((o, e) => {
+					o.userData.selectable = false;
+					e.opacity = 0.3;
+				});
+				this.currCads.forEach((v) => {
+					this.cad.traverse((o, e) => {
+						o.userData.selectable = true;
+						e.opacity = 1;
+					}, v.getAllEntities());
+				});
+				this.cad.controls.config.dragAxis = "";
+			} else {
+				this.cad.traverse((o, e) => {
+					o.userData.selectable = true;
+					e.opacity = 1;
+				});
+				this.cad.controls.config.dragAxis = "xy";
+			}
+			this.cad.render();
 		});
+
+		this.cad.controls.on("drag", () => {});
+
 		Object.assign(window, {view: this});
+		window.addEventListener("resize", () => this.cad.resize(innerWidth, innerHeight));
 	}
 
 	ngAfterViewInit() {
