@@ -55,6 +55,7 @@ export class CadSubcadComponent implements OnInit {
 	clickItem(index: number) {
 		const {menu} = this;
 		const {cadIdx, cadIdxs2, viewMode} = menu;
+		this.list[index].checked = !this.list[index].checked;
 		if (viewMode === "normal") {
 			if (index === cadIdx) {
 				menu.blur();

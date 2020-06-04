@@ -112,9 +112,9 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 				data.components.data.forEach((v) => {
 					const box = v.getAllEntities().getBoundingBox();
 					if (box.containsPoint(point)) {
-						const found = this.subcad.list.find((vv) => vv.id === v.id);
-						if (found) {
-							found.checked = !found.checked;
+						const index = this.subcad.list.findIndex((vv) => vv.id === v.id);
+						if (index > -1) {
+							this.subcad.clickItem(index);
 						}
 					}
 				});

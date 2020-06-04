@@ -51,6 +51,7 @@ import {IndexComponent} from "./components/index/index.component";
 import {AngleInputComponent} from "./components/index/angle-input/angle-input.component";
 import {TopMenuComponent} from "./components/menu/top-menu/top-menu.component";
 import {LeftMenuComponent} from "./components/menu/left-menu/left-menu.component";
+import { ImageComponent } from './components/image/image.component';
 
 @NgModule({
 	declarations: [
@@ -74,7 +75,8 @@ import {LeftMenuComponent} from "./components/menu/left-menu/left-menu.component
 		IndexComponent,
 		AngleInputComponent,
 		TopMenuComponent,
-		LeftMenuComponent
+		LeftMenuComponent,
+		ImageComponent
 	],
 	imports: [
 		BrowserModule,

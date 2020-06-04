@@ -10,7 +10,7 @@ import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 	styleUrls: ["./cad-options.component.scss"]
 })
 export class CadOptionsComponent implements AfterViewInit {
-	pageData: {value: string; checked: boolean}[] = [];
+	pageData: {value: string; img: string; checked: boolean}[] = [];
 	searchInput = "";
 	searchValue = "";
 	length = 100;
@@ -57,9 +57,10 @@ export class CadOptionsComponent implements AfterViewInit {
 		const data = await this.dataService.getOptions(this.data.data, this.data.name, this.searchValue, page, this.paginator.pageSize);
 		this.length = data.count;
 		this.pageData.length = 0;
-		data.data.forEach((value) => {
-			this.pageData.push({value, checked: this.data.checkedItems.includes(value)});
+		data.data.forEach((v) => {
+			this.pageData.push({value: v.name, img: v.img, checked: this.data.checkedItems.includes(v.name)});
 		});
+		console.log(data);
 		return data;
 	}
 }

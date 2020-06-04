@@ -1,0 +1,6 @@
+<div>
+	<div *ngIf="loading">
+		<img [src]="loadingSrc" />
+	</div>
+	<img [src]="src" [ngStyle]="{visibility: loading ? 'hidden' : ''}" (load)="onLoad()" (error)="onError()" />
+</div>
