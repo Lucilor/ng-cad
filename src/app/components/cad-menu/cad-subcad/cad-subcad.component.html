@@ -12,7 +12,7 @@
 
 	<ng-container *ngIf="multi">
 		<div class="btn-group">
-			<button mat-raised-button color="primary" (click)="selectAll()">全选</button>
+			<button mat-raised-button color="primary" (click)="selectAll()">{{ allSelected ? "全不选" : "全选" }}</button>
 		</div>
 		<div class="checkbox-group">
 			<div class="cad-image" *ngFor="let item of list; let i = index">

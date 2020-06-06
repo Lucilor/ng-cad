@@ -16,6 +16,7 @@ export class CadSubcadComponent implements OnInit {
 	list: {id: string; name: string; src: string; checked: boolean}[] = [];
 	listName = "CAD列表";
 	multi = false;
+	allSelected: boolean;
 	get data() {
 		const menu = this.menu;
 		const d = menu.cad.data.components.data[menu.cadIdx];
@@ -50,6 +51,7 @@ export class CadSubcadComponent implements OnInit {
 			this.list.push({id: d.id, name: d.name, src, checked: menu.cadIdxs2.includes(i)});
 			cad.destroy();
 		});
+		this.allSelected = this.list.every((v) => v.checked);
 	}
 
 	clickItem(index: number) {
@@ -76,6 +78,7 @@ export class CadSubcadComponent implements OnInit {
 				menu.focus();
 			}
 		}
+		this.allSelected = this.list.every((v) => v.checked);
 	}
 
 	isActive(index: number) {
@@ -156,7 +159,13 @@ export class CadSubcadComponent implements OnInit {
 
 	selectAll() {
 		const menu = this.menu;
-		this.list.forEach((v) => (v.checked = true));
+		if (this.allSelected) {
+			this.list.forEach((v) => (v.checked = false));
+			this.allSelected = false;
+		} else {
+			this.list.forEach((v) => (v.checked = true));
+			this.allSelected = true;
+		}
 		menu.cadIdxs2.length = 0;
 		this.list.forEach((v, i) => {
 			if (v.checked) {
