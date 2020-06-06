@@ -39,8 +39,8 @@ export class SubCadsComponent extends MenuComponent implements OnInit {
 	}
 
 	ngOnInit() {
-		window.addEventListener("keydown", () => {
-			if (this.cad.selectedEntities.length === 0) {
+		window.addEventListener("keydown", ({key}) => {
+			if (key === "Escape" && this.cad.selectedEntities.length === 0) {
 				this.unselectAll();
 			}
 		});
@@ -92,13 +92,13 @@ export class SubCadsComponent extends MenuComponent implements OnInit {
 	clickCad(field: LeftMenuField, index: number, event?: MatCheckboxChange) {
 		const cad = this[field][index];
 		const checked = event ? event.checked : !cad.checked;
-		cad.checked = checked;
 		if (checked) {
 			cad.indeterminate = false;
 			if (!this.multiSelect) {
 				this.unselectAll(false);
 			}
 		}
+		cad.checked = checked;
 
 		const ids1 = this.cads.filter((v) => v.checked).map((v) => v.data.id);
 		const ids1Half = this.cads.filter((v) => v.indeterminate).map((v) => v.data.id);

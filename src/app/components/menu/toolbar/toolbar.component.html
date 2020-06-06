@@ -1,7 +1,7 @@
 <button mat-icon-button [matMenuTriggerFor]="file">文件</button>
 <mat-menu #file="matMenu">
 	<button mat-menu-item [matMenuTriggerFor]="openType">打开</button>
-	<button mat-menu-item (click)="clickBtn('s')" [disabled]="!canSave">保存</button>
+	<button mat-menu-item (click)="clickBtn('s')" [disabled]="!canSave">保存<sup>s</sup></button>
 	<!-- <button mat-menu-item>另存为</button> -->
 </mat-menu>
 <mat-menu #openType="matMenu">

@@ -12,7 +12,6 @@ import {HttpClientModule} from "@angular/common/http";
 
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatButtonModule} from "@angular/material/button";
-import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 import {MatInputModule} from "@angular/material/input";
 import {MatExpansionModule} from "@angular/material/expansion";
 import {MatIconModule} from "@angular/material/icon";
@@ -38,7 +37,7 @@ import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
-import {CadInfoComponent} from "./components/cad-menu/cad-info/cad-info.component";
+import {CadInfoComponent as CadInfoComponent2} from "./components/cad-menu/cad-info/cad-info.component";
 import {CadLineComponent} from "./components/cad-menu/cad-line/cad-line.component";
 import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-indicator.component";
 import {CadDimensionComponent} from "./components/cad-menu/cad-dimension/cad-dimension.component";
@@ -52,6 +51,7 @@ import {AngleInputComponent} from "./components/index/angle-input/angle-input.co
 import {ImageComponent} from "./components/image/image.component";
 import {ToolbarComponent} from "./components/menu/toolbar/toolbar.component";
 import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
+import {CadInfoComponent} from "./components/menu/cad-info/cad-info.component";
 
 @NgModule({
 	declarations: [
@@ -63,7 +63,7 @@ import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
 		EditCadComponent,
 		PrintCadComponent,
 		ListCadComponent,
-		CadInfoComponent,
+		CadInfoComponent2,
 		CadLineComponent,
 		LineIndicatorComponent,
 		CadDimensionComponent,
@@ -76,7 +76,8 @@ import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
 		AngleInputComponent,
 		ImageComponent,
 		ToolbarComponent,
-		SubCadsComponent
+		SubCadsComponent,
+		CadInfoComponent
 	],
 	imports: [
 		BrowserModule,
@@ -92,7 +93,6 @@ import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
 		HttpClientModule,
 		MatDialogModule,
 		MatButtonModule,
-		MatProgressSpinnerModule,
 		MatInputModule,
 		MatExpansionModule,
 		MatIconModule,

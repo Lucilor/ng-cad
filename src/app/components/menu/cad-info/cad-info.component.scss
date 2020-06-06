@@ -1,0 +1,9 @@
+.add-divider::after {
+	content: "";
+	display: block;
+	width: calc(100% + 30px);
+	transform: translateX(-15px);
+	margin-bottom: 10px;
+	border: 2px solid rgba(0, 0, 0, 0.5);
+	border-radius: 20px;
+}

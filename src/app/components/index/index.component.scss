@@ -25,7 +25,7 @@
 	&.right {
 		top: $offset-top;
 		height: calc(100vh - #{$offset-top});
-		width: 200px;
+		width: 250px;
 		padding: 10px;
 		flex-direction: column;
 		overflow: auto;

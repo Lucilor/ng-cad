@@ -2,7 +2,7 @@
     <mat-slide-toggle [checked]="multiSelect" (change)="toggleMultiSelect()">{{ multiSelect ? "多选" : "单选" }}</mat-slide-toggle>
 </div>
 <mat-accordion multi>
-    <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel expanded>
         <mat-expansion-panel-header>
             <mat-panel-title>CAD</mat-panel-title>
         </mat-expansion-panel-header>
@@ -21,7 +21,7 @@
         </div>
     </mat-expansion-panel>
 
-    <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel expanded>
         <mat-expansion-panel-header>
             <mat-panel-title>关联CAD</mat-panel-title>
         </mat-expansion-panel-header>
@@ -40,7 +40,7 @@
         </div>
     </mat-expansion-panel>
 
-    <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel expanded>
         <mat-expansion-panel-header>
             <mat-panel-title>装配CAD</mat-panel-title>
         </mat-expansion-panel-header>

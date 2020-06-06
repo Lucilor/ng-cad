@@ -9,7 +9,7 @@ import {CadOption} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadOptionsComponent} from "../cad-options/cad-options.component";
 
 @Component({
-	selector: "app-cad-info",
+	selector: "app-cad-info2",
 	templateUrl: "./cad-info.component.html",
 	styleUrls: ["./cad-info.component.scss"]
 })

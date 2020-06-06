@@ -5,7 +5,6 @@ import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {CadDataService} from "@src/app/services/cad-data.service";
 import {Store} from "@ngrx/store";
 import {State} from "@src/app/store/state";
-import {getCurrCads} from "@src/app/store/selectors";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CurrCadsAction} from "@src/app/store/actions";
 import {RSAEncrypt} from "@lucilor/utils";
@@ -21,10 +20,10 @@ import {MenuComponent} from "../menu.component";
 })
 export class ToolbarComponent extends MenuComponent implements OnInit {
 	@Input() cad: CadViewer;
+	@Input() currCads: CadData[];
 	@Output() openCad = new EventEmitter<CadData[]>();
 	canSave = false;
 	collection = "";
-	currCads: CadData[];
 	keyMap: {[key: string]: () => void} = {
 		s: () => this.save(),
 		1: () => this.open("p_yuanshicadwenjian"),
@@ -40,10 +39,6 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 
 	ngOnInit() {
 		this.canSave = this.cad.data.components.data.length > 0;
-		this.store.select(getCurrCads).subscribe((cads) => {
-			this.currCads = this.cad.data.findChildren(Array.from(cads));
-		});
-
 		window.addEventListener("keydown", (event) => {
 			const {key, ctrlKey} = event;
 			if (ctrlKey) {
