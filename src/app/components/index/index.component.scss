@@ -1,23 +1,34 @@
-.menu {
+.menu2 {
 	z-index: 10;
 	position: absolute;
-	left: 0;
-	top: 0;
 	background-color: rgba(255, 255, 255, 0.9);
 	box-shadow: 0 0 5px 5px rgba(255, 255, 255, 0.4);
 
 	&.top {
 		width: 100vw;
-		transform: translate(0, 0);
 		border-radius: 0;
 		padding: 0 10px;
+		top: 0;
 	}
 
-	$offsetTop: 40px;
+	$offset-top: 40px;
 	&.left {
-		transform: translate(0, 0);
-		top: $offsetTop;
-		height: calc(100vh - #{$offsetTop});
-		width: 300px;
+		top: $offset-top;
+		height: calc(100vh - #{$offset-top});
+		width: 200px;
+		padding: 10px;
+		flex-direction: column;
+		overflow: auto;
+		left: 0;
+	}
+
+	&.right {
+		top: $offset-top;
+		height: calc(100vh - #{$offset-top});
+		width: 200px;
+		padding: 10px;
+		flex-direction: column;
+		overflow: auto;
+		right: 0;
 	}
 }

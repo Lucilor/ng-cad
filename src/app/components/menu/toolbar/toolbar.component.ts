@@ -1,25 +1,25 @@
-import {Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef} from "@angular/core";
-import {MatDialogRef, MatDialog} from "@angular/material/dialog";
-import {ListCadComponent} from "../../list-cad/list-cad.component";
-import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
-import {RSAEncrypt} from "@lucilor/utils";
-import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
-import {AngleInputComponent} from "../../index/angle-input/angle-input.component";
+import {Component, OnInit, Input, Output, EventEmitter} from "@angular/core";
 import {CadViewer} from "@src/app/cad-viewer/cad-viewer";
+import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {CadDataService} from "@src/app/services/cad-data.service";
 import {Store} from "@ngrx/store";
 import {State} from "@src/app/store/state";
 import {getCurrCads} from "@src/app/store/selectors";
+import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {CurrCadsAction} from "@src/app/store/actions";
+import {RSAEncrypt} from "@lucilor/utils";
+import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
+import {AngleInputComponent} from "../../index/angle-input/angle-input.component";
 import {AlertComponent} from "../../alert/alert.component";
 import {MenuComponent} from "../menu.component";
 
 @Component({
-	selector: "app-top-menu",
-	templateUrl: "./top-menu.component.html",
-	styleUrls: ["./top-menu.component.scss"]
+	selector: "app-toolbar",
+	templateUrl: "./toolbar.component.html",
+	styleUrls: ["./toolbar.component.scss"]
 })
-export class TopMenuComponent extends MenuComponent implements OnInit {
+export class ToolbarComponent extends MenuComponent implements OnInit {
 	@Input() cad: CadViewer;
 	@Output() openCad = new EventEmitter<CadData[]>();
 	canSave = false;

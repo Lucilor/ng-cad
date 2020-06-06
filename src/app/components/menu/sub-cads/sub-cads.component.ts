@@ -20,11 +20,11 @@ interface CadNode {
 type LeftMenuField = "cads" | "partners" | "components";
 
 @Component({
-	selector: "app-left-menu",
-	templateUrl: "./left-menu.component.html",
-	styleUrls: ["./left-menu.component.scss"]
+	selector: "app-sub-cads",
+	templateUrl: "./sub-cads.component.html",
+	styleUrls: ["./sub-cads.component.scss"]
 })
-export class LeftMenuComponent extends MenuComponent implements OnInit {
+export class SubCadsComponent extends MenuComponent implements OnInit {
 	@Input() cad: CadViewer;
 	@Input() currCads: CadData[];
 	cads: CadNode[] = [];

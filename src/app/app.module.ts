@@ -49,10 +49,9 @@ import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options
 import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.component";
 import {IndexComponent} from "./components/index/index.component";
 import {AngleInputComponent} from "./components/index/angle-input/angle-input.component";
-import {TopMenuComponent} from "./components/menu/top-menu/top-menu.component";
-import {LeftMenuComponent} from "./components/menu/left-menu/left-menu.component";
 import {ImageComponent} from "./components/image/image.component";
-import {RightMenuComponent} from "./components/menu/right-menu/right-menu.component";
+import {ToolbarComponent} from "./components/menu/toolbar/toolbar.component";
+import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
 
 @NgModule({
 	declarations: [
@@ -75,10 +74,9 @@ import {RightMenuComponent} from "./components/menu/right-menu/right-menu.compon
 		CadMtextComponent,
 		IndexComponent,
 		AngleInputComponent,
-		TopMenuComponent,
-		LeftMenuComponent,
 		ImageComponent,
-		RightMenuComponent
+		ToolbarComponent,
+		SubCadsComponent
 	],
 	imports: [
 		BrowserModule,

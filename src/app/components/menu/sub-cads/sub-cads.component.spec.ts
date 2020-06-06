@@ -1,19 +1,19 @@
 import {async, ComponentFixture, TestBed} from "@angular/core/testing";
 
-import {RightMenuComponent} from "./right-menu.component";
+import {SubCadsComponent} from "./sub-cads.component";
 
-describe("RightMenuComponent", () => {
-	let component: RightMenuComponent;
-	let fixture: ComponentFixture<RightMenuComponent>;
+describe("SubCadsComponent", () => {
+	let component: SubCadsComponent;
+	let fixture: ComponentFixture<SubCadsComponent>;
 
 	beforeEach(async(() => {
 		TestBed.configureTestingModule({
-			declarations: [RightMenuComponent]
+			declarations: [SubCadsComponent]
 		}).compileComponents();
 	}));
 
 	beforeEach(() => {
-		fixture = TestBed.createComponent(RightMenuComponent);
+		fixture = TestBed.createComponent(SubCadsComponent);
 		component = fixture.componentInstance;
 		fixture.detectChanges();
 	});

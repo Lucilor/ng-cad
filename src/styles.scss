@@ -85,14 +85,6 @@ body {
 	}
 }
 
-.menu2 {
-    position: absolute;
-	display: flex;
-    background-color: rgba(255, 255, 255, 0.9);
-	box-shadow: 0 0 5px 5px rgba(255, 255, 255, 0.4);
-	z-index: 10;
-}
-
 ::-webkit-scrollbar-track {
 	box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 	border-radius: 10px;

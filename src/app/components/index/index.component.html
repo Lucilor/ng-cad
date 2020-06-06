@@ -1,4 +1,10 @@
 <div #cadContainer></div>
-<app-top-menu #topMenu [cad]="cad" (openCad)="afterOpenCad($event)"></app-top-menu>
-<app-left-menu #leftMenu [cad]="cad" [currCads]="currCads"></app-left-menu>
-<app-right-menu #rightMenu></app-right-menu>
+<div class="menu2 top">
+	<app-toolbar #toolbar [cad]="cad" (openCad)="afterOpenCad($event)"></app-toolbar>
+</div>
+<div class="menu2 left">
+	<app-sub-cads #subCads [cad]="cad" [currCads]="currCads"></app-sub-cads>
+</div>
+<div class="menu2 right">
+    
+</div>

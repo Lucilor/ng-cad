@@ -2,12 +2,12 @@ import {Component, OnInit, AfterViewInit, ViewChild, ElementRef} from "@angular/
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadViewer} from "@src/app/cad-viewer/cad-viewer";
 import {environment} from "@src/environments/environment";
-import {TopMenuComponent} from "../menu/top-menu/top-menu.component";
-import {LeftMenuComponent} from "../menu/left-menu/left-menu.component";
 import {session, timeout} from "@src/app/app.common";
 import {Store} from "@ngrx/store";
 import {State} from "@src/app/store/state";
 import {getCurrCads} from "@src/app/store/selectors";
+import {ToolbarComponent} from "../menu/toolbar/toolbar.component";
+import {SubCadsComponent} from "../menu/sub-cads/sub-cads.component";
 
 @Component({
 	selector: "app-index",
@@ -19,8 +19,8 @@ export class IndexComponent implements OnInit, AfterViewInit {
 	collection = "";
 	currCads: CadData[];
 	@ViewChild("cadContainer", {read: ElementRef}) cadContainer: ElementRef<HTMLElement>;
-	@ViewChild("topMenu", {read: TopMenuComponent}) topMenu: TopMenuComponent;
-	@ViewChild("leftMenu", {read: LeftMenuComponent}) leftMenu: LeftMenuComponent;
+	@ViewChild("toolbar", {read: ToolbarComponent}) toolbar: ToolbarComponent;
+	@ViewChild("subCads", {read: SubCadsComponent}) subCads: SubCadsComponent;
 
 	constructor(private store: Store<State>) {}
 
@@ -29,7 +29,7 @@ export class IndexComponent implements OnInit, AfterViewInit {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
-			padding: [50, 30, 30, 250],
+			padding: [50, 250, 30, 250],
 			showLineLength: 8
 		});
 		this.cad.setControls({selectMode: "multiple"});
@@ -71,12 +71,12 @@ export class IndexComponent implements OnInit, AfterViewInit {
 		this.cadContainer.nativeElement.appendChild(this.cad.dom);
 		(async () => {
 			await timeout(0);
-			this.leftMenu.update(this.cad.data.components.data);
+			this.subCads.update(this.cad.data.components.data);
 		})();
 	}
 
 	afterOpenCad(data: CadData[]) {
-		this.leftMenu.update(data);
+		this.subCads.update(data);
 		session.save("cadData", this.cad.data.export());
 	}
 
