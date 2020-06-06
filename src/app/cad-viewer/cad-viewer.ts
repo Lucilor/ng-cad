@@ -42,6 +42,7 @@ export interface CadViewerConfig {
 	selectedColor?: number;
 	hoverColor?: number;
 	showLineLength?: number;
+	showGongshi?: number;
 	padding?: number[] | number;
 	fps?: number;
 	showStats?: boolean;
@@ -60,6 +61,7 @@ export class CadViewer {
 		selectedColor: 0xffff00,
 		hoverColor: 0x00ffff,
 		showLineLength: 0,
+		showGongshi: 0,
 		padding: [0],
 		fps: 60,
 		showStats: false,
@@ -284,19 +286,11 @@ export class CadViewer {
 			return;
 		}
 		const {scene, objects, config, stylizer} = this;
-		const showLineLength = config.showLineLength;
+		const {showLineLength, showGongshi} = config;
 		const {start, end, length, theta} = entity;
 		const middle = start.clone().add(end).divideScalar(2);
 		const {linewidth, color, opacity, fontStyle} = stylizer.get(entity, style);
 		let object = objects[entity.id] as Line;
-		const slope = (start.y - end.y) / (start.x - end.x);
-		const anchor = new Vector2(0.5, 0.5);
-		if (slope === 0) {
-			anchor.y = 1;
-		}
-		if (!isFinite(slope)) {
-			anchor.x = 1;
-		}
 		const dx = Math.cos(Math.PI / 2 - theta) * linewidth;
 		const dy = Math.sin(Math.PI / 2 - theta) * linewidth;
 		const shape = new Shape();
@@ -310,23 +304,6 @@ export class CadViewer {
 		if (object) {
 			object.geometry = new BufferGeometry().setFromPoints([start, end]);
 			this._setLineMaterial(object, color, linewidth, opacity);
-			const lengthText = object.children.find((o) => (o as any).isTextSprite) as TextSprite;
-			if (lengthText) {
-				if (showLineLength > 0) {
-					lengthText.text = Math.round(length).toString();
-					lengthText.fontSize = showLineLength;
-					lengthText.fillStyle = colorStr;
-					lengthText.fontStyle = fontStyle;
-					this._setAnchor(lengthText, middle, anchor);
-				} else {
-					object.remove(lengthText);
-				}
-				lengthText.text = Math.round(length).toString();
-				lengthText.fontSize = showLineLength;
-				lengthText.fillStyle = colorStr;
-				lengthText.fontStyle = fontStyle;
-				this._setAnchor(lengthText, middle, anchor);
-			}
 		} else {
 			const geometry = new BufferGeometry().setFromPoints([start, end]);
 			const material = new LineBasicMaterial({color, linewidth});
@@ -335,33 +312,46 @@ export class CadViewer {
 			object.name = entity.id;
 			objects[entity.id] = object;
 			scene.add(object);
-			if (showLineLength > 0) {
-				const lengthText = new TextSprite({
-					fontSize: showLineLength,
-					fillStyle: colorStr,
-					text: Math.round(length).toString(),
-					fontStyle
-				});
-				// lengthText.padding = 0;
-				this._setAnchor(lengthText, middle, anchor);
+		}
+
+		const anchor = new Vector2(0.5, 1);
+		let gongshi = entity.gongshi;
+		if (entity.isVertical(1)) {
+			anchor.set(1, 0.5);
+			gongshi = gongshi.split("").join("\n");
+		}
+		const anchor2 = new Vector2(1 - anchor.x, 1 - anchor.y);
+		let lengthText = object.children.find((o) => o.name === entity.id + "-length") as TextSprite;
+		let gongshiText = object.children.find((o) => o.name === entity.id + "-gongshi") as TextSprite;
+		if (showLineLength > 0) {
+			if (lengthText) {
+				lengthText.text = Math.round(length).toString();
+			} else {
+				lengthText = new TextSprite({text: Math.round(length).toString()});
+				lengthText.name = entity.id + "-length";
 				object.add(lengthText);
-				// lengthText.geometry.computeBoundingBox();
-				// const box1 = lengthText.geometry.boundingBox;
-				// box1.max.add(lengthText.position);
-				// box1.min.add(lengthText.position);
-				// console.log(lengthText);
-				// this.data.entities.line.forEach(e=>{
-				// 	const o = this.objects[e.id];
-				// 	if(o){
-				// 		const child = o.children[0] as Mesh;
-				// 		child.geometry.computeBoundingBox();
-				// 		const box2 = child.geometry.boundingBox;
-				// 		box2.min.add(child.position);
-				// 		box2.max.add(child.position);
-				// 		console.log(box2.intersectsBox(box1));
-				// 	}
-				// })
 			}
+			lengthText.fontSize = showLineLength;
+			lengthText.fillStyle = colorStr;
+			lengthText.fontStyle = fontStyle;
+			this._setAnchor(lengthText, middle, anchor);
+		} else {
+			object.remove(lengthText);
+		}
+		if (showGongshi > 0) {
+			if (gongshiText) {
+				gongshiText.text = gongshi;
+			} else {
+				gongshiText = new TextSprite({text: gongshi});
+				gongshiText.name = entity.id + "-gongshi";
+				object.add(gongshiText);
+			}
+			gongshiText.fontSize = showLineLength;
+			gongshiText.fillStyle = colorStr;
+			gongshiText.fontStyle = fontStyle;
+			this._setAnchor(gongshiText, middle, anchor2);
+		} else {
+			object.remove(gongshiText);
 		}
 	}
 

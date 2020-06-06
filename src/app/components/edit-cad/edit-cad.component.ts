@@ -65,9 +65,10 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 			height: innerHeight,
 			showStats: !environment.production,
 			padding: [30, 370, 30, 125],
-			showLineLength: 8
+			showLineLength: 8,
+			showGongshi: 8
 		});
-		this.cad.setControls({selectMode: "multiple"});
+		this.cad.setControls({selectMode: "multiple", entitiesDraggable: false});
 		this.menu = new CadMenu(dialog, this.cad, dataService);
 	}
 

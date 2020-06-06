@@ -13,6 +13,7 @@ export interface CadViewerControlsConfig {
 	maxScale?: number;
 	minScale?: number;
 	enableScale?: boolean;
+	entitiesDraggable?: boolean;
 }
 
 export interface CadEvents {
@@ -39,7 +40,8 @@ export class CadViewerControls extends EventEmitter {
 		selectable: true,
 		maxScale: 100,
 		minScale: 0.1,
-		enableScale: true
+		enableScale: true,
+		entitiesDraggable: true
 	};
 	currentObject: Object3D;
 	private _status = {
@@ -362,7 +364,7 @@ export class CadViewerControls extends EventEmitter {
 	}
 
 	private _dragObject(p: Vector2, offset: Vector2) {
-		const {cad, currentObject: object, _multiSelector} = this;
+		const {cad, currentObject: object, _multiSelector, config} = this;
 		if (!object || !_multiSelector.hidden) {
 			return false;
 		}
@@ -400,7 +402,7 @@ export class CadViewerControls extends EventEmitter {
 				}
 			}
 			this._status.pointerLock = true;
-		} else if (object.userData.selected) {
+		} else if (object.userData.selected && config.entitiesDraggable) {
 			const entities = cad.selectedEntities;
 			entities.transform(new CadTransformation({translate: offset}));
 			this._status.pointerLock = true;

@@ -41,7 +41,12 @@ export class CadMenu extends EventEmitter {
 	get selectMode() {
 		return this.cad.controls.config.selectMode === "single" ? "单选" : "多选";
 	}
-	entitiesDraggable = false;
+	get entitiesDraggable() {
+		return this.cad.controls.config.entitiesDraggable;
+	}
+	get showGongshi() {
+		return this.cad.config.showGongshi > 0;
+	}
 	readonly accuracy = 1;
 	readonly selectedColor = 0xffff00;
 	readonly hoverColor = 0x00ffff;
@@ -69,10 +74,7 @@ export class CadMenu extends EventEmitter {
 				const end = new Vector2(event.clientX, event.clientY);
 				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
-				const selected = cad.selectedEntities;
-				if (this.entitiesDraggable && selected.length) {
-					selected.transform(new CadTransformation({translate}));
-				} else if (this.viewMode === "components") {
+				if (this.viewMode === "components") {
 					if (this.cadIdxs2.length) {
 						this.cadIdxs2.forEach((i) => {
 							data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
@@ -384,6 +386,15 @@ export class CadMenu extends EventEmitter {
 	toggleSelectMode() {
 		const config = this.cad.controls.config;
 		config.selectMode = config.selectMode === "single" ? "multiple" : "single";
+	}
+
+	toggleEntitiesDraggable() {
+		this.cad.controls.config.entitiesDraggable = !this.entitiesDraggable;
+	}
+
+	toggleShowGongshi() {
+		this.cad.config.showGongshi = this.showGongshi ? 0 : 8;
+		this.cad.render();
 	}
 
 	private _beforeRemove() {
