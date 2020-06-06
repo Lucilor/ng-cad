@@ -10,12 +10,17 @@
 		</div>
 	</ng-container>
 
-	<div class="checkbox-group" *ngIf="multi">
-		<div class="cad-image" *ngFor="let item of list; let i = index">
-			<mat-checkbox [checked]="item.checked" (change)="clickItem(i)">{{ item.name }}</mat-checkbox>
-			<img [src]="item.src" (click)="clickItem(i)" />
+	<ng-container *ngIf="multi">
+		<div class="btn-group">
+			<button mat-raised-button color="primary" (click)="selectAll()">全选</button>
 		</div>
-	</div>
+		<div class="checkbox-group">
+			<div class="cad-image" *ngFor="let item of list; let i = index">
+				<mat-checkbox [checked]="item.checked" (change)="clickItem(i)">{{ item.name }}</mat-checkbox>
+				<img [src]="item.src" (click)="clickItem(i)" />
+			</div>
+		</div>
+	</ng-container>
 	<div class="btn-group">
 		<button mat-raised-button color="primary" (click)="editSubcads('partners')">编辑关联</button>
 		<button mat-raised-button color="primary" (click)="editSubcads('components')">编辑装配</button>

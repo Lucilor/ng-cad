@@ -192,9 +192,9 @@ app-edit-cad {
 }
 
 .btn-group {
-	margin-top: 10px;
+	margin: 5px;
 
-	button {
+	> *:not(:last-child) {
 		margin-right: 10px;
 	}
 }

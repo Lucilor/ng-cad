@@ -339,7 +339,7 @@ export class CadMenu extends EventEmitter {
 		if (viewModeChanged) {
 			this.selectLineEnd();
 		}
-		cad.render(viewModeChanged);
+		cad.render();
 	}
 
 	blur(cadIdx = -1, cadIdxs2 = []) {

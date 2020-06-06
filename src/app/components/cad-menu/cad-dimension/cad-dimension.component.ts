@@ -52,14 +52,14 @@ export class CadDimensionComponent implements OnInit {
 					mode.index += thatData.entities.dimension.push(dimension) - 1;
 				}
 				if (!dimension.entity1.id) {
-					dimension.entity1 = {id: entity.id, location: "start"};
+					dimension.entity1 = {id: entity.originalId, location: "start"};
 					dimension.cad1 = thatData.name;
 				} else if (!dimension.entity2.id) {
-					dimension.entity2 = {id: entity.id, location: "end"};
+					dimension.entity2 = {id: entity.originalId, location: "end"};
 					dimension.cad2 = thatData.name;
 				} else {
 					dimension.entity1 = dimension.entity2;
-					dimension.entity2 = {id: entity.id, location: "end"};
+					dimension.entity2 = {id: entity.originalId, location: "end"};
 					dimension.cad2 = thatData.name;
 				}
 				const e1 = cad.data.findEntity(dimension.entity1.id);

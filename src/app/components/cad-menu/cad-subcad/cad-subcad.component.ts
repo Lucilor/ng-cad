@@ -112,6 +112,7 @@ export class CadSubcadComponent implements OnInit {
 				for (let i = 0; i < cads.length; i++) {
 					menu.cadIdxs2.push(i);
 				}
+				menu.cad.data.updatePartners().updateComponents();
 				menu.cad.reset();
 				this.updateList();
 			}
@@ -151,5 +152,17 @@ export class CadSubcadComponent implements OnInit {
 			sessionStorage.setItem("tmpData", RSAEncrypt({ids}));
 			open("edit-cad");
 		}
+	}
+
+	selectAll() {
+		const menu = this.menu;
+		this.list.forEach((v) => (v.checked = true));
+		menu.cadIdxs2.length = 0;
+		this.list.forEach((v, i) => {
+			if (v.checked) {
+				menu.cadIdxs2.push(i);
+			}
+		});
+		menu.focus();
 	}
 }

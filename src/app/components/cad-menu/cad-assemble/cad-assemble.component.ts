@@ -27,38 +27,38 @@ export class CadAssembleComponent implements OnInit {
 		cad.controls.on("entityselect", (event, entity, object) => {
 			if (this.assembling) {
 				const data = this.data;
-				const fakeComponent = new CadData({id: data.id, name: data.name});
-				fakeComponent.entities = data.entities;
-				for (const component of [...data.components.data, fakeComponent]) {
+				const dumpComponent = new CadData({id: data.id, name: data.name});
+				dumpComponent.entities = data.entities;
+				for (const component of [...data.components.data, dumpComponent]) {
 					const {ids, lines, names} = this;
 					const found = component.findEntity(entity.id);
 					if (found) {
-						const prev = ids.findIndex((id) => id === component.id);
+						const prev = ids.findIndex((id) => id === component.id || id === component.originalId);
 						const {space, position} = this.options;
 						if (object.userData.selected) {
 							if (position === "absolute") {
 								if (prev > -1) {
-									lines[prev] = found.id;
+									lines[prev] = found.originalId;
 								} else {
-									ids.push(component.id);
+									ids.push(component.originalId);
 									names.push(component.name);
-									lines.push(found.id);
+									lines.push(found.originalId);
 								}
 							}
 							if (position === "relative") {
 								if (prev > -1) {
 									if (prev === 0) {
-										lines.push(found.id);
+										lines.push(found.originalId);
 										if (lines.length > 2) {
 											lines.shift();
 										}
 									} else {
-										lines[prev] = found.id;
+										lines[prev] = found.originalId;
 									}
 								} else {
-									ids.push(component.id);
+									ids.push(component.originalId);
 									names.push(component.name);
-									lines.push(found.id);
+									lines.push(found.originalId);
 								}
 								lines.forEach((l) => (cad.objects[l].userData.selected = true));
 							}
