@@ -21,7 +21,7 @@ export class CadSubcadComponent implements OnInit {
 		const menu = this.menu;
 		const d = menu.cad.data.components.data[menu.cadIdx];
 		let data: CadData[];
-		if (menu.viewMode === "normal") {
+		if (menu.viewMode === "normal" || menu.viewMode === "validation") {
 			this.listName = "CAD列表";
 			this.multi = false;
 			data = menu.cad.data.components.data;
@@ -41,8 +41,8 @@ export class CadSubcadComponent implements OnInit {
 	constructor(private dialog: MatDialog) {}
 
 	ngOnInit() {
-		window.addEventListener("keydown", () => {
-			if (this.multi) {
+		window.addEventListener("keydown", ({key}) => {
+			if (this.multi && key === "Escape") {
 				this.unselectAll();
 			}
 		});

@@ -59,7 +59,6 @@ export class CadEntities {
 				this.hatch.push(new CadHatch(data.hatch[id], layers));
 			}
 		}
-		this.updateDimensions();
 	}
 
 	merge(entities: CadEntities) {
@@ -204,13 +203,5 @@ export class CadEntities {
 			});
 		}
 		return this;
-	}
-
-	updateDimensions() {
-		this.dimension = uniqWith(this.dimension, (a, b) => {
-			const aIds = [a.entity1.id, a.entity2.id];
-			const bIds = [b.entity1.id, b.entity2.id];
-			return intersection(aIds, bIds).length === 2 || a.id === b.id;
-		});
 	}
 }

@@ -1,8 +1,9 @@
 <form class="toolbar">
+	<button [hidden]="true"></button>
 	<mat-form-field>
 		<mat-label>搜索CAD</mat-label>
 		<input name="search" matInput type="search" (keydown)="searchKeydown($event)" [(ngModel)]="searchInput" />
-		<mat-icon class="search-button" ty matSuffix (click)="search()">search</mat-icon>
+		<mat-icon class="search-button" type="submit" matSuffix (click)="search()">search</mat-icon>
 	</mat-form-field>
 	<button mat-raised-button color="primary" (click)="search(true)" *ngIf="data.selectMode !== 'table'">父级搜索</button>
 	<mat-checkbox

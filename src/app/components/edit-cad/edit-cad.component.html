@@ -58,6 +58,14 @@
 	>
 		选取
 	</button>
+	<button
+		mat-raised-button
+		[color]="menu.viewMode === 'validation' ? 'accent' : 'primary'"
+		[disabled]="menu.cadIdx === -1"
+		(click)="setViewMode('validation')"
+	>
+		验证
+	</button>
 </div>
 
 <app-line-indicator [menu]="menu" [cadInfo]="cadInfo" [cadLine]="cadLine"></app-line-indicator>

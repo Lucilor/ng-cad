@@ -1,5 +1,5 @@
 import {MathUtils, Vector2} from "three";
-import {intersection, cloneDeep} from "lodash";
+import {intersection, cloneDeep, uniqWith} from "lodash";
 import {CadEntities} from "./cad-entities";
 import {CadLayer} from "./cad-layer";
 import {CadTransformation} from "./cad-transformation";
@@ -78,6 +78,7 @@ export class CadData {
 		this.shuliang = data.shuliang || "1";
 		this.shuliangbeishu = data.shuliangbeishu || "1";
 		this.huajian = data.huajian || "";
+		this.updateDimensions();
 	}
 
 	export() {
@@ -326,6 +327,18 @@ export class CadData {
 		});
 		this.partners.forEach((v) => v.updateComponents());
 		this.components.data.forEach((v) => v.updateComponents());
+		return this;
+	}
+
+	updateDimensions(parentDimensions?: CadDimension[]) {
+		if (Array.isArray(parentDimensions)) {
+			this.entities.dimension = this.entities.dimension.filter((v) => {
+				return parentDimensions.every((vv) => !v.equals(vv));
+			});
+		}
+		this.entities.dimension = uniqWith(this.entities.dimension, (a, b) => a.equals(b));
+		this.partners.forEach((v) => v.updateDimensions(this.entities.dimension));
+		this.components.data.forEach((v) => v.updateDimensions(this.entities.dimension));
 		return this;
 	}
 

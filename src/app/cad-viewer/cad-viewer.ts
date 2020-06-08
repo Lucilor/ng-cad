@@ -17,7 +17,9 @@ import {
 	Material,
 	BufferGeometry,
 	Vector3,
-	LineDashedMaterial
+	LineDashedMaterial,
+	BoxGeometry,
+	AmbientLight
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import {CadViewerControls, CadViewerControlsConfig} from "./cad-viewer-controls";
@@ -46,7 +48,8 @@ export interface CadViewerConfig {
 	padding?: number[] | number;
 	fps?: number;
 	showStats?: boolean;
-	reverseSimilarColor?: true;
+	reverseSimilarColor?: boolean;
+	validateLines?: boolean;
 }
 
 export class CadViewer {
@@ -65,7 +68,8 @@ export class CadViewer {
 		padding: [0],
 		fps: 60,
 		showStats: false,
-		reverseSimilarColor: true
+		reverseSimilarColor: true,
+		validateLines: false
 	};
 	dom: HTMLDivElement;
 	scene: Scene;
@@ -119,6 +123,7 @@ export class CadViewer {
 
 		camera.position.set(0, 0, 0);
 		camera.lookAt(0, 0, 0);
+		scene.add(new AmbientLight(0xffffff, 1));
 
 		const dom = document.createElement("div");
 		dom.appendChild(renderer.domElement);
@@ -286,8 +291,8 @@ export class CadViewer {
 			return;
 		}
 		const {scene, objects, config, stylizer} = this;
-		const {showLineLength, showGongshi} = config;
-		const {start, end, length, theta} = entity;
+		const {showLineLength, showGongshi, validateLines} = config;
+		const {start, end, length, theta, valid} = entity;
 		const middle = start.clone().add(end).divideScalar(2);
 		const {linewidth, color, opacity, fontStyle} = stylizer.get(entity, style);
 		let object = objects[entity.id] as Line;
@@ -352,6 +357,23 @@ export class CadViewer {
 			this._setAnchor(gongshiText, middle, anchor2);
 		} else {
 			object.remove(gongshiText);
+		}
+
+		let rect = object.children.find((o) => o.name === entity.id + "-rect") as Mesh;
+		if (validateLines && !valid) {
+			if (rect) {
+			} else {
+				const geometry = new BoxGeometry(length, 3, 1);
+				const material = new MeshBasicMaterial({color: 0xff0000});
+				rect = new Mesh(geometry, material);
+				object.add(rect);
+				rect.name = entity.id + "-rect";
+			}
+			rect.rotation.set(0, 0, 0);
+			rect.rotateOnAxis(new Vector3(0, 0, 1), theta);
+			rect.position.set(middle.x, middle.y, 0);
+		} else {
+			object.remove(rect);
 		}
 	}
 

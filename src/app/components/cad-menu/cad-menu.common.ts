@@ -36,7 +36,7 @@ export class CadMenu extends EventEmitter {
 	partner: string;
 	cadLength = 0;
 	pointsMap: LinesAtPoint[];
-	viewMode: "normal" | "partners" | "components" | "slice" = "normal";
+	viewMode: "normal" | "partners" | "components" | "slice" | "validation" = "normal";
 	drawDimensions = true;
 	drawMTexts = true;
 	get selectMode() {
@@ -64,10 +64,7 @@ export class CadMenu extends EventEmitter {
 
 	initData() {
 		const {cad} = this;
-		cad.data.components.data.forEach((d) => {
-			this.setData(d);
-			this.addCadGongshi(d);
-		});
+		cad.data.components.data.forEach((d) => this.setData(d));
 		cad.render(true);
 
 		const start = new Vector2();
@@ -124,7 +121,7 @@ export class CadMenu extends EventEmitter {
 	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdxs2[0]) {
 		const {cad, viewMode} = this;
 		let result: CadData;
-		if (viewMode === "normal" || cadIdx2 < 0) {
+		if (viewMode === "normal"||viewMode === "validation" || cadIdx2 < 0) {
 			result = cad.data.components.data[cadIdx];
 		} else if (viewMode === "partners") {
 			result = cad.data.components.data[cadIdx].partners[cadIdx2];
@@ -137,26 +134,40 @@ export class CadMenu extends EventEmitter {
 		return result;
 	}
 
-	setData(d: CadData) {
-		if (d.options.length < 1) {
-			this.addOption(0, d);
+	setData(data: CadData) {
+		if (data.options.length < 1) {
+			this.addOption(0, data);
 		}
-		if (d.conditions.length < 1) {
-			this.addCondition(0, d);
+		if (data.conditions.length < 1) {
+			this.addCondition(0, data);
 		}
-		if (d.baseLines.length < 1) {
-			this.addBaseLine(0, d);
+		if (data.baseLines.length < 1) {
+			this.addBaseLine(0, data);
 		}
-		if (d.jointPoints.length < 1) {
-			this.addJointPoint(0, d);
+		if (data.jointPoints.length < 1) {
+			this.addJointPoint(0, data);
 		}
-		d.partners.forEach((v) => this.setData(v));
-		d.components.data.forEach((v) => this.setData(v));
+		const {zhankaikuan, zhankaigao, shuliang, shuliangbeishu} = data;
+		const mtext = new CadMtext();
+		const {x, y, width, height} = data.getAllEntities().getBounds();
+		mtext.text = `${zhankaikuan} x ${zhankaigao} = ${shuliang}`;
+		if (Number(shuliangbeishu) > 1) {
+			mtext.text += " x " + shuliangbeishu;
+		}
+		mtext.insert = new Vector2(x - width / 2, y - height / 2 - 10);
+		mtext.visible = this.showCadGongshis;
+		data.entities.add(mtext);
+		this.cadGongshis.push(mtext);
+		data.partners.forEach((v) => this.setData(v));
+		data.components.data.forEach((v) => this.setData(v));
 	}
 
 	async submit(all = false) {
 		const {cadIdx, dataService, cad} = this;
 		const data = all ? cad.data.components.data : [this.getData(cadIdx, -1)];
+		const toRemove = new CadData();
+		toRemove.entities.mtext = this.cadGongshis;
+		data.forEach((v) => v.separate(toRemove));
 		const resData = await dataService.postCadData(data);
 		if (all) {
 			cad.data.components.data = resData;
@@ -306,7 +317,7 @@ export class CadMenu extends EventEmitter {
 				}
 			});
 		}
-		if (viewMode === "normal") {
+		if (viewMode === "normal" || viewMode === "validation") {
 			const data = this.getData();
 			cad.data.components.data.forEach((d) => {
 				const opacity = d.id === data.id ? 1 : 0.3;
@@ -360,6 +371,11 @@ export class CadMenu extends EventEmitter {
 		dimension.forEach((e) => (e.visible = this.drawMTexts));
 		if (viewModeChanged) {
 			this.selectLineEnd();
+			if (viewMode === "validation") {
+				cad.config.validateLines = true;
+			} else {
+				cad.config.validateLines = false;
+			}
 		}
 		if (this.viewMode === "components") {
 			this.showCadGongshis = true;

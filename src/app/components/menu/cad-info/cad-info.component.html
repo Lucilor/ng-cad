@@ -1,4 +1,4 @@
-<!-- <div *ngFor="let cad of currCads; let i = index">
+<div *ngFor="let cad of currCads; let i = index">
 	<form [class.add-divider]="i < currCads.length - 1">
         <button [hidden]="true"></button>
         <mat-form-field>
@@ -26,7 +26,7 @@
                     matInput
                     type="text"
                     [value]="o.name"
-                    (change)="item.data.options[i].name = $event.target.value"
+                    (change)="cad.options[i].name = $event.target.value"
                     placeholder="选项"
                     name="optionKey"
                 />
@@ -37,13 +37,13 @@
                     matInput
                     type="text"
                     [value]="o.value"
-                    (change)="item.data.options[i].value = $event.target.value"
+                    (change)="cad.options[i].value = $event.target.value"
                     placeholder="选项"
                     name="optionValue"
                 />
                 <mat-icon matSuffix color="primary" (click)="selectOptions(o, i)">list</mat-icon>
-                <mat-icon matSuffix color="primary" (click)="addOption(item.data, i)">add_circle</mat-icon>
-                <mat-icon matSuffix color="primary" (click)="removeOption(item.data, i)">remove_circle</mat-icon>
+                <mat-icon matSuffix color="primary" (click)="addOption(cad, i)">add_circle</mat-icon>
+                <mat-icon matSuffix color="primary" (click)="removeOption(cad, i)">remove_circle</mat-icon>
             </mat-form-field>
         </div>
         <div class="form-item conditions" *ngFor="let c of cad.conditions; let i = index">
@@ -54,12 +54,12 @@
                     matInput
                     type="text"
                     [ngModel]="c"
-                    (change)="item.data.conditions[i] = $event.target.value"
+                    (change)="cad.conditions[i] = $event.target.value"
                     placeholder="条件"
                     name="condition"
                 />
-                <mat-icon matSuffix color="primary" (click)="addCondition(item.data, i)">add_circle</mat-icon>
-                <mat-icon matSuffix color="primary" (click)="removeCondition(item.data, i)">remove_circle</mat-icon>
+                <mat-icon matSuffix color="primary" (click)="addCondition(cad, i)">add_circle</mat-icon>
+                <mat-icon matSuffix color="primary" (click)="removeCondition(cad, i)">remove_circle</mat-icon>
             </mat-form-field>
         </div>
         <div class="form-item zhankaikuan">
@@ -70,7 +70,7 @@
                     matInput
                     type="text"
                     [matAutocomplete]="auto"
-                    [(ngModel)]="item.data.zhankaikuan"
+                    [(ngModel)]="cad.zhankaikuan"
                     placeholder="展开"
                     name="zhankaikuan"
                 />
@@ -85,7 +85,7 @@
             <label style="width: 32px;"></label>
             <mat-form-field>
                 <mat-label></mat-label>
-                <input matInput type="text" [(ngModel)]="item.data.zhankaigao" placeholder="请输入展开" name="zhankaigao" />
+                <input matInput type="text" [(ngModel)]="cad.zhankaigao" placeholder="请输入展开" name="zhankaigao" />
             </mat-form-field>
         </div>
         <mat-form-field>
@@ -97,4 +97,4 @@
             <input matInput type="text" [(ngModel)]="cad.shuliangbeishu" placeholder="请输入数量倍数" name="shuliangbeishu"/>
         </mat-form-field>
 	</form>
-</div> -->
+</div>

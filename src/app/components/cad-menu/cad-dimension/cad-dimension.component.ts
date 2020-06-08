@@ -76,6 +76,7 @@ export class CadDimensionComponent implements OnInit {
 						}
 					}
 				}
+				cad.data.updateComponents();
 				cad.render();
 			}
 		});

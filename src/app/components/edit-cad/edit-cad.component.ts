@@ -44,9 +44,9 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 		"删除选中的实体: Delete"
 	].join("\n");
 	menuMap: {[key: string]: CadMenu["viewMode"][]} = {
-		subcad: ["normal", "components", "partners"],
-		cadInfo: ["normal", "partners"],
-		cadLine: ["normal", "partners"],
+		subcad: ["normal", "components", "partners", "validation"],
+		cadInfo: ["normal", "partners", "validation"],
+		cadLine: ["normal", "partners", "validation"],
 		cadAssemble: ["components"],
 		cadDimension: ["normal", "partners"],
 		cadMtext: ["normal", "partners"]

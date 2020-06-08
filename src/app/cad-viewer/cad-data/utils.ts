@@ -49,3 +49,5 @@ export function separateArray<T>(arr1: T[], arr2: T[], field?: string) {
 	}
 	return arr1;
 }
+
+export const isBetween = (n: number, min = 0.01, max = 0.5) => n > min && n < max;

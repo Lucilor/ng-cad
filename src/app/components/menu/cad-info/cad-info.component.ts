@@ -9,6 +9,7 @@ import {CadOptionsComponent} from "../../cad-menu/cad-options/cad-options.compon
 import {getCurrCads} from "@src/app/store/selectors";
 import {timeout} from "@src/app/app.common";
 import {CadDataService} from "@src/app/services/cad-data.service";
+import {AlertComponent} from "../../alert/alert.component";
 
 @Component({
 	selector: "app-cad-info",
@@ -69,6 +70,31 @@ export class CadInfoComponent extends MenuComponent implements OnInit {
 				}
 			});
 		}
+	}
+
+	confirmRemove() {
+		const ref = this.dialog.open(AlertComponent, {data: {content: "是否确定删除？", confirm: true}});
+		return new Promise((r) => {
+			ref.afterClosed().subscribe((res) => {
+				r(res);
+			});
+		});
+	}
+
+	addCondition(data: CadData, index: number) {
+		data.conditions.splice(index + 1, 0, "");
+	}
+
+	removeCondition(data: CadData, index: number) {
+		this.confirmRemove().then()
+	}
+
+	addOption(data: CadData, index: number) {
+		data.options.splice(index + 1, 0, new CadOption());
+	}
+
+	removeOption(data: CadData, index: number) {
+		data.conditions.splice(index, 1);
 	}
 
 	saveStatus() {}

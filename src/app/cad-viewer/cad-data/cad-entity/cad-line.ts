@@ -2,7 +2,7 @@ import {CadEntity} from "./cad-entity";
 import {Vector2} from "three";
 import {CAD_TYPES} from "../cad-types";
 import {CadLayer} from "../cad-layer";
-import {getVectorFromArray} from "../utils";
+import {getVectorFromArray, isBetween} from "../utils";
 import {CadTransformation} from "../cad-transformation";
 
 export class CadLine extends CadEntity {
@@ -12,6 +12,12 @@ export class CadLine extends CadEntity {
 	qujian: string;
 	gongshi: string;
 	guanlianbianhuagongshi: string;
+	get valid() {
+		const {start, end} = this;
+		const dx = Math.abs(start.x - end.x);
+		const dy = Math.abs(start.y - end.y);
+		return !isBetween(dx) && !isBetween(dy);
+	}
 
 	get length() {
 		return this.start.distanceTo(this.end);

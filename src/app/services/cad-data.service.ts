@@ -231,7 +231,7 @@ export class CadDataService {
 		search: string,
 		page: number,
 		limit: number
-	): Promise<{data: {name:string; img: string}[]; count: number}> {
+	): Promise<{data: {name: string; img: string}[]; count: number}> {
 		const exportData = data.export();
 		const postData = {
 			name,
@@ -245,9 +245,12 @@ export class CadDataService {
 		};
 		const response = await this._request("peijian/cad/getOptions", "getOptions", "POST", postData);
 		if (response) {
-			return {data: response.data.map((v: any) => {
-				return {name: v.mingzi, img: `${origin}/filepath/${v.xiaotu}`}
-			}), count: response.count};
+			return {
+				data: response.data.map((v: any) => {
+					return {name: v.mingzi, img: `${origin}/filepath/${v.xiaotu}`};
+				}),
+				count: response.count
+			};
 		}
 		return {data: [], count: 0};
 	}
