@@ -144,7 +144,7 @@ export class CadDimensionComponent implements OnInit {
 		this.selectDimLine(-1);
 	}
 
-	removeDimension(entity: CadDimension) {
-		this.menu.cad.removeEntities(new CadEntities().add(entity));
+	removeDimension(dimension: CadDimension) {
+		this.menu.cad.removeEntity(dimension);
 	}
 }
