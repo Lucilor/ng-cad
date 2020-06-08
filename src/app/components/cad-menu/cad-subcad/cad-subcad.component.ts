@@ -40,7 +40,13 @@ export class CadSubcadComponent implements OnInit {
 	}
 	constructor(private dialog: MatDialog) {}
 
-	ngOnInit() {}
+	ngOnInit() {
+		window.addEventListener("keydown", () => {
+			if (this.multi) {
+				this.unselectAll();
+			}
+		});
+	}
 
 	updateList() {
 		this.list = [];
@@ -172,6 +178,14 @@ export class CadSubcadComponent implements OnInit {
 				menu.cadIdxs2.push(i);
 			}
 		});
+		menu.focus();
+	}
+
+	unselectAll() {
+		const menu = this.menu;
+		this.list.forEach((v) => (v.checked = false));
+		this.allSelected = false;
+		menu.cadIdxs2.length = 0;
 		menu.focus();
 	}
 }

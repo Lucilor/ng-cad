@@ -11,6 +11,7 @@ import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimensio
 import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 import {environment} from "@src/environments/environment";
 import {EventEmitter} from "events";
+import {CadMtext} from "@src/app/cad-viewer/cad-data/cad-entity/cad-mtext";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension" | "jointPoint" | "assemble";
@@ -47,6 +48,8 @@ export class CadMenu extends EventEmitter {
 	get showGongshi() {
 		return this.cad.config.showGongshi > 0;
 	}
+	showCadGongshis = false;
+	cadGongshis: CadMtext[] = [];
 	readonly accuracy = 1;
 	readonly selectedColor = 0xffff00;
 	readonly hoverColor = 0x00ffff;
@@ -61,7 +64,12 @@ export class CadMenu extends EventEmitter {
 
 	initData() {
 		const {cad} = this;
-		cad.data.components.data.forEach((d) => this.setData(d));
+		cad.data.components.data.forEach((d) => {
+			this.setData(d);
+			this.addCadGongshi(d);
+		});
+		cad.render(true);
+
 		const start = new Vector2();
 		let button: number;
 		cad.controls.on("dragstart", (event) => {
@@ -74,14 +82,10 @@ export class CadMenu extends EventEmitter {
 				const end = new Vector2(event.clientX, event.clientY);
 				const translate = end.sub(start).divide(new Vector2(scale, -scale));
 				const data = this.getData(this.cadIdx, -1);
-				if (this.viewMode === "components") {
-					if (this.cadIdxs2.length) {
-						this.cadIdxs2.forEach((i) => {
-							data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
-						});
-					} else {
-						data.components.data.forEach((v) => data.moveComponent(v, translate.clone()));
-					}
+				if (this.viewMode === "components" && this.cadIdxs2.length) {
+					this.cadIdxs2.forEach((i) => {
+						data.moveComponent(this.getData(this.cadIdx, i), translate.clone());
+					});
 				} else {
 					data.transform(new CadTransformation({translate}));
 				}
@@ -99,6 +103,22 @@ export class CadMenu extends EventEmitter {
 				console.log(entity);
 			}
 		});
+	}
+
+	addCadGongshi(data: CadData) {
+		const {zhankaikuan, zhankaigao, shuliang, shuliangbeishu} = data;
+		const mtext = new CadMtext();
+		const {x, y, width, height} = data.getAllEntities().getBounds();
+		mtext.text = `${zhankaikuan} x ${zhankaigao} = ${shuliang}`;
+		if (Number(shuliangbeishu) > 1) {
+			mtext.text += " x " + shuliangbeishu;
+		}
+		mtext.insert = new Vector2(x - width / 2, y - height / 2 - 10);
+		mtext.visible = this.showCadGongshis;
+		data.entities.add(mtext);
+		this.cadGongshis.push(mtext);
+		data.partners.forEach((d) => this.addCadGongshi(d));
+		data.components.data.forEach((d) => this.addCadGongshi(d));
 	}
 
 	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdxs2[0]) {
@@ -341,6 +361,10 @@ export class CadMenu extends EventEmitter {
 		if (viewModeChanged) {
 			this.selectLineEnd();
 		}
+		if (this.viewMode === "components") {
+			this.showCadGongshis = true;
+		}
+		this.cadGongshis.forEach((e) => (e.visible = this.showCadGongshis));
 		cad.render();
 	}
 
@@ -394,6 +418,12 @@ export class CadMenu extends EventEmitter {
 
 	toggleShowGongshi() {
 		this.cad.config.showGongshi = this.showGongshi ? 0 : 8;
+		this.cad.render();
+	}
+
+	toggleShowCadGongshi() {
+		this.showCadGongshis = !this.showCadGongshis;
+		this.cadGongshis.forEach((e) => (e.visible = this.showCadGongshis));
 		this.cad.render();
 	}
 

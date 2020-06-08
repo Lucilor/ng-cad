@@ -2,7 +2,6 @@ import {CadViewer} from "./cad-viewer";
 import {Vector2, Vector3, Object3D, MathUtils, Box2} from "three";
 import {EventEmitter} from "events";
 import {CadEntity} from "./cad-data/cad-entity/cad-entity";
-import {CadEntities} from "./cad-data/cad-entities";
 import {CadDimension} from "./cad-data/cad-entity/cad-dimension";
 import {CadTransformation} from "./cad-data/cad-transformation";
 

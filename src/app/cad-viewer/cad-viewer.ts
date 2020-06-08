@@ -315,7 +315,7 @@ export class CadViewer {
 		}
 
 		const anchor = new Vector2(0.5, 1);
-		let gongshi = entity.gongshi;
+		let gongshi = entity.mingzi && entity.gongshi ? entity.mingzi + "=" + entity.gongshi : entity.gongshi;
 		if (entity.isVertical(1)) {
 			anchor.set(1, 0.5);
 			gongshi = gongshi.split("").join("\n");
@@ -655,6 +655,18 @@ export class CadViewer {
 		return this;
 	}
 
+	addEntity(entity: CadEntity) {
+		this.data.entities.add(entity);
+		return this.render();
+	}
+
+	removeEntity(entity: CadEntity) {
+		this.scene.remove(this.objects[entity.id]);
+		delete this.objects[entity.id];
+		this.data.entities.remove(entity);
+		return this.render();
+	}
+
 	addEntities(entities: CadEntities) {
 		this.data.entities.merge(entities);
 		return this.render();
@@ -665,9 +677,7 @@ export class CadViewer {
 			this.scene.remove(this.objects[e.id]);
 			delete this.objects[e.id];
 		});
-		const data = new CadData();
-		data.entities = entities;
-		this.data.separate(data);
+		this.data.entities.separate(entities);
 		return this.render();
 	}
 }
