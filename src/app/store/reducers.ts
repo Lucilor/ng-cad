@@ -1,4 +1,4 @@
-import {LoadingAction, CurrCadsAction} from "./actions";
+import {LoadingAction, CurrCadsAction, CadStatusAction} from "./actions";
 import {State, initialState} from "./state";
 import {ActionReducerMap, MetaReducer} from "@ngrx/store";
 import {environment} from "src/environments/environment";
@@ -27,23 +27,31 @@ export function loadingReducer(loading = initialState.loading, action: LoadingAc
 }
 
 export function currCadsReducer(currCads = initialState.currCads, action: CurrCadsAction) {
-	let cads = new Set(currCads);
-	const {type, id, ids} = action;
-	if (type === "add curr cad") {
-		cads.add(id);
-	} else if (type === "remove curr cad") {
-		cads.delete(id);
-	} else if (type === "clear curr cads") {
-		cads.clear()
+	const {type, cads} = action;
+	if (type === "clear curr cads") {
+		return {};
 	} else if (type === "set curr cads") {
-		cads = new Set(ids)
+		return cads;
+	} else if (type === "refresh curr cads") {
+		return cloneDeep(currCads);
 	}
-	return cads;
+	return currCads;
+}
+
+export function cadStatusReducer(cadStatus = initialState.cadStatus, action: CadStatusAction) {
+	const {type} = action;
+	if (type === "set cad status") {
+		return action.cadStatus;
+	} else if (type === "refresh cad status") {
+		return cloneDeep(cadStatus);
+	}
+	return cadStatus;
 }
 
 export const reducers: ActionReducerMap<State> = {
 	loading: loadingReducer,
-	currCads: currCadsReducer
+	currCads: currCadsReducer,
+	cadStatus: cadStatusReducer
 };
 
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];

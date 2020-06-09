@@ -23,7 +23,7 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 	@Input() currCads: CadData[];
 	@Output() openCad = new EventEmitter<CadData[]>();
 	canSave = false;
-	collection = "";
+	collection: string;
 	keyMap: {[key: string]: () => void} = {
 		s: () => this.save(),
 		1: () => this.open("p_yuanshicadwenjian"),
@@ -79,11 +79,13 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 		}
 	}
 
-	flip(vertical: boolean, horizontal: boolean) {
+	flip(event: PointerEvent, vertical: boolean, horizontal: boolean) {
+		event.stopPropagation();
 		this.transform(new CadTransformation({flip: {vertical, horizontal}}));
 	}
 
-	async rotate(clockwise?: boolean) {
+	async rotate(event: PointerEvent, clockwise?: boolean) {
+		event.stopPropagation();
 		let angle = 0;
 		if (clockwise === undefined) {
 			const ref = this.dialog.open(AngleInputComponent);
@@ -106,7 +108,7 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 			trans.anchor.set(x, y);
 			seleted.transform(trans);
 		} else {
-			this.currCads.forEach((data) => {
+			const t = (data: CadData) => {
 				const {x, y} = data.getAllEntities().getBounds();
 				trans.anchor.set(x, y);
 				data.transform(trans);
@@ -119,7 +121,12 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 						}
 					});
 				}
-			});
+			};
+			if (this.currCads.length) {
+				this.currCads.forEach((data) => t(data));
+			} else {
+				this.cad.data.components.data.forEach((data) => t(data));
+			}
 		}
 		cad.data.updatePartners().updateComponents();
 		cad.render();
@@ -131,7 +138,16 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 		});
 	}
 
-	saveStatus() {}
+	saveStatus() {
+		const data = {
+			collection: this.collection,
+			ids: []
+		};
+		this.session.save("toolbar", data);
+	}
 
-	loadStatus() {}
+	loadStatus() {
+		const data = this.session.load("toolbar", true);
+		this.collection = data.collection || "";
+	}
 }

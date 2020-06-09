@@ -3,7 +3,7 @@
 	<app-toolbar [cad]="cad" [currCads]="currCads" (openCad)="afterOpenCad($event)"></app-toolbar>
 </div>
 <div class="menu2 left">
-	<app-sub-cads [cad]="cad" [currCads]="currCads"></app-sub-cads>
+	<app-sub-cads [cad]="cad" [currCads]="currCads" [cadStatus]="cadStatus"></app-sub-cads>
 </div>
 <div class="menu2 right">
 	<mat-accordion multi>
@@ -11,7 +11,8 @@
 			<mat-expansion-panel-header>
 				<mat-panel-title>CAD信息</mat-panel-title>
 			</mat-expansion-panel-header>
-			<app-cad-info [cad]="cad" [currCads]="currCads"></app-cad-info>
+			<app-cad-info [cad]="cad" [currCads]="currCads" [cadStatus]="cadStatus"></app-cad-info>
 		</mat-expansion-panel>
 	</mat-accordion>
 </div>
+<div class="menu2 bottom" [class.accent]="cadStatus.name !== 'normal'">当前状态：{{ cadStatusStr }}</div>

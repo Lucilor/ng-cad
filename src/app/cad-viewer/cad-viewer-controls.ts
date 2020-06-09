@@ -43,12 +43,12 @@ export class CadViewerControls extends EventEmitter {
 		entitiesDraggable: true
 	};
 	currentObject: Object3D;
+	pointerLock = false;
 	private _status = {
 		pFrom: new Vector2(),
 		pTo: new Vector2(),
 		dragging: false,
 		button: NaN,
-		pointerLock: false,
 		ctrl: false
 	};
 	private _multiSelector: HTMLDivElement;
@@ -169,7 +169,7 @@ export class CadViewerControls extends EventEmitter {
 			}
 			this.emit("drag", event);
 		}
-		if (this.config.selectMode !== "none" && !this._status.pointerLock) {
+		if (this.config.selectMode !== "none" && !this.pointerLock) {
 			this._hover();
 		}
 		_status.pTo.copy(p);
@@ -228,7 +228,7 @@ export class CadViewerControls extends EventEmitter {
 			this._click(event);
 		}
 		if (!ctrl) {
-			this._status.pointerLock = false;
+			this.pointerLock = false;
 		}
 		this.emit("click", event);
 		this._status.dragging = false;
@@ -307,7 +307,7 @@ export class CadViewerControls extends EventEmitter {
 
 	private _keyUp(event: KeyboardEvent) {
 		if (event.key === "Control") {
-			this._status.pointerLock = false;
+			this.pointerLock = false;
 			this._unHover();
 		}
 	}
@@ -325,7 +325,7 @@ export class CadViewerControls extends EventEmitter {
 			cad.dom.style.cursor = "pointer";
 			this.currentObject = object;
 			if (_status.ctrl) {
-				this._status.pointerLock = true;
+				this.pointerLock = true;
 			}
 		} else {
 			this._unHover();
@@ -343,8 +343,8 @@ export class CadViewerControls extends EventEmitter {
 	}
 
 	private _click(event: PointerEvent) {
-		const {currentObject, cad, _status} = this;
-		const object = _status.pointerLock ? currentObject : this._getInterSection(new Vector2(event.clientX, event.clientY));
+		const {currentObject, cad} = this;
+		const object = this.pointerLock ? currentObject : this._getInterSection(new Vector2(event.clientX, event.clientY));
 		if (this.config.selectMode !== "none" && object) {
 			const entity = cad.data.findEntity(object.name);
 			if (object.userData.selected === true) {
@@ -357,7 +357,7 @@ export class CadViewerControls extends EventEmitter {
 				object.userData.selected = true;
 				this.emit("entityselect", event, entity, object);
 			}
-			_status.pointerLock = false;
+			this.pointerLock = false;
 			this._hover();
 		}
 	}
@@ -400,11 +400,11 @@ export class CadViewerControls extends EventEmitter {
 					entity.distance += offset.x / scale;
 				}
 			}
-			this._status.pointerLock = true;
+			this.pointerLock = true;
 		} else if (object.userData.selected && config.entitiesDraggable) {
 			const entities = cad.selectedEntities;
 			entities.transform(new CadTransformation({translate: offset}));
-			this._status.pointerLock = true;
+			this.pointerLock = true;
 		}
 		cad.render();
 		return true;

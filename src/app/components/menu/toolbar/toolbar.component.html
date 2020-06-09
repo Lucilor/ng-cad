@@ -14,12 +14,15 @@
 
 <button mat-icon-button [matMenuTriggerFor]="edit">编辑</button>
 <mat-menu #edit="matMenu">
-	<button mat-menu-item (click)="flip(true, false)">垂直翻转</button>
-	<button mat-menu-item (click)="flip(false, true)">水平翻转</button>
-	<button mat-menu-item (click)="flip(true, true)">中心对称</button>
-	<button mat-menu-item (click)="rotate(true)">顺时针旋转</button>
-	<button mat-menu-item (click)="rotate(false)">逆时针旋转</button>
-	<button mat-menu-item (click)="rotate()">旋转</button>
+	<button mat-menu-item [matMenuTriggerFor]="transform">变形</button>
+</mat-menu>
+<mat-menu #transform="matMenu">
+	<button mat-menu-item (click)="flip($event, true, false)">垂直翻转</button>
+	<button mat-menu-item (click)="flip($event, false, true)">水平翻转</button>
+	<button mat-menu-item (click)="flip($event, true, true)">中心对称</button>
+	<button mat-menu-item (click)="rotate($event, true)">顺时针旋转</button>
+	<button mat-menu-item (click)="rotate($event, false)">逆时针旋转</button>
+	<button mat-menu-item (click)="rotate($event)">旋转</button>
 </mat-menu>
 
 <button mat-icon-button (click)="showHelpInfo()">帮助</button>

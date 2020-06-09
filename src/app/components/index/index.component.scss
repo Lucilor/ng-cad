@@ -4,6 +4,9 @@
 	background-color: rgba(255, 255, 255, 0.9);
 	box-shadow: 0 0 5px 5px rgba(255, 255, 255, 0.4);
 
+	$offset-top: 40px;
+	$offset-bottom: 40px;
+
 	&.top {
 		width: 100vw;
 		border-radius: 0;
@@ -11,10 +14,18 @@
 		top: 0;
 	}
 
-	$offset-top: 40px;
+	&.bottom {
+		width: 100vw;
+		bottom: 0;
+		height: 20px;
+		text-align: center;
+		line-height: 22px;
+		user-select: none;
+	}
+
 	&.left {
 		top: $offset-top;
-		height: calc(100vh - #{$offset-top});
+		height: calc(100vh - #{$offset-top} - #{$offset-bottom});
 		width: 200px;
 		padding: 10px;
 		flex-direction: column;
@@ -24,11 +35,15 @@
 
 	&.right {
 		top: $offset-top;
-		height: calc(100vh - #{$offset-top});
+		height: calc(100vh - #{$offset-top} - #{$offset-bottom});
 		width: 250px;
 		padding: 10px;
 		flex-direction: column;
 		overflow: auto;
 		right: 0;
+	}
+
+	&.accent {
+		background-color: #ffcefc;
 	}
 }

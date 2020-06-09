@@ -4,9 +4,8 @@ import {CadViewer} from "@src/app/cad-viewer/cad-viewer";
 import {timeout} from "@src/app/app.common";
 import {Store} from "@ngrx/store";
 import {State} from "@src/app/store/state";
-import {CurrCadsAction} from "@src/app/store/actions";
+import {CurrCadsAction, CadStatusAction} from "@src/app/store/actions";
 import {MatCheckboxChange} from "@angular/material/checkbox";
-import {intersection} from "lodash";
 import {MenuComponent} from "../menu.component";
 
 interface CadNode {
@@ -27,6 +26,7 @@ type LeftMenuField = "cads" | "partners" | "components";
 export class SubCadsComponent extends MenuComponent implements OnInit {
 	@Input() cad: CadViewer;
 	@Input() currCads: CadData[];
+	@Input() cadStatus: State["cadStatus"];
 	cads: CadNode[] = [];
 	partners: CadNode[] = [];
 	components: CadNode[] = [];
@@ -38,13 +38,7 @@ export class SubCadsComponent extends MenuComponent implements OnInit {
 		super();
 	}
 
-	ngOnInit() {
-		window.addEventListener("keydown", ({key}) => {
-			if (key === "Escape" && this.cad.selectedEntities.length === 0) {
-				this.unselectAll();
-			}
-		});
-	}
+	ngOnInit() {}
 
 	private async _getCadNode(data: CadData, parent?: string) {
 		const cad = new CadViewer(data, {width: 200, height: 100, padding: 10});
@@ -90,6 +84,7 @@ export class SubCadsComponent extends MenuComponent implements OnInit {
 	}
 
 	clickCad(field: LeftMenuField, index: number, event?: MatCheckboxChange) {
+		const cads: State["currCads"] = {};
 		const cad = this[field][index];
 		const checked = event ? event.checked : !cad.checked;
 		if (checked) {
@@ -99,32 +94,39 @@ export class SubCadsComponent extends MenuComponent implements OnInit {
 			}
 		}
 		cad.checked = checked;
-
-		const ids1 = this.cads.filter((v) => v.checked).map((v) => v.data.id);
-		const ids1Half = this.cads.filter((v) => v.indeterminate).map((v) => v.data.id);
-		const cads2 = [...this.partners, ...this.components];
-		let ids2 = cads2.filter((v) => v.checked).map((v) => v.data.id);
 		if (field === "cads") {
-			cads2.forEach((v) => {
-				if (!ids1Half.includes(v.parent) || cad.data.id === v.parent) {
-					v.checked = ids1.includes(v.parent);
-				}
-			});
-			ids2 = cads2.filter((v) => v.checked).map((v) => v.data.id);
-			this.store.dispatch<CurrCadsAction>({type: "set curr cads", ids: ids1});
+			[...this.partners, ...this.components]
+				.filter((v) => v.parent === cad.data.id)
+				.forEach((v) => {
+					v.checked = checked;
+				});
 		} else {
-			this.store.dispatch<CurrCadsAction>({type: "set curr cads", ids: ids2});
+			const parent = this.cads.find((v) => v.data.id === cad.parent);
+			if (parent.checked && !checked) {
+				parent.checked = false;
+			}
 		}
 		this.cads.forEach((v) => {
-			if (!v.checked) {
-				const children = [...v.data.partners, ...v.data.components.data];
-				const result = intersection(
-					children.map((v) => v.id),
-					ids2
-				);
-				v.indeterminate = result.length > 0;
+			cads[v.data.id] = {self: v.checked, full: false, partners: [], components: []};
+		});
+		this.partners.forEach((v) => {
+			if (v.checked) {
+				cads[v.parent].partners.push(v.data.id);
 			}
 		});
+		this.components.forEach((v) => {
+			if (v.checked) {
+				cads[v.parent].components.push(v.data.id);
+			}
+		});
+		this.cads.forEach((v) => {
+			const cad = cads[v.data.id];
+			const fullPartners = cad.partners.length === v.data.partners.length;
+			const fullComponents = cad.components.length === v.data.components.data.length;
+			cad.full = fullPartners && fullComponents;
+			v.indeterminate = !cad.full && cad.self;
+		});
+		this.store.dispatch<CurrCadsAction>({type: "set curr cads", cads});
 	}
 
 	saveStatus() {}
