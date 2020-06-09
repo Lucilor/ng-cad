@@ -52,6 +52,7 @@ import {ImageComponent} from "./components/image/image.component";
 import {ToolbarComponent} from "./components/menu/toolbar/toolbar.component";
 import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
 import {CadInfoComponent} from "./components/menu/cad-info/cad-info.component";
+import {ExpressionAnalysisComponent} from "./components/expression-analysis/expression-analysis.component";
 
 @NgModule({
 	declarations: [
@@ -77,7 +78,8 @@ import {CadInfoComponent} from "./components/menu/cad-info/cad-info.component";
 		ImageComponent,
 		ToolbarComponent,
 		SubCadsComponent,
-		CadInfoComponent
+		CadInfoComponent,
+		ExpressionAnalysisComponent
 	],
 	imports: [
 		BrowserModule,

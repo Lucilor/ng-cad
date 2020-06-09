@@ -11,6 +11,7 @@ import {CadData, CadOption} from "../cad-viewer/cad-data/cad-data";
 import {CadViewer} from "../cad-viewer/cad-viewer";
 import {SessionStorage, RSAEncrypt} from "@lucilor/utils";
 import {ActivatedRoute} from "@angular/router";
+import {Expressions} from "../cad-viewer/cad-data/utils";
 
 const session = new SessionStorage("cad-data");
 
@@ -262,9 +263,19 @@ export class CadDataService {
 
 	async getSampleFormulas() {
 		const response = await this._request("peijian/Houtaisuanliao/getSampleFormulas", "getSampleFormulas", "GET");
+		return response ? (response.data as string[]) : [];
+	}
+
+	async getOrderExpressions() {
+		const response = await this._request("order/order/getOrderGongshi", "getOrderExpressions", "GET");
 		if (response) {
-			return response.data as string[];
+			const exps = response.data as Expressions;
+			for (const key in exps) {
+				if (typeof exps[key] === "number") {
+					exps[key] = exps[key].toString();
+				}
+			}
 		}
-		return [];
+		return response ? (response.data as Expressions) : {};
 	}
 }

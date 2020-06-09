@@ -1,0 +1,21 @@
+.containers {
+	width: calc(80vw - 48px);
+	min-height: calc(50vh - 36px);
+	display: flex;
+}
+
+.vars-container {
+	width: 50%;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 10px;
+	overflow: auto;
+}
+
+.valid {
+    color: green;
+}
+
+.invalid {
+    color: red;
+}

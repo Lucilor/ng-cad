@@ -15,6 +15,7 @@ import {CadAssembleComponent} from "../cad-menu/cad-assemble/cad-assemble.compon
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
 import {Vector2} from "three/src/math/Vector2";
+import {ExpressionAnalysisComponent} from "../expression-analysis/expression-analysis.component";
 
 const title = "编辑CAD";
 @Component({
@@ -56,7 +57,7 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 	menu: CadMenu;
 	showTopMenu = false;
 
-	constructor(private route: ActivatedRoute, private dataService: CadDataService, dialog: MatDialog, private router: Router) {
+	constructor(private route: ActivatedRoute, private dataService: CadDataService, private dialog: MatDialog, private router: Router) {
 		// tslint:disable-next-line: no-string-literal
 		window["view"] = this;
 		document.title = title;
@@ -198,5 +199,9 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	submitAll() {
 		this.menu.submit(true);
+	}
+
+	openExpressionAnalysis() {
+		this.dialog.open(ExpressionAnalysisComponent, {data: {cad: this.cad.data}});
 	}
 }

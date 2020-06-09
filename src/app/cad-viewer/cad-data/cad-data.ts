@@ -4,7 +4,7 @@ import {CadEntities} from "./cad-entities";
 import {CadLayer} from "./cad-layer";
 import {CadTransformation} from "./cad-transformation";
 import {CadLine} from "./cad-entity/cad-line";
-import {getVectorFromArray, isLinesParallel, mergeArray, separateArray} from "./utils";
+import {getVectorFromArray, isLinesParallel, mergeArray, separateArray, ExpressionsParser, Expressions} from "./utils";
 import {CadCircle} from "./cad-entity/cad-circle";
 import {CadEntity} from "./cad-entity/cad-entity";
 import {CadDimension} from "./cad-entity/cad-dimension";
@@ -116,6 +116,16 @@ export class CadData {
 	}
 	export2(i = 0) {
 		return this.components.data[i].export();
+	}
+
+	extractExpressions() {
+		const exps: Expressions = {};
+		this.getAllEntities().line.forEach((e) => {
+			if (e.mingzi && e.gongshi) {
+				exps[e.mingzi] = e.gongshi;
+			}
+		});
+		return new ExpressionsParser(exps);
 	}
 
 	/**
