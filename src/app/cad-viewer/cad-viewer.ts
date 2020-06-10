@@ -645,7 +645,7 @@ export class CadViewer {
 		}
 	}
 
-	reset(data?: CadData) {
+	reset(data?: CadData, center = true) {
 		this.scene.remove(...Object.values(this.objects));
 		this.objects = {};
 		if (data instanceof CadData) {
@@ -653,7 +653,7 @@ export class CadViewer {
 		} else if (data) {
 			// this.data = new CadData(data);
 		}
-		return this.render(true);
+		return this.render(center);
 	}
 
 	getScreenPoint(point: Vector2) {

@@ -1,4 +1,4 @@
-import {Component, OnInit, AfterViewInit, ViewChild, ElementRef} from "@angular/core";
+import {Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy} from "@angular/core";
 import {CadData, CadOption, CadBaseLine, CadJointPoint} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadViewer} from "@src/app/cad-viewer/cad-viewer";
 import {environment} from "@src/environments/environment";
@@ -20,7 +20,7 @@ import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 	templateUrl: "./index.component.html",
 	styleUrls: ["./index.component.scss"]
 })
-export class IndexComponent implements OnInit, AfterViewInit {
+export class IndexComponent implements OnInit, AfterViewInit, OnDestroy {
 	cad: CadViewer;
 	collection = "";
 	currCads: CadData[];
@@ -47,6 +47,7 @@ export class IndexComponent implements OnInit, AfterViewInit {
 			this.cad.stats.dom.style.left = "";
 		}
 		this.store.select(getCurrCads).subscribe((cads) => {
+			console.log(cads);
 			const ids = [];
 			for (const id in cads) {
 				const cad = cads[id];
@@ -139,26 +140,32 @@ export class IndexComponent implements OnInit, AfterViewInit {
 			if (key === "Escape") {
 				if (this.cadStatus.name !== "normal") {
 					this.store.dispatch<CadStatusAction>({type: "set cad status", cadStatus: {name: "normal", index: -1}});
-				} else if (this.cad.selectedEntities.length === 0) {
-					this.subCads.unselectAll();
 				}
 			}
 		});
+		window.addEventListener("contextmenu", (event) => {
+			event.preventDefault();
+		});
+		window.addEventListener("beforeunload", () => this.cad.destroy());
 	}
 
 	ngAfterViewInit() {
 		this.cadContainer.nativeElement.appendChild(this.cad.dom);
 		(async () => {
 			await timeout(0);
-			this.subCads.update(this.cad.data.components.data);
+			this.subCads.update();
 		})();
+	}
+
+	ngOnDestroy() {
+		this.cad.destroy();
 	}
 
 	afterOpenCad(data: CadData[]) {
 		this.cad.data.components.data = data;
 		this.cad.reset();
 		document.title = data.map((v) => v.name).join(", ");
-		this.subCads.update(data);
+		this.subCads.update();
 	}
 
 	setCadData(data: CadData) {

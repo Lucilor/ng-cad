@@ -1,0 +1,44 @@
+<form *ngIf="selected.length">
+	<button [hidden]="true"></button>
+	<div class="form-item length">
+		<label>内容</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<textarea
+				matInput
+				cdkTextareaAutosize
+				[cdkAutosizeMaxRows]="5"
+				[ngModel]="getInfo('text')"
+				(change)="setInfo('text', $event)"
+				placeholder="请输入内容"
+				name="mtext"
+			></textarea>
+		</mat-form-field>
+	</div>
+	<div class="form-item font-size">
+		<label>字体大小</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input
+				matInput
+				type="number"
+				min="0"
+				[ngModel]="getInfo('font_size')"
+				(change)="setInfo('font_size', $event)"
+				placeholder="请输入字体大小"
+				name="font_size"
+			/>
+		</mat-form-field>
+	</div>
+	<div class="form-item color">
+		<label>颜色</label>
+		<mat-form-field>
+			<mat-label></mat-label>
+			<input matInput ejs-colorpicker type="color" [enableOpacity]="false" [value]="getColor()" (change)="setColor($event)" />
+		</mat-form-field>
+	</div>
+</form>
+<div class="btn-group">
+	<button mat-raised-button color="primary" [disabled]="currCads.length !== 1" (click)="addMtext()">添加文本</button>
+	<button mat-raised-button color="primary" [disabled]="currCads.length !== 1" (click)="cloneMtexts()">复制文本</button>
+</div>

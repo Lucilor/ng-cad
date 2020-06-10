@@ -1,5 +1,10 @@
 @import "../../../mat-theme.scss";
 
+:host {
+	width: calc(80vw - 48px);
+	display: block;
+}
+
 mat-paginator,
 .data-container {
 	line-height: 1.5rem;

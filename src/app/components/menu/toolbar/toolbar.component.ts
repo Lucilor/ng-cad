@@ -22,9 +22,10 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 	@Input() cad: CadViewer;
 	@Input() currCads: CadData[];
 	@Output() openCad = new EventEmitter<CadData[]>();
-	canSave = false;
+	canSave = true;
 	collection: string;
 	ids: string[];
+	openLock = false;
 	keyMap: {[key: string]: () => void} = {
 		s: () => this.save(),
 		1: () => this.open("p_yuanshicadwenjian"),
@@ -39,7 +40,6 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 	}
 
 	async ngOnInit() {
-		this.canSave = this.cad.data.components.data.length > 0;
 		window.addEventListener("keydown", (event) => {
 			const {key, ctrlKey} = event;
 			if (ctrlKey) {
@@ -48,10 +48,18 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 			}
 		});
 
-		const ids = this.ids;
-		if (ids.length) {
-			const data = await this.dataService.getCadData({ids});
+		if (this.dataService.data) {
+			const data = await this.dataService.getCadData(this.dataService.data);
 			this.openCad.emit(data);
+		} else {
+			const ids = this.ids;
+			if (ids.length) {
+				this.canSave = this.collection !== "p_yuanshicadwenjian";
+				const data = await this.dataService.getCadData({ids});
+				this.openCad.emit(data);
+			} else {
+				this.canSave = this.cad.data.components.data.length > 0;
+			}
 		}
 	}
 
@@ -60,18 +68,25 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 	}
 
 	open(collection: string) {
+		if (this.openLock) {
+			return;
+		}
+		if (collection === "p_yuanshicadwenjian") {
+			this.dialog.open(AlertComponent, {data: {content: "暂未支持"}});
+			return;
+		}
 		const selectMode = collection === "p_yuanshicadwenjian" ? "table" : "multiple";
 		const ref: MatDialogRef<ListCadComponent, CadData[]> = this.dialog.open(ListCadComponent, {
-			data: {type: collection, selectMode, checkedItems: this.cad.data.components.data},
-			width: "80vw"
+			data: {type: collection, selectMode, checkedItems: this.cad.data.components.data}
 		});
+		this.openLock = true;
 		ref.afterClosed().subscribe((data) => {
 			if (data) {
-				this.canSave = collection !== "p_yuanshicadwenjian";
 				this.collection = collection;
 				this.openCad.emit(data);
 				this.store.dispatch<CurrCadsAction>({type: "clear curr cads"});
 			}
+			this.openLock = false;
 		});
 	}
 

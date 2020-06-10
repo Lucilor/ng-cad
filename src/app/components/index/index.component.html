@@ -13,6 +13,22 @@
 			</mat-expansion-panel-header>
 			<app-cad-info [cad]="cad" [currCads]="currCads" [cadStatus]="cadStatus"></app-cad-info>
 		</mat-expansion-panel>
+		<mat-expansion-panel expanded>
+			<mat-expansion-panel-header>
+				<mat-panel-title>实体信息</mat-panel-title>
+			</mat-expansion-panel-header>
+			<mat-tab-group dynamicHeight>
+				<mat-tab label="线段">
+					<app-cad-line [cad]="cad"></app-cad-line>
+				</mat-tab>
+				<mat-tab label="文本">
+					<app-cad-mtext [cad]="cad" [currCads]="currCads"></app-cad-mtext>
+				</mat-tab>
+				<mat-tab label="标注">
+					<app-cad-dimension></app-cad-dimension>
+				</mat-tab>
+			</mat-tab-group>
+		</mat-expansion-panel>
 	</mat-accordion>
 </div>
 <div class="menu2 bottom" [class.accent]="cadStatus.name !== 'normal'">当前状态：{{ cadStatusStr }}</div>

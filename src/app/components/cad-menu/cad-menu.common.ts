@@ -8,10 +8,10 @@ import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 import {CadTransformation} from "@src/app/cad-viewer/cad-data/cad-transformation";
 import {CadData, CadOption, CadBaseLine, CadJointPoint} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
-import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 import {environment} from "@src/environments/environment";
 import {EventEmitter} from "events";
 import {CadMtext} from "@src/app/cad-viewer/cad-data/cad-entity/cad-mtext";
+import {generatePointsMap} from "@src/app/cad-viewer/cad-data/cad-lines";
 
 interface Mode {
 	type: "normal" | "baseLine" | "dimension" | "jointPoint" | "assemble";
@@ -121,7 +121,7 @@ export class CadMenu extends EventEmitter {
 	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdxs2[0]) {
 		const {cad, viewMode} = this;
 		let result: CadData;
-		if (viewMode === "normal"||viewMode === "validation" || cadIdx2 < 0) {
+		if (viewMode === "normal" || viewMode === "validation" || cadIdx2 < 0) {
 			result = cad.data.components.data[cadIdx];
 		} else if (viewMode === "partners") {
 			result = cad.data.components.data[cadIdx].partners[cadIdx2];
@@ -267,39 +267,8 @@ export class CadMenu extends EventEmitter {
 		mode.type = "normal";
 	}
 
-	generatePointsMap(entities: CadEntities) {
-		if (!entities) {
-			this.pointsMap = [];
-			return;
-		}
-		const pointsMap: LinesAtPoint[] = [];
-		const addToMap = (point: Vector2, line: CadEntity) => {
-			const linesAtPoint = pointsMap.find((v) => v.point.distanceTo(point) <= this.accuracy);
-			if (linesAtPoint) {
-				linesAtPoint.lines.push(line);
-			} else {
-				pointsMap.push({point, lines: [line], tPoint: this.cad.getScreenPoint(point), selected: false});
-			}
-		};
-		entities.line.forEach((entity) => {
-			const {start, end} = entity;
-			if (start.distanceTo(end) > 0) {
-				addToMap(start, entity);
-				addToMap(end, entity);
-			}
-		});
-		entities.arc.forEach((entity) => {
-			const curve = entity.curve;
-			if (curve.getLength() > 0) {
-				addToMap(curve.getPoint(0), entity);
-				addToMap(curve.getPoint(1), entity);
-			}
-		});
-		return pointsMap;
-	}
-
 	updatePointsMap() {
-		this.pointsMap = this.generatePointsMap(this.getData().getAllEntities());
+		this.pointsMap = generatePointsMap(this.getData().getAllEntities());
 	}
 
 	focus(cadIdx = this.cadIdx, cadIdxs2 = this.cadIdxs2, viewMode: CadMenu["viewMode"] = this.viewMode) {

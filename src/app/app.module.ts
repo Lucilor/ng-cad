@@ -24,6 +24,7 @@ import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import {MatMenuModule} from "@angular/material/menu";
 import {MatTableModule} from "@angular/material/table";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
+import {MatTabsModule} from "@angular/material/tabs";
 
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {ScrollingModule} from "@angular/cdk/scrolling";
@@ -38,21 +39,24 @@ import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
 import {CadInfoComponent as CadInfoComponent2} from "./components/cad-menu/cad-info/cad-info.component";
-import {CadLineComponent} from "./components/cad-menu/cad-line/cad-line.component";
+import {CadLineComponent as CadLineComponent2} from "./components/cad-menu/cad-line/cad-line.component";
 import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-indicator.component";
-import {CadDimensionComponent} from "./components/cad-menu/cad-dimension/cad-dimension.component";
+import {CadDimensionComponent as CadDimensionComponent2} from "./components/cad-menu/cad-dimension/cad-dimension.component";
 import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-form/cad-dimension-form.component";
 import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
 import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assemble.component";
 import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options.component";
-import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.component";
+import {CadMtextComponent as CadMtextComponent2} from "./components/cad-menu/cad-mtext/cad-mtext.component";
 import {IndexComponent} from "./components/index/index.component";
 import {AngleInputComponent} from "./components/index/angle-input/angle-input.component";
 import {ImageComponent} from "./components/image/image.component";
 import {ToolbarComponent} from "./components/menu/toolbar/toolbar.component";
 import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
 import {CadInfoComponent} from "./components/menu/cad-info/cad-info.component";
+import {CadLineComponent} from "./components/menu/cad-line/cad-line.component";
 import {ExpressionAnalysisComponent} from "./components/expression-analysis/expression-analysis.component";
+import {CadMtextComponent} from "./components/menu/cad-mtext/cad-mtext.component";
+import {CadDimensionComponent} from "./components/menu/cad-dimension/cad-dimension.component";
 
 @NgModule({
 	declarations: [
@@ -65,21 +69,24 @@ import {ExpressionAnalysisComponent} from "./components/expression-analysis/expr
 		PrintCadComponent,
 		ListCadComponent,
 		CadInfoComponent2,
-		CadLineComponent,
+		CadLineComponent2,
 		LineIndicatorComponent,
-		CadDimensionComponent,
+		CadDimensionComponent2,
 		CadDimensionFormComponent,
 		CadSubcadComponent,
 		CadAssembleComponent,
 		CadOptionsComponent,
-		CadMtextComponent,
+		CadMtextComponent2,
 		IndexComponent,
 		AngleInputComponent,
 		ImageComponent,
 		ToolbarComponent,
 		SubCadsComponent,
 		CadInfoComponent,
-		ExpressionAnalysisComponent
+		CadLineComponent,
+		ExpressionAnalysisComponent,
+		CadMtextComponent,
+		CadDimensionComponent
 	],
 	imports: [
 		BrowserModule,
@@ -108,6 +115,7 @@ import {ExpressionAnalysisComponent} from "./components/expression-analysis/expr
 		MatMenuModule,
 		MatTableModule,
 		MatSlideToggleModule,
+		MatTabsModule,
 		DragDropModule,
 		ScrollingModule,
 		FormsModule,

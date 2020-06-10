@@ -5,10 +5,9 @@ import {CadDimensionFormComponent} from "../cad-dimension-form/cad-dimension-for
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimension";
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
-import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
 
 @Component({
-	selector: "app-cad-dimension",
+	selector: "app-cad-dimension2",
 	templateUrl: "./cad-dimension.component.html",
 	styleUrls: ["./cad-dimension.component.scss"]
 })

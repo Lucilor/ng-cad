@@ -1,23 +1,28 @@
 import {Component, OnInit, Input} from "@angular/core";
-import {CadMenu} from "../cad-menu.common";
-import {CadMtext} from "@src/app/cad-viewer/cad-data/cad-entity/cad-mtext";
-import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
+import {CadViewer} from "@src/app/cad-viewer/cad-viewer";
 import {Color} from "three";
 import {ColorPickerEventArgs} from "@syncfusion/ej2-angular-inputs";
+import {CadMtext} from "@src/app/cad-viewer/cad-data/cad-entity/cad-mtext";
+import {CadEntities} from "@src/app/cad-viewer/cad-data/cad-entities";
+import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
+import {MatDialog} from "@angular/material/dialog";
+import {AlertComponent} from "../../alert/alert.component";
 
 @Component({
-	selector: "app-cad-mtext2",
+	selector: "app-cad-mtext",
 	templateUrl: "./cad-mtext.component.html",
 	styleUrls: ["./cad-mtext.component.scss"]
 })
 export class CadMtextComponent implements OnInit {
-	@Input() menu: CadMenu;
+	@Input() cad: CadViewer;
+	@Input() currCads: CadData[];
 	get selected() {
-		return this.menu.cad.selectedEntities.mtext;
+		return this.cad.selectedEntities.mtext;
 	}
+
 	constructor() {}
 
-	ngOnInit(): void {}
+	ngOnInit() {}
 
 	getInfo(field: string) {
 		const selected = this.selected;
@@ -37,7 +42,7 @@ export class CadMtextComponent implements OnInit {
 	setInfo(field: string, event: InputEvent) {
 		const value = (event.target as HTMLInputElement).value;
 		this.selected.forEach((e) => (e[field] = value));
-		this.menu.cad.render();
+		this.cad.render();
 	}
 
 	getColor() {
@@ -60,12 +65,12 @@ export class CadMtextComponent implements OnInit {
 	setColor(event: ColorPickerEventArgs) {
 		const value = event.currentValue.hex;
 		this.selected.forEach((e) => e.color.set(value));
-		this.menu.cad.render();
+		this.cad.render();
 	}
 
 	addMtext() {
-		const data = this.menu.getData();
-		const cad = this.menu.cad;
+		const data = this.currCads[0];
+		const cad = this.cad;
 		const mtext = new CadMtext();
 		const {x, y} = cad.position;
 		mtext.insert.set(x, y);
@@ -79,11 +84,11 @@ export class CadMtextComponent implements OnInit {
 	}
 
 	cloneMtexts() {
-		const data = this.menu.getData();
+		const data = this.currCads[0];
 		this.selected.forEach((mtext) => {
 			const newText = mtext.clone(true);
 			data.entities.mtext.push(newText);
 		});
-		this.menu.cad.render();
+		this.cad.render();
 	}
 }

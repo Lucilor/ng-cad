@@ -10,7 +10,6 @@ import {CadEntity} from "./cad-entity/cad-entity";
 import {CadTransformation} from "./cad-transformation";
 import {Box2, ArcCurve, MathUtils, Vector2} from "three";
 import {mergeArray, separateArray} from "./utils";
-import {uniqWith, intersection} from "lodash";
 
 export class CadEntities {
 	line: CadLine[] = [];
