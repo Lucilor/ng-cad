@@ -75,7 +75,7 @@ export class CadDataService {
 		}
 	}
 
-	async getCadData(postData?: any) {
+	async getCadData(postData?: {id?: string; ids?: string[]; vid?: string}) {
 		if (!this.data && !postData) {
 			try {
 				return [new CadData(this.loadCurrentCad())];
@@ -277,5 +277,12 @@ export class CadDataService {
 			}
 		}
 		return response ? (response.data as Expressions) : {};
+	}
+
+	async downloadDxf(id: string) {
+		const result = await this._request("peijian/cad/downloadDxf", "downloadDxf", "POST", {id});
+		if (result) {
+			open(origin + "/" + result.data.path);
+		}
 	}
 }

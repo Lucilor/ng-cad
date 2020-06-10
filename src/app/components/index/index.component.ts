@@ -34,7 +34,7 @@ export class IndexComponent implements OnInit, AfterViewInit {
 	constructor(private store: Store<State>) {}
 
 	ngOnInit() {
-		this.cad = new CadViewer(new CadData(session.load("cadData", true) || {}), {
+		this.cad = new CadViewer(new CadData(), {
 			width: innerWidth,
 			height: innerHeight,
 			showStats: !environment.production,
@@ -155,8 +155,10 @@ export class IndexComponent implements OnInit, AfterViewInit {
 	}
 
 	afterOpenCad(data: CadData[]) {
+		this.cad.data.components.data = data;
+		this.cad.reset();
+		document.title = data.map((v) => v.name).join(", ");
 		this.subCads.update(data);
-		session.save("cadData", this.cad.data.export());
 	}
 
 	setCadData(data: CadData) {

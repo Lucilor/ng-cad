@@ -25,6 +25,9 @@
 		<button mat-raised-button color="primary" (click)="editSubcads('partners')">编辑关联</button>
 		<button mat-raised-button color="primary" (click)="editSubcads('components')">编辑装配</button>
 	</div>
+	<div class="btn-group" *ngIf="menu.viewMode === 'normal'">
+		<button mat-raised-button color="primary" (click)="downloadDxf()">下载dxf文件</button>
+	</div>
 	<div class="btn-group" *ngIf="menu.viewMode === 'partners' || menu.viewMode === 'components'">
 		<button mat-raised-button color="primary" (click)="deleteSelected()">删除选中</button>
 		<button mat-raised-button color="primary" (click)="editSelected()">编辑选中</button>

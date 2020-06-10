@@ -5,6 +5,7 @@ import {CadMenu} from "../cad-menu.common";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ListCadComponent} from "../../list-cad/list-cad.component";
 import {RSAEncrypt} from "@lucilor/utils";
+import {CadDataService} from "@src/app/services/cad-data.service";
 
 @Component({
 	selector: "app-cad-subcad",
@@ -38,7 +39,7 @@ export class CadSubcadComponent implements OnInit {
 		}
 		return data;
 	}
-	constructor(private dialog: MatDialog) {}
+	constructor(private dialog: MatDialog, private dataService: CadDataService) {}
 
 	ngOnInit() {
 		window.addEventListener("keydown", ({key}) => {
@@ -187,5 +188,10 @@ export class CadSubcadComponent implements OnInit {
 		this.allSelected = false;
 		menu.cadIdxs2.length = 0;
 		menu.focus();
+	}
+
+	async downloadDxf() {
+		await this.menu.submit();
+		this.dataService.downloadDxf(this.menu.getData().id);
 	}
 }

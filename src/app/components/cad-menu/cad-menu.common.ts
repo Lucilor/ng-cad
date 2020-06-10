@@ -150,9 +150,9 @@ export class CadMenu extends EventEmitter {
 		const {zhankaikuan, zhankaigao, shuliang, shuliangbeishu} = data;
 		const mtext = new CadMtext();
 		const {x, y, width, height} = data.getAllEntities().getBounds();
-		mtext.text = `${zhankaikuan} x ${zhankaigao} = ${shuliang}`;
+		mtext.text = `${zhankaikuan} × ${zhankaigao} = ${shuliang}`;
 		if (Number(shuliangbeishu) > 1) {
-			mtext.text += " x " + shuliangbeishu;
+			mtext.text += " × " + shuliangbeishu;
 		}
 		mtext.insert = new Vector2(x - width / 2, y - height / 2 - 10);
 		mtext.visible = this.showCadGongshis;

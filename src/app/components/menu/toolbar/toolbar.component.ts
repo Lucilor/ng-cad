@@ -24,6 +24,7 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 	@Output() openCad = new EventEmitter<CadData[]>();
 	canSave = false;
 	collection: string;
+	ids: string[];
 	keyMap: {[key: string]: () => void} = {
 		s: () => this.save(),
 		1: () => this.open("p_yuanshicadwenjian"),
@@ -37,7 +38,7 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 		super();
 	}
 
-	ngOnInit() {
+	async ngOnInit() {
 		this.canSave = this.cad.data.components.data.length > 0;
 		window.addEventListener("keydown", (event) => {
 			const {key, ctrlKey} = event;
@@ -46,6 +47,12 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 				this.clickBtn(key);
 			}
 		});
+
+		const ids = this.ids;
+		if (ids.length) {
+			const data = await this.dataService.getCadData({ids});
+			this.openCad.emit(data);
+		}
 	}
 
 	clickBtn(key: string) {
@@ -60,9 +67,6 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 		});
 		ref.afterClosed().subscribe((data) => {
 			if (data) {
-				this.cad.data.components.data = data;
-				this.cad.reset();
-				document.title = data.map((v) => v.name).join(", ");
 				this.canSave = collection !== "p_yuanshicadwenjian";
 				this.collection = collection;
 				this.openCad.emit(data);
@@ -141,13 +145,14 @@ export class ToolbarComponent extends MenuComponent implements OnInit {
 	saveStatus() {
 		const data = {
 			collection: this.collection,
-			ids: []
+			ids: this.cad.data.components.data.map((v) => v.id)
 		};
 		this.session.save("toolbar", data);
 	}
 
-	loadStatus() {
+	async loadStatus() {
 		const data = this.session.load("toolbar", true);
 		this.collection = data.collection || "";
+		this.ids = data.ids || [];
 	}
 }
