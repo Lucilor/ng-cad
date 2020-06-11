@@ -30,6 +30,7 @@ import {DragDropModule} from "@angular/cdk/drag-drop";
 import {ScrollingModule} from "@angular/cdk/scrolling";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS} from "@angular/material/snack-bar";
+
 import {ColorPickerModule} from "@syncfusion/ej2-angular-inputs";
 
 import {PageNotFoundComponent} from "./components/page-not-found/page-not-found.component";
@@ -38,25 +39,16 @@ import {EditCadComponent} from "@components/edit-cad/edit-cad.component";
 import {PrintCadComponent} from "@components/print-cad/print-cad.component";
 import {ListCadComponent} from "@components/list-cad/list-cad.component";
 import {MyMatPaginatorIntl} from "./MyMatPaginatorIntl";
-import {CadInfoComponent as CadInfoComponent2} from "./components/cad-menu/cad-info/cad-info.component";
-import {CadLineComponent as CadLineComponent2} from "./components/cad-menu/cad-line/cad-line.component";
+import {CadInfoComponent} from "./components/cad-menu/cad-info/cad-info.component";
+import {CadLineComponent} from "./components/cad-menu/cad-line/cad-line.component";
 import {LineIndicatorComponent} from "./components/cad-menu/line-indicator/line-indicator.component";
-import {CadDimensionComponent as CadDimensionComponent2} from "./components/cad-menu/cad-dimension/cad-dimension.component";
+import {CadDimensionComponent} from "./components/cad-menu/cad-dimension/cad-dimension.component";
 import {CadDimensionFormComponent} from "./components/cad-menu/cad-dimension-form/cad-dimension-form.component";
 import {CadSubcadComponent} from "./components/cad-menu/cad-subcad/cad-subcad.component";
 import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assemble.component";
 import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options.component";
-import {CadMtextComponent as CadMtextComponent2} from "./components/cad-menu/cad-mtext/cad-mtext.component";
-import {IndexComponent} from "./components/index/index.component";
-import {AngleInputComponent} from "./components/index/angle-input/angle-input.component";
+import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.component";
 import {ImageComponent} from "./components/image/image.component";
-import {ToolbarComponent} from "./components/menu/toolbar/toolbar.component";
-import {SubCadsComponent} from "./components/menu/sub-cads/sub-cads.component";
-import {CadInfoComponent} from "./components/menu/cad-info/cad-info.component";
-import {CadLineComponent} from "./components/menu/cad-line/cad-line.component";
-import {ExpressionAnalysisComponent} from "./components/expression-analysis/expression-analysis.component";
-import {CadMtextComponent} from "./components/menu/cad-mtext/cad-mtext.component";
-import {CadDimensionComponent} from "./components/menu/cad-dimension/cad-dimension.component";
 
 @NgModule({
 	declarations: [
@@ -68,25 +60,16 @@ import {CadDimensionComponent} from "./components/menu/cad-dimension/cad-dimensi
 		EditCadComponent,
 		PrintCadComponent,
 		ListCadComponent,
-		CadInfoComponent2,
-		CadLineComponent2,
+		CadInfoComponent,
+		CadLineComponent,
 		LineIndicatorComponent,
-		CadDimensionComponent2,
+		CadDimensionComponent,
 		CadDimensionFormComponent,
 		CadSubcadComponent,
 		CadAssembleComponent,
 		CadOptionsComponent,
-		CadMtextComponent2,
-		IndexComponent,
-		AngleInputComponent,
-		ImageComponent,
-		ToolbarComponent,
-		SubCadsComponent,
-		CadInfoComponent,
-		CadLineComponent,
-		ExpressionAnalysisComponent,
 		CadMtextComponent,
-		CadDimensionComponent
+		ImageComponent
 	],
 	imports: [
 		BrowserModule,

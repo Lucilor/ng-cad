@@ -6,7 +6,7 @@ import {Color} from "three";
 import {ColorPickerEventArgs} from "@syncfusion/ej2-angular-inputs";
 
 @Component({
-	selector: "app-cad-mtext2",
+	selector: "app-cad-mtext",
 	templateUrl: "./cad-mtext.component.html",
 	styleUrls: ["./cad-mtext.component.scss"]
 })

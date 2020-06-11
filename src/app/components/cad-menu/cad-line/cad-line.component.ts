@@ -9,7 +9,7 @@ import {CadArc} from "@src/app/cad-viewer/cad-data/cad-entity/cad-arc";
 import {findAllAdjacentLines} from "@src/app/cad-viewer/cad-data/cad-lines";
 
 @Component({
-	selector: "app-cad-line2",
+	selector: "app-cad-line",
 	templateUrl: "./cad-line.component.html",
 	styleUrls: ["./cad-line.component.scss"]
 })

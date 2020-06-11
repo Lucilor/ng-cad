@@ -7,7 +7,7 @@ import {CadDimension} from "@src/app/cad-viewer/cad-data/cad-entity/cad-dimensio
 import {CadLine} from "@src/app/cad-viewer/cad-data/cad-entity/cad-line";
 
 @Component({
-	selector: "app-cad-dimension2",
+	selector: "app-cad-dimension",
 	templateUrl: "./cad-dimension.component.html",
 	styleUrls: ["./cad-dimension.component.scss"]
 })
