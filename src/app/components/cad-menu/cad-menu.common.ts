@@ -148,16 +148,18 @@ export class CadMenu extends EventEmitter {
 			this.addJointPoint(0, data);
 		}
 		const {zhankaikuan, zhankaigao, shuliang, shuliangbeishu} = data;
-		const mtext = new CadMtext();
-		const {x, y, width, height} = data.getAllEntities().getBounds();
-		mtext.text = `${zhankaikuan} × ${zhankaigao} = ${shuliang}`;
-		if (Number(shuliangbeishu) > 1) {
-			mtext.text += " × " + shuliangbeishu;
+		if (zhankaikuan && zhankaigao && shuliang) {
+			const mtext = new CadMtext();
+			const {x, y, width, height} = data.getAllEntities().getBounds();
+			mtext.text = `${zhankaikuan} × ${zhankaigao} = ${shuliang}`;
+			if (Number(shuliangbeishu) > 1) {
+				mtext.text += " × " + shuliangbeishu;
+			}
+			mtext.insert = new Vector2(x - width / 2, y - height / 2 - 10);
+			mtext.visible = this.showCadGongshis;
+			data.entities.add(mtext);
+			this.cadGongshis.push(mtext);
 		}
-		mtext.insert = new Vector2(x - width / 2, y - height / 2 - 10);
-		mtext.visible = this.showCadGongshis;
-		data.entities.add(mtext);
-		this.cadGongshis.push(mtext);
 		data.partners.forEach((v) => this.setData(v));
 		data.components.data.forEach((v) => this.setData(v));
 	}
@@ -268,7 +270,7 @@ export class CadMenu extends EventEmitter {
 	}
 
 	updatePointsMap() {
-		this.pointsMap = generatePointsMap(this.getData().getAllEntities());
+		this.pointsMap = generatePointsMap(this.getData().getAllEntities(), this.cad);
 	}
 
 	focus(cadIdx = this.cadIdx, cadIdxs2 = this.cadIdxs2, viewMode: CadMenu["viewMode"] = this.viewMode) {
@@ -410,6 +412,14 @@ export class CadMenu extends EventEmitter {
 		this.showCadGongshis = !this.showCadGongshis;
 		this.cadGongshis.forEach((e) => (e.visible = this.showCadGongshis));
 		this.cad.render();
+	}
+
+	updateCadGongshi() {
+		const {cadGongshis, cad} = this;
+		cadGongshis.forEach((v) => cad.removeEntity(v));
+		cadGongshis.length = 0;
+		cad.data.components.data.forEach((v) => this.setData(v));
+		cad.render();
 	}
 
 	private _beforeRemove() {

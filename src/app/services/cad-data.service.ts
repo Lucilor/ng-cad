@@ -15,6 +15,12 @@ import {Expressions} from "../cad-viewer/cad-data/utils";
 
 const session = new SessionStorage("cad-data");
 
+export interface Order {
+	vid: string;
+	code: string;
+	s_designPic: string;
+}
+
 @Injectable({
 	providedIn: "root"
 })
@@ -42,12 +48,14 @@ export class CadDataService {
 		}
 	}
 
-	private async _request(url: string, name: string, method: "GET" | "POST", postData: any = {}) {
+	private async _request(url: string, name: string, method: "GET" | "POST", postData: any = {}, encrypt = true) {
 		const {baseURL, encode, data} = this;
 		this.store.dispatch<LoadingAction>({type: "add loading", name});
 		url = `${baseURL}/${url}/${encode}`;
 		if (postData && typeof postData !== "string") {
-			postData = RSAEncrypt(postData);
+			if (encrypt) {
+				postData = RSAEncrypt(postData);
+			}
 		}
 		if (data) {
 			url += `?data=${data}`;
@@ -59,7 +67,13 @@ export class CadDataService {
 			}
 			if (method === "POST") {
 				const formData = new FormData();
-				formData.append("data", postData);
+				if (encrypt) {
+					formData.append("data", postData);
+				} else {
+					for (const key in postData) {
+						formData.append("key", postData[key]);
+					}
+				}
 				response = await this.http.post<Response>(url, formData).toPromise();
 			}
 			if (response.code === 0) {
@@ -266,8 +280,18 @@ export class CadDataService {
 		return response ? (response.data as string[]) : [];
 	}
 
-	async getOrderExpressions() {
-		const response = await this._request("order/order/getOrderGongshi", "getOrderExpressions", "GET");
+	async getOrders(data: CadData) {
+		const exportData = data.export();
+		const postData = {options: exportData.options, conditions: exportData.conditions};
+		const response = await this._request("order/order/getOrders", "getOrders", "POST", postData);
+		if (response) {
+			return response.data as Order[];
+		}
+		return [];
+	}
+
+	async getOrderExpressions(order: Order) {
+		const response = await this._request("order/order/getOrderGongshi", "getOrders", "POST", {order});
 		if (response) {
 			const exps = response.data as Expressions;
 			for (const key in exps) {
@@ -279,8 +303,8 @@ export class CadDataService {
 		return response ? (response.data as Expressions) : {};
 	}
 
-	async downloadDxf(id: string) {
-		const result = await this._request("peijian/cad/downloadDxf", "downloadDxf", "POST", {id});
+	async downloadDxf(data: CadData) {
+		const result = await this._request("peijian/cad/downloadDxf", "downloadDxf", "POST", {cadData: data.export()});
 		const host = this.baseURL === "/api" ? "http://www.n.com:12305/" : origin;
 		if (result) {
 			open(host + "/" + result.data.path);

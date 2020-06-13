@@ -3,6 +3,7 @@ import {CadEntity} from "./cad-entity/cad-entity";
 import {CadEntities} from "./cad-entities";
 import {CadLine} from "./cad-entity/cad-line";
 import {CadArc} from "./cad-entity/cad-arc";
+import {CadViewer} from "../cad-viewer";
 
 interface LinesAtPoint {
 	point: Vector2;
@@ -11,14 +12,14 @@ interface LinesAtPoint {
 	selected: boolean;
 }
 
-export function generatePointsMap(entities: CadEntities) {
+export function generatePointsMap(entities: CadEntities, cad: CadViewer, accuracy = 1) {
 	const pointsMap: LinesAtPoint[] = [];
 	const addToMap = (point: Vector2, line: CadEntity) => {
-		const linesAtPoint = pointsMap.find((v) => v.point.distanceTo(point) <= this.accuracy);
+		const linesAtPoint = pointsMap.find((v) => v.point.distanceTo(point) <= accuracy);
 		if (linesAtPoint) {
 			linesAtPoint.lines.push(line);
 		} else {
-			pointsMap.push({point, lines: [line], tPoint: this.cad.getScreenPoint(point), selected: false});
+			pointsMap.push({point, lines: [line], tPoint: cad.getScreenPoint(point), selected: false});
 		}
 	};
 	entities.line.forEach((entity) => {

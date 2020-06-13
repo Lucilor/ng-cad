@@ -49,6 +49,8 @@ import {CadAssembleComponent} from "./components/cad-menu/cad-assemble/cad-assem
 import {CadOptionsComponent} from "./components/cad-menu/cad-options/cad-options.component";
 import {CadMtextComponent} from "./components/cad-menu/cad-mtext/cad-mtext.component";
 import {ImageComponent} from "./components/image/image.component";
+import {ExpressionAnalysisComponent} from "./components/expression-analysis/expression-analysis.component";
+import { OrderListComponent } from './components/order-list/order-list.component';
 
 @NgModule({
 	declarations: [
@@ -69,7 +71,9 @@ import {ImageComponent} from "./components/image/image.component";
 		CadAssembleComponent,
 		CadOptionsComponent,
 		CadMtextComponent,
-		ImageComponent
+		ImageComponent,
+		ExpressionAnalysisComponent,
+		OrderListComponent
 	],
 	imports: [
 		BrowserModule,

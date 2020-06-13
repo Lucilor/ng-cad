@@ -192,6 +192,6 @@ export class CadSubcadComponent implements OnInit {
 
 	async downloadDxf() {
 		await this.menu.submit();
-		this.dataService.downloadDxf(this.menu.getData().id);
+		this.dataService.downloadDxf(this.menu.getData());
 	}
 }
