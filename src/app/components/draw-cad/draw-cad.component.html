@@ -116,6 +116,7 @@
 			<img [src]="item.src" (click)="item.checked = !item.checked" />
 			<div class="btn-group">
 				<button mat-raised-button color="primary" (click)="editCad(i)" *ngIf="!fromEdit">查看</button>
+				<button mat-raised-button color="primary" (click)="replaceData(i)" *ngIf="fromEdit">替换数据</button>
 				<button mat-raised-button color="primary" (click)="removeCad(i)">删除</button>
 			</div>
 		</div>

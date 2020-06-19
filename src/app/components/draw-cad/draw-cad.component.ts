@@ -7,6 +7,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {RSAEncrypt} from "@lucilor/utils";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {CadOptionsComponent} from "../cad-menu/cad-options/cad-options.component";
+import {ListCadComponent} from "../list-cad/list-cad.component";
 
 const title = "选取CAD";
 @Component({
@@ -218,5 +219,17 @@ export class DrawCadComponent implements AfterViewInit, OnDestroy {
 		entities.arc.forEach((v) => (length += v.curve.getLength()));
 		entities.circle.forEach((v) => (length += v.curve.getLength()));
 		return length.toFixed(2);
+	}
+
+	async replaceData(index: number) {
+		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}});
+		const result = await ref.afterClosed().toPromise();
+		if (Array.isArray(result)) {
+			const data = result[0] as CadData;
+			const cad = new CadViewer(data, {padding: 10});
+			this.cads[index].data = data;
+			this.cads[index].src = cad.exportImage().src;
+			cad.destroy();
+		}
 	}
 }
