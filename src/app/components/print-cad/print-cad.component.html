@@ -16,4 +16,12 @@
 		<button *ngIf="!miniMenu" mat-raised-button color="primary" (click)="print()">打印</button>
 	</div>
 </div>
+<div class="menu right" cdkScrollable>
+	<mat-accordion multi>
+		<app-cad-mtext #cadMtext [menu]="menu"></app-cad-mtext>
+	</mat-accordion>
+	<div class="btn-group">
+		<button mat-raised-button color="primary">保存</button>
+	</div>
+</div>
 <img [src]="img" [hidden]="!printing" />

@@ -5,6 +5,8 @@ import {CadViewer} from "@app/cad-viewer/cad-viewer";
 import {CadData} from "@src/app/cad-viewer/cad-data/cad-data";
 import {environment} from "@src/environments/environment";
 import {timeout} from "@src/app/app.common";
+import {CadMenu} from "../cad-menu/cad-menu.common";
+import {CadDataService} from "@src/app/services/cad-data.service";
 
 @Component({
 	selector: "app-print-cad",
@@ -22,26 +24,24 @@ export class PrintCadComponent implements AfterViewInit {
 	showLineLength = 0;
 	showAll = false;
 	suofang = false;
-	constructor(private dialog: MatDialog) {
+	menu: CadMenu;
+	constructor(private dialog: MatDialog, private dataService: CadDataService) {
 		// tslint:disable-next-line
 		window["view"] = this;
-	}
-
-	async ngAfterViewInit() {
-		document.title = "打印CAD";
-		let data: CadData;
+		let cacheedData = null;
 		try {
-			data = JSON.parse(sessionStorage.getItem("cache-cad-data"));
+			cacheedData = JSON.parse(sessionStorage.getItem("cache-cad-data"));
 			const params = JSON.parse(sessionStorage.getItem("params"));
 			Object.assign(this, params);
 		} catch (error) {
 			console.warn(error);
 		}
-		if (!data) {
+		if (!cacheedData) {
 			this.dialog.open(AlertComponent, {data: {content: "没有CAD数据"}});
 			return;
 		}
-		data = new CadData(data);
+		const data = new CadData();
+		data.components.data.push(new CadData(cacheedData));
 		const cad = new CadViewer(data, {
 			width: innerWidth,
 			height: innerHeight,
@@ -50,13 +50,22 @@ export class PrintCadComponent implements AfterViewInit {
 			backgroundColor: 0xffffff,
 			padding: this.padding
 		});
+		cad.traverse((o) => (o.userData.selectable = false));
 		this.cad = cad;
-		cad.setControls({dragAxis: "y", selectMode: "none", enableScale: this.suofang});
-		this.cadContainer.nativeElement.append(cad.dom);
+		cad.setControls({dragAxis: "y", selectMode: "single", enableScale: this.suofang});
+		this.menu = new CadMenu(dialog, cad, dataService);
+		this.menu.cadIdx = 0;
+		this.menu.cadIdxs2 = [0];
+	}
+
+	async ngAfterViewInit() {
+		document.title = "打印CAD";
+		const dom = this.cad.dom;
+		this.cadContainer.nativeElement.append(dom);
 
 		if (!this.showAll) {
-			cad.dom.style.overflowX = "hidden";
-			cad.dom.style.overflowY = "auto";
+			dom.style.overflowX = "hidden";
+			dom.style.overflowY = "auto";
 		}
 		this.resetCad();
 	}

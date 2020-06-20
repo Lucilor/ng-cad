@@ -122,6 +122,24 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 				});
 			}
 		});
+		cad.controls.on("entitiesselect", () => {
+			if (menu.viewMode === "components") {
+				const selected = cad.selectedEntities.toArray().map((e) => e.id);
+				const data = menu.getData(menu.cadIdx, -1);
+				data.components.data.forEach((v) => {
+					const entities = v.getAllEntities().toArray();
+					for (const e of entities) {
+						if (selected.includes(e.id)) {
+							const index = this.subcad.list.findIndex((vv) => vv.id === v.id);
+							if (index > -1) {
+								this.subcad.clickItem(index);
+							}
+							break;
+						}
+					}
+				});
+			}
+		});
 	}
 
 	ngAfterViewInit() {

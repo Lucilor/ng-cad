@@ -204,9 +204,13 @@ export class CadDataService {
 		return {data: response.data, count: response.count};
 	}
 
-	async replaceData(source: CadData, target: string) {
+	async replaceData(source: CadData, target: string, collection?: string) {
 		source.sortComponents();
-		const response = await this._request("peijian/cad/replaceCad", "replaceData", "POST", {source: source.export(), target});
+		const response = await this._request("peijian/cad/replaceCad", "replaceData", "POST", {
+			source: source.export(),
+			target,
+			collection
+		});
 		if (!response) {
 			return null;
 		}

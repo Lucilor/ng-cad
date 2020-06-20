@@ -180,6 +180,12 @@ export class CadEntities {
 		this.forEachType((array) => array.forEach(callback), include);
 	}
 
+	toArray() {
+		const result: CadEntity[] = [];
+		this.forEach((e) => result.push(e));
+		return result;
+	}
+
 	add(entity: CadEntity) {
 		if (entity instanceof CadEntity) {
 			this.forEachType((array, type, TYPE) => {

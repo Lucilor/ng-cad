@@ -222,14 +222,10 @@ export class DrawCadComponent implements AfterViewInit, OnDestroy {
 	}
 
 	async replaceData(index: number) {
-		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single"}});
-		const result = await ref.afterClosed().toPromise();
-		if (Array.isArray(result)) {
-			const data = result[0] as CadData;
-			const cad = new CadViewer(data, {padding: 10});
-			this.cads[index].data = data;
-			this.cads[index].src = cad.exportImage().src;
-			cad.destroy();
+		const ref = this.dialog.open(ListCadComponent, {data: {selectMode: "single", options:this.cads[index].data.options}});
+		const data = await ref.afterClosed().toPromise();
+		if (data && data[0]) {
+			this.dataService.replaceData(this.cads[index].data, data[0].id, "cad");
 		}
 	}
 }
