@@ -7,6 +7,7 @@ import {environment} from "@src/environments/environment";
 import {timeout} from "@src/app/app.common";
 import {CadMenu} from "../cad-menu/cad-menu.common";
 import {CadDataService} from "@src/app/services/cad-data.service";
+import {CadMtext} from "@src/app/cad-viewer/cad-data/cad-entity/cad-mtext";
 
 @Component({
 	selector: "app-print-cad",
@@ -22,6 +23,7 @@ export class PrintCadComponent implements AfterViewInit {
 	miniMenu = false;
 	padding = [40, 110];
 	showLineLength = 0;
+	dxfPath = "";
 	showAll = false;
 	suofang = false;
 	menu: CadMenu;
@@ -32,6 +34,7 @@ export class PrintCadComponent implements AfterViewInit {
 		try {
 			cacheedData = JSON.parse(sessionStorage.getItem("cache-cad-data"));
 			const params = JSON.parse(sessionStorage.getItem("params"));
+			this.dxfPath = sessionStorage.getItem("dxfPath");
 			Object.assign(this, params);
 		} catch (error) {
 			console.warn(error);
@@ -50,7 +53,9 @@ export class PrintCadComponent implements AfterViewInit {
 			backgroundColor: 0xffffff,
 			padding: this.padding
 		});
-		cad.traverse((o) => (o.userData.selectable = false));
+		cad.traverse((o, e) => {
+			o.userData.selectable = e instanceof CadMtext;
+		});
 		this.cad = cad;
 		cad.setControls({dragAxis: "y", selectMode: "single", enableScale: this.suofang});
 		this.menu = new CadMenu(dialog, cad, dataService);
@@ -95,5 +100,9 @@ export class PrintCadComponent implements AfterViewInit {
 		}
 		cad.resize(innerWidth, h).render(true);
 		cad.dom.style.height = innerHeight + "px";
+	}
+
+	saveAsDxf() {
+		this.dataService.saveAsDxf(this.cad.data, this.dxfPath);
 	}
 }

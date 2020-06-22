@@ -118,6 +118,12 @@ export class CadMenu extends EventEmitter {
 		data.components.data.forEach((d) => this.addCadGongshi(d));
 	}
 
+	removeCadGongshis(data: CadData) {
+		const toRemove = new CadData();
+		toRemove.entities.mtext = this.cadGongshis;
+		data.separate(toRemove);
+	}
+
 	getData(cadIdx = this.cadIdx, cadIdx2 = this.cadIdxs2[0]) {
 		const {cad, viewMode} = this;
 		let result: CadData;
@@ -167,9 +173,7 @@ export class CadMenu extends EventEmitter {
 	async submit(all = false) {
 		const {cadIdx, dataService, cad} = this;
 		const data = all ? cad.data.components.data : [this.getData(cadIdx, -1)];
-		const toRemove = new CadData();
-		toRemove.entities.mtext = this.cadGongshis;
-		data.forEach((v) => v.separate(toRemove));
+		data.forEach((v) => this.removeCadGongshis(v));
 		const resData = await dataService.postCadData(data);
 		if (all) {
 			cad.data.components.data = resData;

@@ -190,8 +190,9 @@ export class CadSubcadComponent implements OnInit {
 		menu.focus();
 	}
 
-	async downloadDxf() {
-		await this.menu.submit();
-		this.dataService.downloadDxf(this.menu.getData());
+	downloadDxf() {
+		const data = this.menu.getData();
+		this.menu.removeCadGongshis(data);
+		this.dataService.downloadDxf(data);
 	}
 }

@@ -314,4 +314,9 @@ export class CadDataService {
 			open(host + "/" + result.data.path);
 		}
 	}
+
+	async saveAsDxf(data: CadData, path: string) {
+		const response = await this._request("peijian/cad/saveAsDxf", "saveAsDxf", "POST", {cadData: data.export(), path});
+		return response ? response.data : null;
+	}
 }

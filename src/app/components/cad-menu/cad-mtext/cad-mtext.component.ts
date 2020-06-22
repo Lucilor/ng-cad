@@ -67,6 +67,7 @@ export class CadMtextComponent implements OnInit {
 		const data = this.menu.getData();
 		const cad = this.menu.cad;
 		const mtext = new CadMtext();
+		mtext.font_size = 36;
 		const {x, y} = cad.position;
 		mtext.insert.set(x, y);
 		mtext.anchor.set(0.5, 0.5);
