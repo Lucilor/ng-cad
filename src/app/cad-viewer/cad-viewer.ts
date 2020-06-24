@@ -363,7 +363,7 @@ export class CadViewer {
 		if (validateLines && !valid) {
 			if (rect) {
 			} else {
-				const geometry = new BoxGeometry(length, 3, 1);
+				const geometry = new BoxGeometry(length, 6, 1);
 				const material = new MeshBasicMaterial({color: 0xff0000});
 				rect = new Mesh(geometry, material);
 				object.add(rect);

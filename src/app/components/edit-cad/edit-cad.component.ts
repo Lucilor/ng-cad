@@ -71,6 +71,7 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 		});
 		this.cad.setControls({selectMode: "multiple", entitiesDraggable: false});
 		this.menu = new CadMenu(dialog, this.cad, dataService);
+		this.cad.config.validateLines = true;
 	}
 
 	async ngOnInit() {
@@ -202,6 +203,9 @@ export class EditCadComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (mode === "slice") {
 			const queryParams = this.route.snapshot.queryParams;
 			this.router.navigate(["draw-cad"], {queryParams: {...queryParams, fromEdit: true}});
+		} else if (mode === "validation") {
+			this.cad.config.validateLines = !this.cad.config.validateLines;
+			this.cad.render();
 		} else {
 			if (this.menu.viewMode === "components" && this.cadAssemble.assembling) {
 				this.cadAssemble.toggleAssemble();

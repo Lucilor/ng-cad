@@ -60,11 +60,10 @@
 	</button>
 	<button
 		mat-raised-button
-		[color]="menu.viewMode === 'validation' ? 'accent' : 'primary'"
-		[disabled]="menu.cadIdx === -1"
+		[color]="cad.config.validateLines ? 'accent' : 'primary'"
 		(click)="setViewMode('validation')"
 	>
-		验证
+		{{cad.config.validateLines ? '关闭' : '开启'}}验证
 	</button>
 	<button mat-raised-button color="primary" (click)="openExpressionAnalysis()">
 		算料分析
