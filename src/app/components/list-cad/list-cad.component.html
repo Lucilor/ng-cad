@@ -5,7 +5,8 @@
 		<input name="search" matInput type="search" (keydown)="searchKeydown($event)" [(ngModel)]="searchInput" />
 		<mat-icon class="search-button" type="submit" matSuffix (click)="search()">search</mat-icon>
 	</mat-form-field>
-	<button mat-raised-button color="primary" (click)="search(true)" *ngIf="data.options">父级搜索</button>
+	<button mat-raised-button color="primary" (click)="search(true, 'and')" *ngIf="data.options">父级搜索</button>
+	<button mat-raised-button color="primary" (click)="search(true, 'or')" *ngIf="data.options">父级搜索2</button>
 	<mat-checkbox
 		[checked]="allChecked()"
 		[indeterminate]="partiallyChecked()"

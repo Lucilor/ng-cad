@@ -172,8 +172,16 @@ export class CadDataService {
 		});
 	}
 
-	async getCadDataPage(collection: string, page: number, limit: number, search?: string, zhuangpei = false, options?: CadOption[]) {
-		const postData = {page, limit, search, xiaodaohang: "CAD", zhuangpei, options, collection};
+	async getCadDataPage(
+		collection: string,
+		page: number,
+		limit: number,
+		search?: string,
+		zhuangpei = false,
+		options?: CadOption[],
+		optionsMatchType: "and" | "or" = "and"
+	) {
+		const postData = {page, limit, search, xiaodaohang: "CAD", zhuangpei, options, collection, optionsMatchType};
 		const response = await this._request("peijian/cad/getCad", "getCadDataPage", "POST", postData);
 		if (!response) {
 			return {data: [], count: 0};

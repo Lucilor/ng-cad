@@ -16,6 +16,7 @@ export interface CadViewerControlsConfig {
 }
 
 export interface CadEvents {
+	entityclick: [PointerEvent, CadEntity, Object3D];
 	entityselect: [PointerEvent, CadEntity, Object3D];
 	entityunselect: [PointerEvent, CadEntity, Object3D];
 	entitiesselect: [PointerEvent | KeyboardEvent, never, never];
@@ -98,6 +99,10 @@ export class CadViewerControls extends EventEmitter {
 		return super.on(type, listener);
 	}
 
+	off<K extends keyof CadEvents>(type: K, listener: (event: CadEvents[K][0], entity?: CadEvents[K][1], object?: CadEvents[K][2]) => void) {
+		return super.off(type, listener);
+	}
+
 	// Normalized Device Coordinate
 	private _getNDC(point: Vector2) {
 		const {width, height, top, left} = this.cad.renderer.domElement.getBoundingClientRect();
@@ -158,7 +163,7 @@ export class CadViewerControls extends EventEmitter {
 				cad.position.sub(new Vector3(offset.x, offset.y, 0));
 			} else if (button === 0) {
 				let triggerMultiple = this.config.selectMode === "multiple";
-				triggerMultiple = triggerMultiple && !this._dragObject(p, offset);
+				triggerMultiple = !this._dragObject(p, offset) && triggerMultiple;
 				if (triggerMultiple) {
 					this._multiSelector.hidden = false;
 					this._multiSelector.style.left = Math.min(pFrom.x, pTo.x) + "px";
@@ -357,6 +362,7 @@ export class CadViewerControls extends EventEmitter {
 				object.userData.selected = true;
 				this.emit("entityselect", event, entity, object);
 			}
+			this.emit("entityclick", event, entity, object);
 			this.pointerLock = false;
 			this._hover();
 		}

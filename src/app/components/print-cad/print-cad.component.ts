@@ -30,21 +30,21 @@ export class PrintCadComponent implements AfterViewInit {
 	constructor(private dialog: MatDialog, private dataService: CadDataService) {
 		// tslint:disable-next-line
 		window["view"] = this;
-		let cacheedData = null;
+		let cachedData = null;
 		try {
-			cacheedData = JSON.parse(sessionStorage.getItem("cache-cad-data"));
+			cachedData = JSON.parse(sessionStorage.getItem("cache-cad-data"));
 			const params = JSON.parse(sessionStorage.getItem("params"));
 			this.dxfPath = sessionStorage.getItem("dxfPath");
 			Object.assign(this, params);
 		} catch (error) {
 			console.warn(error);
 		}
-		if (!cacheedData) {
+		if (!cachedData) {
 			this.dialog.open(AlertComponent, {data: {content: "没有CAD数据"}});
 			return;
 		}
 		const data = new CadData();
-		data.components.data.push(new CadData(cacheedData));
+		data.components.data.push(new CadData(cachedData));
 		const cad = new CadViewer(data, {
 			width: innerWidth,
 			height: innerHeight,

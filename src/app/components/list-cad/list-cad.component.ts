@@ -47,7 +47,7 @@ export class ListCadComponent implements AfterViewInit {
 		this.getData(event.pageIndex + 1);
 	}
 
-	async getData(page: number, withOption = false) {
+	async getData(page: number, withOption = false, matchType: "and" | "or" = "and") {
 		let options: CadOption[] = [];
 		if (withOption) {
 			options = this.data.options || [];
@@ -60,7 +60,7 @@ export class ListCadComponent implements AfterViewInit {
 			this.pageData.length = 0;
 			this.tableData = data.data;
 		} else {
-			const data = await this.dataService.getCadDataPage(type, page, limit, this.searchValue, true, options);
+			const data = await this.dataService.getCadDataPage(type, page, limit, this.searchValue, true, options, matchType);
 			this.length = data.count;
 			this.pageData.length = 0;
 			for (const d of data.data) {
@@ -102,10 +102,10 @@ export class ListCadComponent implements AfterViewInit {
 		this.dialogRef.close();
 	}
 
-	search(withOption = false) {
+	search(withOption = false, matchType: "and" | "or" = "and") {
 		this.searchValue = this.searchInput;
 		this.paginator.pageIndex = 0;
-		this.getData(this.paginator.pageIndex + 1, withOption);
+		this.getData(this.paginator.pageIndex + 1, withOption, matchType);
 	}
 
 	searchKeydown(event: KeyboardEvent) {

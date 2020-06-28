@@ -320,7 +320,13 @@ export class CadViewer {
 		}
 
 		const anchor = new Vector2(0.5, 1);
-		let gongshi = entity.mingzi && entity.gongshi ? entity.mingzi + "=" + entity.gongshi : entity.gongshi;
+		let gongshi = "";
+		if (entity.mingzi) {
+			gongshi += entity.mingzi;
+		}
+		if (entity.gongshi) {
+			gongshi += "=" + entity.gongshi;
+		}
 		if (entity.isVertical(1)) {
 			anchor.set(1, 0.5);
 			gongshi = gongshi.split("").join("\n");
@@ -442,6 +448,7 @@ export class CadViewer {
 			object.name = entity.id;
 			object.userData.selectable = true;
 			object.padding = 0.1;
+			object.align = "left";
 			objects[entity.id] = object;
 			scene.add(object);
 		}
