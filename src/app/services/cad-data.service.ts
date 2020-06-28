@@ -195,6 +195,7 @@ export class CadDataService {
 				json.type = 分类;
 				json.options = 选项;
 				json.conditions = 条件;
+				json.id = _id;
 				result.push(new CadData(json));
 			} else {
 				result.push(new CadData({id: _id, name: 名字, type: 分类, options: 选项, conditions: 条件}));

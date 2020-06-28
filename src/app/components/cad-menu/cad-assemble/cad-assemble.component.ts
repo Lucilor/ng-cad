@@ -33,14 +33,14 @@ export class CadAssembleComponent implements OnInit {
 					const {ids, lines, names} = this;
 					const found = component.findEntity(entity.id);
 					if (found) {
-						const prev = ids.findIndex((id) => id === component.id || id === component.originalId);
+						const prev = ids.findIndex((id) => id === component.id || id === component.id);
 						const {space, position} = this.options;
 						if (object.userData.selected) {
 							if (position === "absolute") {
 								if (prev > -1) {
 									lines[prev] = found.originalId;
 								} else {
-									ids.push(component.originalId);
+									ids.push(component.id);
 									names.push(component.name);
 									lines.push(found.originalId);
 								}
@@ -56,7 +56,7 @@ export class CadAssembleComponent implements OnInit {
 										lines[prev] = found.originalId;
 									}
 								} else {
-									ids.push(component.originalId);
+									ids.push(component.id);
 									names.push(component.name);
 									lines.push(found.originalId);
 								}

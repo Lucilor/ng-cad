@@ -13,7 +13,6 @@ export class CadData {
 	entities: CadEntities;
 	layers: CadLayer[];
 	id: string;
-	originalId: string;
 	name: string;
 	type: string;
 	conditions: string[];
@@ -34,7 +33,6 @@ export class CadData {
 			throw new Error("Invalid data.");
 		}
 		this.id = typeof data.id === "string" ? data.id : MathUtils.generateUUID();
-		this.originalId = data.originalId || this.id;
 		this.name = typeof data.name === "string" ? data.name : "";
 		this.type = typeof data.type === "string" ? data.type : "";
 		this.layers = [];
@@ -97,7 +95,6 @@ export class CadData {
 			layers: exLayers,
 			entities: this.entities.export(),
 			id: this.id,
-			originalId: this.originalId,
 			name: this.name,
 			type: this.type,
 			conditions: this.conditions.filter((v) => v),
@@ -360,10 +357,10 @@ export class CadData {
 		let c1: CadData;
 		let c2: CadData;
 		for (const c of components.data) {
-			if (c.id === ids[0] || c.originalId === ids[0]) {
+			if (c.id === ids[0] || c.id === ids[0]) {
 				c1 = c;
 			}
-			if (c.id === ids[1] || c.originalId === ids[1]) {
+			if (c.id === ids[1] || c.id === ids[1]) {
 				c2 = c;
 			}
 			if (c1 && c2) {
@@ -519,8 +516,8 @@ export class CadData {
 		connection.space = connection.space ? connection.space : "0";
 		const connectedToBoth = intersection(connectedToC1, connectedToC2);
 		components.connections.forEach((conn, i) => {
-			const arr = intersection(conn.ids, [c1.originalId, c2.originalId, this.originalId]);
-			if (conn.ids.includes(c2.originalId) && intersection(conn.ids, connectedToBoth).length) {
+			const arr = intersection(conn.ids, [c1.id, c2.id, this.id]);
+			if (conn.ids.includes(c2.id) && intersection(conn.ids, connectedToBoth).length) {
 				toRemove.push(i);
 			}
 			if (arr.length === 2 && conn.axis === axis) {
@@ -623,7 +620,7 @@ export class CadData {
 		}
 		["x", "y"].forEach((axis) => {
 			const conn = new CadConnection({axis, position: "absolute"});
-			conn.ids = [this.originalId, component.originalId];
+			conn.ids = [this.id, component.id];
 			conn.names = [this.name, component.name];
 			conn.lines = [lines[axis].originalId, cLines[axis].originalId];
 			if (axis === "x") {
