@@ -163,7 +163,7 @@ export class CadData {
 		return result;
 	}
 
-	findChild(id: string) {
+	findChild(id: string): CadData {
 		const children = [...this.partners, ...this.components.data];
 		for (const data of children) {
 			if (data.id === id) {
